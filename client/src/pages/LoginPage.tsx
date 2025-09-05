@@ -13,13 +13,20 @@ const LoginPage: React.FC = () => {
     setError('')
     setLoading(true)
 
-    const result = await login(email, password)
-    
-    if (!result.success) {
-      setError(result.error)
+    try {
+      const result = await login(email, password)
+      console.log('Login result:', result)
+      
+      if (!result?.success) {
+        setError(result?.error || 'Login failed')
+      }
+      // If successful, the user state will update and component will re-render
+    } catch (err) {
+      console.error('Login error:', err)
+      setError('An unexpected error occurred')
+    } finally {
+      setLoading(false)
     }
-    
-    setLoading(false)
   }
 
   return (
@@ -83,6 +90,13 @@ const LoginPage: React.FC = () => {
             <p className="font-medium">Demo Credentials:</p>
             <p>Email: demo@networkcrm.com</p>
             <p>Password: demo123456</p>
+            <button 
+              type="button" 
+              onClick={() => handleSubmit(new Event('submit') as any)}
+              className="mt-2 text-blue-600 hover:text-blue-800 text-xs"
+            >
+              🔧 Test Login Function
+            </button>
           </div>
         </form>
       </div>

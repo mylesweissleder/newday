@@ -49,8 +49,11 @@ export const useAuth = () => {
   }
 
   const login = async (email: string, password: string) => {
+    console.log('Login called with:', { email, password })
+    
     // Demo mode - simulate API call for demo credentials
     if (email === 'demo@networkcrm.com' && password === 'demo123456') {
+      console.log('Using demo login')
       const demoUser = {
         id: 'demo-user-id',
         email: 'demo@networkcrm.com',
@@ -63,6 +66,7 @@ export const useAuth = () => {
       
       localStorage.setItem('auth-token', 'demo-token')
       setUser(demoUser)
+      console.log('Demo user set:', demoUser)
       return { success: true }
     }
 
