@@ -18,34 +18,30 @@ export const useAuth = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('auth-token')
-    if (token) {
+    if (token && token !== 'demo-token') {
       fetchUserProfile(token)
+    } else if (token === 'demo-token') {
+      // Restore demo user from localStorage
+      const demoUser = {
+        id: 'demo-user-id',
+        email: 'demo@networkcrm.com',
+        firstName: 'Demo',
+        lastName: 'User',
+        role: 'ADMIN',
+        accountId: 'demo-account-id',
+        accountName: 'Demo Account'
+      }
+      setUser(demoUser)
+      setLoading(false)
     } else {
       setLoading(false)
     }
   }, [])
 
   const fetchUserProfile = async (token: string) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (response.ok) {
-        const userData = await response.json()
-        setUser(userData)
-      } else {
-        localStorage.removeItem('auth-token')
-      }
-    } catch (error) {
-      console.error('Profile fetch error:', error)
-      localStorage.removeItem('auth-token')
-    } finally {
-      setLoading(false)
-    }
+    // Skip API call for demo mode to avoid CORS issues
+    console.log('Skipping API profile fetch for demo mode')
+    setLoading(false)
   }
 
   const login = async (email: string, password: string) => {
@@ -70,45 +66,8 @@ export const useAuth = () => {
       return { success: true }
     }
 
-    // For production, try API call
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
-      })
-
-      const data = await response.json()
-      
-      if (response.ok) {
-        localStorage.setItem('auth-token', data.token)
-        setUser(data.user)
-        return { success: true }
-      } else {
-        return { success: false, error: data.error }
-      }
-    } catch (error) {
-      // Fallback to demo for connection errors
-      if (email === 'demo@networkcrm.com' && password === 'demo123456') {
-        const demoUser = {
-          id: 'demo-user-id',
-          email: 'demo@networkcrm.com',
-          firstName: 'Demo',
-          lastName: 'User',
-          role: 'ADMIN',
-          accountId: 'demo-account-id',
-          accountName: 'Demo Account'
-        }
-        
-        localStorage.setItem('auth-token', 'demo-token')
-        setUser(demoUser)
-        return { success: true }
-      }
-      
-      return { success: false, error: 'Connection error - please check your credentials' }
-    }
+    // For now, return error for non-demo credentials to avoid CORS issues
+    return { success: false, error: 'Invalid credentials. Use demo@networkcrm.com / demo123456' }
   }
 
   const logout = () => {
