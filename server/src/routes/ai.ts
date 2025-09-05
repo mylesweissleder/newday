@@ -25,7 +25,7 @@ router.post('/analyze-contact/:id', async (req: Request, res: Response) => {
     await prisma.contact.update({
       where: { id: req.params.id },
       data: {
-        aiInsights: insights,
+        aiInsights: insights as any,
         updatedById: req.user!.id
       }
     });
@@ -165,7 +165,7 @@ router.post('/recommendations', async (req: Request, res: Response) => {
     const rankedContacts = contacts
       .map(contact => ({
         ...contact,
-        relevanceScore: this.calculateRelevance(contact, criteria, industry)
+        relevanceScore: calculateRelevance(contact, criteria, industry)
       }))
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
       .slice(0, Number(limit));
@@ -232,5 +232,6 @@ function inferIndustryFromCompany(company: string): string {
   
   return 'Other';
 }
+
 
 export default router;
