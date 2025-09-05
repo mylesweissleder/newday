@@ -14,6 +14,7 @@ build/
 .env.production
 .env.development
 server/.env
+SECRET_ENV_VARS.md
 
 # Logs
 npm-debug.log*

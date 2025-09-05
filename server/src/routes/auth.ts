@@ -29,11 +29,10 @@ const inviteUserSchema = Joi.object({
 });
 
 // Generate JWT token
-const generateToken = (userId: string, accountId: string, email: string): 
-  string => {
+const generateToken = (userId: string, accountId: string, email: string): string => {
   return jwt.sign(
     { userId, accountId, email },
-  process.env.JWT_SECRET as string,
+    process.env.JWT_SECRET as string,
     { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
   );
 };
