@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route, Navigate, BrowserRouter } from 'react-router-dom'
+import { Routes, Route, Navigate, HashRouter } from 'react-router-dom'
 import SiteAccessGate from './components/SiteAccessGate'
 import { useAuth } from './hooks/useAuth'
 import LoginPage from './pages/LoginPage'
@@ -18,7 +18,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <SiteAccessGate>
         {!user ? (
           <Routes>
@@ -59,7 +59,7 @@ function App() {
           </div>
         )}
       </SiteAccessGate>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 
