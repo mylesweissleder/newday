@@ -197,34 +197,70 @@ const DashboardPage: React.FC = () => {
       {/* Recent Contacts */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">Recent Contacts</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">Recent Contacts</h2>
+              <p className="text-sm text-gray-500 mt-1">Latest additions to your network</p>
+            </div>
+            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              View All
+            </button>
+          </div>
         </div>
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-gray-100">
           {recentContacts.length === 0 ? (
-            <div className="px-6 py-8 text-center text-gray-500">
-              No contacts yet. Start by importing some contacts!
+            <div className="px-6 py-12 text-center">
+              <svg className="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <p className="text-gray-500 text-sm">No contacts yet</p>
+              <p className="text-gray-400 text-xs mt-1">Start by importing your first contacts!</p>
             </div>
           ) : (
             recentContacts.map((contact: any, index) => (
-              <div key={index} className="px-6 py-4 hover:bg-gray-50">
+              <div key={index} className="px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {contact.firstName} {contact.lastName}
-                    </p>
-                    <p className="text-sm text-gray-600">{contact.email}</p>
-                    <p className="text-sm text-gray-500">
-                      {contact.company} • {contact.position}
-                    </p>
+                  <div className="flex items-center space-x-4">
+                    <div className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                      {contact.firstName[0]}{contact.lastName[0]}
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {contact.firstName} {contact.lastName}
+                        </p>
+                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                          contact.tier === 'TIER_1' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                          contact.tier === 'TIER_2' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                          'bg-gray-100 text-gray-700 border border-gray-200'
+                        }`}>
+                          {contact.tier === 'TIER_1' ? '⭐ Tier 1' : 
+                           contact.tier === 'TIER_2' ? '🔸 Tier 2' : 
+                           '◯ Tier 3'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-blue-600 hover:text-blue-700">{contact.email}</p>
+                      <div className="flex items-center text-sm text-gray-500 mt-1">
+                        <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span className="font-medium text-gray-700">{contact.company}</span>
+                        <span className="mx-2">•</span>
+                        <span>{contact.position}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      contact.tier === 'TIER_1' ? 'bg-green-100 text-green-800' :
-                      contact.tier === 'TIER_2' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {contact.tier}
-                    </span>
+                  <div className="flex items-center space-x-2">
+                    <button className="p-2 hover:bg-gray-100 rounded-full" title="Send Message">
+                      <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </button>
+                    <button className="p-2 hover:bg-gray-100 rounded-full" title="View Profile">
+                      <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -237,38 +273,60 @@ const DashboardPage: React.FC = () => {
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900">Quick Actions</h2>
+          <p className="text-sm text-gray-500 mt-1">Powerful tools to manage and analyze your network</p>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors">
-              <div className="text-center">
-                <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <p className="text-sm font-medium text-gray-900">Import Contacts</p>
-                <p className="text-xs text-gray-500">Upload CSV files</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="group cursor-pointer">
+              <div className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group-hover:shadow-md">
+                <div className="text-center">
+                  <div className="mx-auto h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
+                    <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Import Contacts</h3>
+                  <p className="text-sm text-gray-600 mb-4">Drag & drop CSV files or connect to LinkedIn, CRM systems</p>
+                  <div className="flex items-center justify-center text-xs text-gray-500">
+                    <span className="bg-gray-100 px-2 py-1 rounded-full">CSV • Excel • API</span>
+                  </div>
+                </div>
               </div>
-            </button>
+            </div>
 
-            <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors">
-              <div className="text-center">
-                <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-                <p className="text-sm font-medium text-gray-900">AI Analysis</p>
-                <p className="text-xs text-gray-500">Network insights</p>
+            <div className="group cursor-pointer">
+              <div className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all duration-200 group-hover:shadow-md">
+                <div className="text-center">
+                  <div className="mx-auto h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-200 transition-colors">
+                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Network Analysis</h3>
+                  <p className="text-sm text-gray-600 mb-4">Discover connections, identify influencers, find warm intros</p>
+                  <div className="flex items-center justify-center text-xs text-gray-500">
+                    <span className="bg-gray-100 px-2 py-1 rounded-full">Powered by GPT-4</span>
+                  </div>
+                </div>
               </div>
-            </button>
+            </div>
 
-            <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors">
-              <div className="text-center">
-                <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-                </svg>
-                <p className="text-sm font-medium text-gray-900">Create Campaign</p>
-                <p className="text-xs text-gray-500">Outreach campaigns</p>
+            <div className="group cursor-pointer">
+              <div className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 group-hover:shadow-md">
+                <div className="text-center">
+                  <div className="mx-auto h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
+                    <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Smart Outreach</h3>
+                  <p className="text-sm text-gray-600 mb-4">AI-generated personalized messages and campaigns</p>
+                  <div className="flex items-center justify-center text-xs text-gray-500">
+                    <span className="bg-gray-100 px-2 py-1 rounded-full">Email • LinkedIn</span>
+                  </div>
+                </div>
               </div>
-            </button>
+            </div>
           </div>
         </div>
       </div>

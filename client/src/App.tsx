@@ -21,12 +21,7 @@ function App() {
   return (
     <SiteAccessGate>
       {!user ? (
-        <>
-          <div style={{position: 'fixed', top: 0, right: 0, background: 'red', color: 'white', padding: '5px', fontSize: '12px', zIndex: 9999}}>
-            DEBUG: user={user ? 'YES' : 'NO'}, loading={loading ? 'YES' : 'NO'}
-          </div>
-          <LoginPage />
-        </>
+        <LoginPage />
       ) : (
         <div className="min-h-screen bg-gray-50">
           {/* Header */}
