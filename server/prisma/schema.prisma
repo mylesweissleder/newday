@@ -1,0 +1,278 @@
+// Network CRM Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isActive    Boolean  @default(true)
+  
+  // Relations
+  users       User[]
+  contacts    Contact[]
+  campaigns   Campaign[]
+  
+  @@map("accounts")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      UserRole @default(MEMBER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
+  
+  // Relations
+  account   Account @relation(fields: [accountId], references: [id])
+  accountId String
+  
+  // Activity tracking
+  contactsCreated Contact[] @relation("CreatedBy")
+  contactsUpdated Contact[] @relation("UpdatedBy")
+  outreachSent    Outreach[]
+  
+  @@map("users")
+}
+
+model Contact {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String?
+  phone       String?
+  company     String?
+  position    String?
+  linkedinUrl String?
+  twitterUrl  String?
+  website     String?
+  
+  // Categorization
+  tier        ContactTier?
+  tags        String[]
+  source      String?
+  status      ContactStatus @default(ACTIVE)
+  
+  // AI Insights
+  aiInsights     Json?
+  personalityScore Float?
+  engagementScore  Float?
+  
+  // Relationship tracking
+  connectionDate    DateTime?
+  lastContactDate   DateTime?
+  relationshipType  RelationshipType?
+  relationshipNotes String?
+  
+  // Location
+  city     String?
+  state    String?
+  country  String?
+  timezone String?
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  account   Account @relation(fields: [accountId], references: [id])
+  accountId String
+  
+  createdBy   User   @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById String
+  
+  updatedBy   User?   @relation("UpdatedBy", fields: [updatedById], references: [id])
+  updatedById String?
+  
+  // Many-to-many relationships
+  relationships ContactRelationship[] @relation("Contact")
+  relatedTo     ContactRelationship[] @relation("RelatedContact")
+  
+  // Outreach history
+  outreach Outreach[]
+  
+  // Campaign associations
+  campaignContacts CampaignContact[]
+  
+  @@unique([email, accountId])
+  @@map("contacts")
+}
+
+model ContactRelationship {
+  id String @id @default(cuid())
+  
+  contact         Contact @relation("Contact", fields: [contactId], references: [id])
+  contactId       String
+  
+  relatedContact  Contact @relation("RelatedContact", fields: [relatedContactId], references: [id])
+  relatedContactId String
+  
+  relationshipType RelationshipType
+  strength         Float? // 0-1 scale
+  notes           String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([contactId, relatedContactId])
+  @@map("contact_relationships")
+}
+
+model Campaign {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  objective   String?
+  status      CampaignStatus @default(DRAFT)
+  
+  // Campaign settings
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean @default(true)
+  
+  // Templates
+  emailTemplate    String?
+  linkedinTemplate String?
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  account   Account @relation(fields: [accountId], references: [id])
+  accountId String
+  
+  contacts CampaignContact[]
+  
+  @@map("campaigns")
+}
+
+model CampaignContact {
+  id String @id @default(cuid())
+  
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  campaignId String
+  
+  contact   Contact @relation(fields: [contactId], references: [id])
+  contactId String
+  
+  status           CampaignContactStatus @default(PENDING)
+  personalizedNote String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([campaignId, contactId])
+  @@map("campaign_contacts")
+}
+
+model Outreach {
+  id      String @id @default(cuid())
+  type    OutreachType
+  status  OutreachStatus @default(PENDING)
+  subject String?
+  message String
+  
+  // Response tracking
+  sentAt      DateTime?
+  openedAt    DateTime?
+  respondedAt DateTime?
+  response    String?
+  
+  // Relations
+  contact   Contact @relation(fields: [contactId], references: [id])
+  contactId String
+  
+  sentBy   User   @relation(fields: [sentById], references: [id])
+  sentById String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("outreach")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum ContactTier {
+  TIER_1
+  TIER_2
+  TIER_3
+  TIER_4
+}
+
+enum ContactStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+  BLOCKED
+}
+
+enum RelationshipType {
+  COLLEAGUE
+  CLIENT
+  VENDOR
+  PARTNER
+  INVESTOR
+  MENTOR
+  MENTEE
+  FRIEND
+  FAMILY
+  ACQUAINTANCE
+  PROSPECT
+  COMPETITOR
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum CampaignContactStatus {
+  PENDING
+  CONTACTED
+  RESPONDED
+  INTERESTED
+  NOT_INTERESTED
+  CONVERTED
+  BOUNCED
+}
+
+enum OutreachType {
+  EMAIL
+  LINKEDIN
+  PHONE
+  MEETING
+  OTHER
+}
+
+enum OutreachStatus {
+  PENDING
+  SENT
+  DELIVERED
+  OPENED
+  RESPONDED
+  FAILED
+}

@@ -1,0 +1,25 @@
+{
+  "name": "network-crm",
+  "version": "1.0.0",
+  "description": "AI-Powered Network CRM for Contact Management and Relationship Mining",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd server && npm run dev",
+    "client:dev": "cd client && npm start",
+    "build": "npm run server:build && npm run client:build",
+    "server:build": "cd server && npm run build",
+    "client:build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "db:generate": "cd server && npx prisma generate",
+    "db:push": "cd server && npx prisma db push",
+    "db:migrate": "cd server && npx prisma migrate dev",
+    "db:seed": "cd server && npx tsx src/seed.ts"
+  },
+  "keywords": ["crm", "networking", "ai", "contacts", "relationships"],
+  "author": "Network CRM Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
