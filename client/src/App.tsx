@@ -1,5 +1,6 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import SiteAccessGate from './components/SiteAccessGate'
 import { useAuth } from './hooks/useAuth'
 import Layout from './components/Layout'
 import LoginPage from './pages/LoginPage'
@@ -27,33 +28,33 @@ function App() {
     )
   }
 
-  if (!user) {
-    return (
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    )
-  }
-
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/contacts" element={<ContactsPage />} />
-        <Route path="/contacts/:id" element={<ContactDetailPage />} />
-        <Route path="/campaigns" element={<CampaignsPage />} />
-        <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
-        <Route path="/outreach" element={<OutreachPage />} />
-        <Route path="/network" element={<NetworkPage />} />
-        <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/import" element={<ImportPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </Layout>
+    <SiteAccessGate>
+      {!user ? (
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      ) : (
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/contacts" element={<ContactsPage />} />
+            <Route path="/contacts/:id" element={<ContactDetailPage />} />
+            <Route path="/campaigns" element={<CampaignsPage />} />
+            <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
+            <Route path="/outreach" element={<OutreachPage />} />
+            <Route path="/network" element={<NetworkPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/import" element={<ImportPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Layout>
+      )}
+    </SiteAccessGate>
   )
 }
 
