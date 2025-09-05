@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface User {
   id: string
@@ -61,8 +61,9 @@ export const useAuth = () => {
       }
       
       localStorage.setItem('auth-token', 'demo-token')
+      console.log('Setting demo user:', demoUser)
       setUser(demoUser)
-      console.log('Demo user set:', demoUser)
+      console.log('Demo user set, state should update')
       return { success: true }
     }
 
