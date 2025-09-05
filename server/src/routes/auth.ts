@@ -29,7 +29,8 @@ const inviteUserSchema = Joi.object({
 });
 
 // Generate JWT token
-const generateToken = (userId: string, accountId: string, email: string): string => {
+const generateToken = (userId: string, accountId: string, email: string): 
+  string => {
   return jwt.sign(
     { userId, accountId, email },
   process.env.JWT_SECRET as string,
@@ -184,4 +185,5 @@ router.post('/invite', async (req: Request, res: Response) => {
 
 
 export default router;
+
 
