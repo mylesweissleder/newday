@@ -49,6 +49,24 @@ export const useAuth = () => {
   }
 
   const login = async (email: string, password: string) => {
+    // Demo mode - simulate API call for demo credentials
+    if (email === 'demo@networkcrm.com' && password === 'demo123456') {
+      const demoUser = {
+        id: 'demo-user-id',
+        email: 'demo@networkcrm.com',
+        firstName: 'Demo',
+        lastName: 'User',
+        role: 'ADMIN',
+        accountId: 'demo-account-id',
+        accountName: 'Demo Account'
+      }
+      
+      localStorage.setItem('auth-token', 'demo-token')
+      setUser(demoUser)
+      return { success: true }
+    }
+
+    // For production, try API call
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
@@ -68,7 +86,24 @@ export const useAuth = () => {
         return { success: false, error: data.error }
       }
     } catch (error) {
-      return { success: false, error: 'Connection error' }
+      // Fallback to demo for connection errors
+      if (email === 'demo@networkcrm.com' && password === 'demo123456') {
+        const demoUser = {
+          id: 'demo-user-id',
+          email: 'demo@networkcrm.com',
+          firstName: 'Demo',
+          lastName: 'User',
+          role: 'ADMIN',
+          accountId: 'demo-account-id',
+          accountName: 'Demo Account'
+        }
+        
+        localStorage.setItem('auth-token', 'demo-token')
+        setUser(demoUser)
+        return { success: true }
+      }
+      
+      return { success: false, error: 'Connection error - please check your credentials' }
     }
   }
 
