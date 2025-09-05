@@ -10,6 +10,12 @@
   body {
     @apply bg-gray-50 text-gray-900;
   }
+  
+  /* Ensure SVGs are properly sized */
+  svg {
+    display: inline-block;
+    vertical-align: middle;
+  }
 }
 
 @layer components {
