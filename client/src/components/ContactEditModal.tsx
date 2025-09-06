@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import InteractionHistory from './InteractionHistory'
 
 interface Contact {
   id: string
@@ -33,6 +34,7 @@ const ContactEditModal: React.FC<ContactEditModalProps> = ({
   const [formData, setFormData] = useState<Partial<Contact>>({})
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<{[key: string]: string}>({})
+  const [activeTab, setActiveTab] = useState<'details' | 'interactions'>('details')
 
   useEffect(() => {
     if (contact) {
@@ -101,7 +103,7 @@ const ContactEditModal: React.FC<ContactEditModalProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-gray-900">Edit Contact</h2>
-              <p className="text-sm text-gray-600">Update contact information and details</p>
+              <p className="text-sm text-gray-600">Update contact information and track interactions</p>
             </div>
             <button
               onClick={onClose}
@@ -114,20 +116,48 @@ const ContactEditModal: React.FC<ContactEditModalProps> = ({
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="px-6 py-3 border-b border-gray-200">
+          <nav className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('details')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'details'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Contact Details
+            </button>
+            <button
+              onClick={() => setActiveTab('interactions')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'interactions'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Interaction History
+            </button>
+          </nav>
+        </div>
+
         {/* Content */}
-        <div className="px-6 py-4 space-y-6">
-          {/* Contact Avatar */}
-          <div className="flex items-center">
-            <div className="h-16 w-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xl">
-              {formData.firstName?.[0] || ''}{formData.lastName?.[0] || ''}
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                {formData.firstName} {formData.lastName}
-              </h3>
-              <p className="text-sm text-gray-500">Contact since {new Date(contact.createdAt).toLocaleDateString()}</p>
-            </div>
-          </div>
+        <div className="px-6 py-4">
+          {activeTab === 'details' && (
+            <div className="space-y-6">
+              {/* Contact Avatar */}
+              <div className="flex items-center">
+                <div className="h-16 w-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xl">
+                  {formData.firstName?.[0] || ''}{formData.lastName?.[0] || ''}
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    {formData.firstName} {formData.lastName}
+                  </h3>
+                  <p className="text-sm text-gray-500">Contact since {new Date(contact.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
 
           {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -261,39 +291,63 @@ const ContactEditModal: React.FC<ContactEditModalProps> = ({
             />
           </div>
 
-          {/* Contact Info */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-medium text-gray-900 mb-2">Contact Information</h4>
-            <div className="text-sm text-gray-600 space-y-1">
-              <div><strong>Source:</strong> {contact.source || 'Unknown'}</div>
-              <div><strong>Created:</strong> {new Date(contact.createdAt).toLocaleDateString()}</div>
-              <div><strong>Last Updated:</strong> {new Date(contact.updatedAt).toLocaleDateString()}</div>
-              {contact.tags && contact.tags.length > 0 && (
-                <div><strong>Tags:</strong> {contact.tags.join(', ')}</div>
-              )}
+              {/* Contact Info */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 mb-2">Contact Information</h4>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <div><strong>Source:</strong> {contact.source || 'Unknown'}</div>
+                  <div><strong>Created:</strong> {new Date(contact.createdAt).toLocaleDateString()}</div>
+                  <div><strong>Last Updated:</strong> {new Date(contact.updatedAt).toLocaleDateString()}</div>
+                  {contact.tags && contact.tags.length > 0 && (
+                    <div><strong>Tags:</strong> {contact.tags.join(', ')}</div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {activeTab === 'interactions' && (
+            <div className="py-2">
+              <InteractionHistory 
+                contactId={contact.id} 
+                contactName={`${contact.firstName} ${contact.lastName}`}
+              />
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center"
-          >
-            {saving && (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-            )}
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
+        {activeTab === 'details' && (
+          <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center"
+            >
+              {saving && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              )}
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'interactions' && (
+          <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Close
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
