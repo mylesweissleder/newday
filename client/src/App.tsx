@@ -5,9 +5,10 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import ImportContactsPage from './pages/ImportContactsPage'
 import NetworkAnalysisPage from './pages/NetworkAnalysisPage'
+import ContactsPage from './pages/ContactsPage'
 import LoadingSpinner from './components/LoadingSpinner'
 
-type Page = 'dashboard' | 'import' | 'analysis' | 'outreach'
+type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'contacts'
 
 function App() {
   const { user, loading, logout } = useAuth()
@@ -37,14 +38,30 @@ function App() {
                   <h1 className="text-2xl font-bold text-gray-900">Network CRM</h1>
                   <p className="text-sm text-gray-600">Welcome back, {user.firstName}</p>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-700">{user.email}</span>
-                  <button
-                    onClick={logout}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                  >
-                    Logout
-                  </button>
+                <div className="flex items-center space-x-6">
+                  <nav className="flex space-x-4">
+                    <button
+                      onClick={() => setCurrentPage('dashboard')}
+                      className={`text-sm font-medium ${currentPage === 'dashboard' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                      Dashboard
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage('contacts')}
+                      className={`text-sm font-medium ${currentPage === 'contacts' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                      Contacts
+                    </button>
+                  </nav>
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-700">{user.email}</span>
+                    <button
+                      onClick={logout}
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                    >
+                      Logout
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -64,6 +81,9 @@ function App() {
             )}
             {currentPage === 'analysis' && (
               <NetworkAnalysisPage onBack={() => setCurrentPage('dashboard')} />
+            )}
+            {currentPage === 'contacts' && (
+              <ContactsPage onBack={() => setCurrentPage('dashboard')} />
             )}
             {currentPage === 'outreach' && (
               <div className="text-center py-12">

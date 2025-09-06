@@ -35,6 +35,8 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
   const [parseResults, setParseResults] = useState<{[key: string]: {contacts: Contact[], errors: string[]}}>({})
   const [duplicates, setDuplicates] = useState<DuplicateGroup[]>([])
   const [showDuplicates, setShowDuplicates] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveResult, setSaveResult] = useState<{success: number, failed: number, errors: string[]} | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Helper function to parse full name into first and last
@@ -299,6 +301,83 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
 
   const removeFile = (index: number) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const saveToDatabase = async () => {
+    setSaving(true)
+    setSaveResult(null)
+
+    const result = {
+      success: 0,
+      failed: 0,
+      errors: [] as string[]
+    }
+
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
+    const token = localStorage.getItem('auth-token')
+
+    // If demo token, simulate save
+    if (token === 'demo-token') {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      result.success = parsedContacts.length
+      setSaveResult(result)
+      setSaving(false)
+      alert(`Demo Mode: Successfully "saved" ${parsedContacts.length} contacts to database!`)
+      return
+    }
+
+    try {
+      // Save contacts one by one (could be optimized with bulk endpoint later)
+      for (const contact of parsedContacts) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/contacts`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              firstName: contact.firstName,
+              lastName: contact.lastName,
+              email: contact.email,
+              company: contact.company,
+              position: contact.position,
+              phone: contact.phone,
+              tier: contact.tier?.toUpperCase() || 'TIER_3',
+              source: contact.sources?.map(s => s.fileName).join(', ') || 'CSV Import',
+              tags: ['imported', ...uploadedFiles.map(f => f.name.replace(/\.[^/.]+$/, ''))]
+            })
+          })
+
+          if (response.ok) {
+            result.success++
+          } else {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+            result.failed++
+            result.errors.push(`${contact.firstName} ${contact.lastName}: ${errorData.error || 'Failed to save'}`)
+          }
+        } catch (error) {
+          result.failed++
+          result.errors.push(`${contact.firstName} ${contact.lastName}: Network error`)
+        }
+      }
+
+      setSaveResult(result)
+      
+      if (result.success > 0) {
+        alert(`Successfully saved ${result.success} contacts to database!${result.failed > 0 ? ` (${result.failed} failed)` : ''}`)
+      } else {
+        alert('Failed to save contacts. Please check the errors and try again.')
+      }
+
+    } catch (error) {
+      result.failed = parsedContacts.length
+      result.errors.push('Network connection failed')
+      setSaveResult(result)
+      alert('Failed to connect to server. Please check your connection and try again.')
+    }
+
+    setSaving(false)
   }
 
   return (
@@ -622,10 +701,50 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
 
           {/* Save to Database Button */}
           {parsedContacts.length > 0 && (
-            <div className="flex justify-center">
-              <button className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
-                Save {parsedContacts.length} Contacts to Database
-              </button>
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <button 
+                  onClick={saveToDatabase}
+                  disabled={saving}
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium disabled:bg-gray-400 flex items-center"
+                >
+                  {saving && (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  )}
+                  {saving ? 'Saving...' : `Save ${parsedContacts.length} Contacts to Database`}
+                </button>
+              </div>
+
+              {/* Save Results */}
+              {saveResult && (
+                <div className="bg-white rounded-lg shadow border p-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Save Results</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{saveResult.success}</div>
+                      <div className="text-sm text-gray-600">Successfully Saved</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-red-600">{saveResult.failed}</div>
+                      <div className="text-sm text-gray-600">Failed to Save</div>
+                    </div>
+                  </div>
+
+                  {saveResult.errors.length > 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded p-4">
+                      <h4 className="font-medium text-red-800 mb-2">Errors:</h4>
+                      <div className="text-sm text-red-700 space-y-1 max-h-32 overflow-y-auto">
+                        {saveResult.errors.slice(0, 10).map((error, index) => (
+                          <div key={index}>• {error}</div>
+                        ))}
+                        {saveResult.errors.length > 10 && (
+                          <div className="font-medium">+ {saveResult.errors.length - 10} more errors...</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
