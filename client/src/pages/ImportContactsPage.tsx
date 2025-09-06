@@ -9,6 +9,18 @@ interface Contact {
   position?: string
   phone?: string
   tier?: string
+  sources?: Array<{
+    fileName: string
+    uploadedBy?: string
+    uploadedAt: Date
+    originalData: any
+  }>
+}
+
+interface DuplicateGroup {
+  primaryEmail: string
+  contacts: Array<Contact & { sourceFile: string }>
+  mergedContact?: Contact
 }
 
 interface ImportContactsPageProps {
@@ -21,7 +33,96 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [parsedContacts, setParsedContacts] = useState<Contact[]>([])
   const [parseResults, setParseResults] = useState<{[key: string]: {contacts: Contact[], errors: string[]}}>({})
+  const [duplicates, setDuplicates] = useState<DuplicateGroup[]>([])
+  const [showDuplicates, setShowDuplicates] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Helper function to parse full name into first and last
+  const parseFullName = (fullName: string): { firstName: string, lastName: string } => {
+    const trimmed = fullName.trim()
+    const parts = trimmed.split(/\s+/)
+    
+    if (parts.length === 1) {
+      return { firstName: parts[0], lastName: '' }
+    } else if (parts.length === 2) {
+      return { firstName: parts[0], lastName: parts[1] }
+    } else {
+      // Handle middle names or complex names
+      // Assume first word is first name, rest is last name
+      return { 
+        firstName: parts[0], 
+        lastName: parts.slice(1).join(' ')
+      }
+    }
+  }
+
+  // Helper function to normalize email for deduplication
+  const normalizeEmail = (email: string): string => {
+    return email.toLowerCase().trim().replace(/\+.*@/, '@') // Remove + aliases
+  }
+
+  // Find duplicates across all parsed contacts
+  const findDuplicates = (allContacts: Array<Contact & { sourceFile: string }>): DuplicateGroup[] => {
+    const emailGroups = new Map<string, Array<Contact & { sourceFile: string }>>()
+    
+    allContacts.forEach(contact => {
+      const normalizedEmail = normalizeEmail(contact.email)
+      if (!emailGroups.has(normalizedEmail)) {
+        emailGroups.set(normalizedEmail, [])
+      }
+      emailGroups.get(normalizedEmail)!.push(contact)
+    })
+
+    const duplicateGroups: DuplicateGroup[] = []
+    
+    emailGroups.forEach((contacts, email) => {
+      if (contacts.length > 1) {
+        // Merge contact data intelligently
+        const merged = mergeContacts(contacts)
+        duplicateGroups.push({
+          primaryEmail: email,
+          contacts,
+          mergedContact: merged
+        })
+      }
+    })
+
+    return duplicateGroups
+  }
+
+  // Intelligently merge duplicate contacts
+  const mergeContacts = (contacts: Array<Contact & { sourceFile: string }>): Contact => {
+    const merged: Contact = {
+      firstName: '',
+      lastName: '',
+      email: contacts[0].email,
+      sources: []
+    }
+
+    // Track all sources
+    contacts.forEach(contact => {
+      merged.sources!.push({
+        fileName: contact.sourceFile,
+        uploadedAt: new Date(),
+        originalData: contact
+      })
+    })
+
+    // Merge fields - prefer non-empty values
+    contacts.forEach(contact => {
+      if (!merged.firstName && contact.firstName) merged.firstName = contact.firstName
+      if (!merged.lastName && contact.lastName) merged.lastName = contact.lastName
+      if (!merged.company && contact.company) merged.company = contact.company
+      if (!merged.position && contact.position) merged.position = contact.position
+      if (!merged.phone && contact.phone) merged.phone = contact.phone
+      // Use highest tier
+      if (!merged.tier || (contact.tier && contact.tier < merged.tier)) {
+        merged.tier = contact.tier
+      }
+    })
+
+    return merged
+  }
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -68,14 +169,27 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
           skipEmptyLines: true,
           transformHeader: (header: string) => {
             // Normalize common header variations
-            const normalized = header.toLowerCase().trim()
+            const normalized = header.toLowerCase().trim().replace(/[_\s]+/g, '')
+            
+            // Name fields
+            if (normalized === 'fullname' || normalized === 'name') return 'fullName'
             if (normalized.includes('first') && normalized.includes('name')) return 'firstName'
             if (normalized.includes('last') && normalized.includes('name')) return 'lastName'
+            
+            // Contact fields
             if (normalized.includes('email')) return 'email'
-            if (normalized.includes('company')) return 'company'
-            if (normalized.includes('position') || normalized.includes('title') || normalized.includes('job')) return 'position'
-            if (normalized.includes('phone')) return 'phone'
-            if (normalized.includes('tier')) return 'tier'
+            if (normalized.includes('phone') || normalized.includes('mobile') || normalized.includes('cell')) return 'phone'
+            
+            // Professional fields
+            if (normalized.includes('company') || normalized === 'organization' || normalized === 'org') return 'company'
+            if (normalized.includes('position') || normalized.includes('title') || normalized.includes('job') || normalized === 'role') return 'position'
+            
+            // LinkedIn specific
+            if (normalized === 'linkedinurl' || normalized.includes('linkedin')) return 'linkedinUrl'
+            
+            // Tier/priority
+            if (normalized.includes('tier') || normalized.includes('priority') || normalized.includes('level')) return 'tier'
+            
             return header
           }
         })
@@ -86,23 +200,40 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
         results.data.forEach((row: any, index: number) => {
           // Basic validation
           if (!row.email || !row.email.includes('@')) {
-            errors.push(`Row ${index + 1}: Invalid or missing email address`)
+            errors.push(`Row ${index + 2}: Invalid or missing email address`)
             return
           }
 
-          if (!row.firstName && !row.lastName) {
-            errors.push(`Row ${index + 1}: Missing both first and last name`)
+          // Handle different name formats
+          let firstName = ''
+          let lastName = ''
+          
+          if (row.fullName) {
+            // Parse full name into first and last
+            const parsed = parseFullName(row.fullName)
+            firstName = parsed.firstName
+            lastName = parsed.lastName
+          } else if (row.firstName || row.lastName) {
+            firstName = row.firstName || ''
+            lastName = row.lastName || ''
+          } else {
+            errors.push(`Row ${index + 2}: Missing name (no fullName, firstName, or lastName)`)
             return
           }
 
           const contact: Contact = {
-            firstName: row.firstName || '',
-            lastName: row.lastName || '',
-            email: row.email.toLowerCase().trim(),
-            company: row.company || '',
-            position: row.position || '',
-            phone: row.phone || '',
-            tier: row.tier || 'TIER_3'
+            firstName,
+            lastName,
+            email: normalizeEmail(row.email),
+            company: row.company || row.organization || '',
+            position: row.position || row.title || row.role || '',
+            phone: row.phone || row.mobile || '',
+            tier: row.tier || row.priority || 'TIER_3',
+            sources: [{
+              fileName: file.name,
+              uploadedAt: new Date(),
+              originalData: row
+            }]
           }
 
           contacts.push(contact)
@@ -126,9 +257,42 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
 
     setParseResults(newResults)
     
-    // Update total parsed contacts
-    const allContacts = Object.values(newResults).flatMap(result => result.contacts)
-    setParsedContacts(allContacts)
+    // Collect all contacts with their source files
+    const allContactsWithSource = Object.entries(newResults).flatMap(([fileName, result]) => 
+      result.contacts.map(contact => ({ ...contact, sourceFile: fileName }))
+    )
+    
+    // Find duplicates
+    const duplicateGroups = findDuplicates(allContactsWithSource)
+    setDuplicates(duplicateGroups)
+    
+    // Create deduplicated contact list
+    const deduplicatedContacts: Contact[] = []
+    const processedEmails = new Set<string>()
+    
+    allContactsWithSource.forEach(contact => {
+      const normalizedEmail = normalizeEmail(contact.email)
+      
+      if (!processedEmails.has(normalizedEmail)) {
+        processedEmails.add(normalizedEmail)
+        
+        // Check if this email is in duplicates
+        const duplicateGroup = duplicateGroups.find(g => g.primaryEmail === normalizedEmail)
+        
+        if (duplicateGroup && duplicateGroup.mergedContact) {
+          deduplicatedContacts.push(duplicateGroup.mergedContact)
+        } else {
+          deduplicatedContacts.push(contact)
+        }
+      }
+    })
+    
+    setParsedContacts(deduplicatedContacts)
+    
+    // Show duplicates if found
+    if (duplicateGroups.length > 0) {
+      setShowDuplicates(true)
+    }
     
     setUploading(false)
   }
@@ -290,14 +454,18 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
               <h2 className="text-lg font-medium text-gray-900">Import Summary</h2>
             </div>
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">{uploadedFiles.length}</div>
                   <div className="text-sm text-gray-600">Files Processed</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">{parsedContacts.length}</div>
-                  <div className="text-sm text-gray-600">Contacts Parsed</div>
+                  <div className="text-sm text-gray-600">Unique Contacts</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-600">{duplicates.length}</div>
+                  <div className="text-sm text-gray-600">Duplicates Found</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-red-600">
@@ -308,6 +476,66 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
               </div>
             </div>
           </div>
+
+          {/* Duplicates Section */}
+          {duplicates.length > 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg shadow">
+              <div className="px-6 py-4 border-b border-yellow-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-medium text-yellow-900">Duplicate Contacts Detected</h2>
+                  <button
+                    onClick={() => setShowDuplicates(!showDuplicates)}
+                    className="text-sm text-yellow-700 hover:text-yellow-900"
+                  >
+                    {showDuplicates ? 'Hide Details' : 'Show Details'}
+                  </button>
+                </div>
+              </div>
+              {showDuplicates && (
+                <div className="p-6 space-y-4">
+                  <p className="text-sm text-yellow-800 mb-4">
+                    We found {duplicates.length} duplicate email addresses across your uploaded files. 
+                    We've automatically merged the data, keeping the most complete information from each source.
+                  </p>
+                  {duplicates.slice(0, 3).map((group, index) => (
+                    <div key={index} className="bg-white rounded-lg p-4 border border-yellow-300">
+                      <div className="mb-3">
+                        <span className="font-medium text-gray-900">Email: </span>
+                        <span className="text-gray-700">{group.primaryEmail}</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Sources:</h4>
+                          {group.contacts.map((contact, idx) => (
+                            <div key={idx} className="text-sm text-gray-600 mb-1">
+                              • {contact.sourceFile}: {contact.firstName} {contact.lastName}
+                              {contact.company && ` (${contact.company})`}
+                            </div>
+                          ))}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Merged Result:</h4>
+                          <div className="text-sm text-gray-900">
+                            <div><strong>Name:</strong> {group.mergedContact?.firstName} {group.mergedContact?.lastName}</div>
+                            {group.mergedContact?.company && <div><strong>Company:</strong> {group.mergedContact.company}</div>}
+                            {group.mergedContact?.position && <div><strong>Position:</strong> {group.mergedContact.position}</div>}
+                            <div className="mt-1 text-xs text-gray-500">
+                              Data from {group.mergedContact?.sources?.length} sources
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {duplicates.length > 3 && (
+                    <p className="text-sm text-yellow-700 font-medium">
+                      + {duplicates.length - 3} more duplicate groups...
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* File Results */}
           <div className="bg-white rounded-lg shadow border">
