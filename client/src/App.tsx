@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage'
 import ImportContactsPage from './pages/ImportContactsPage'
 import NetworkAnalysisPage from './pages/NetworkAnalysisPage'
 import ContactsPage from './pages/ContactsPage'
+import SmartOutreachPage from './pages/SmartOutreachPage'
 import LoadingSpinner from './components/LoadingSpinner'
 
 type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'contacts'
@@ -52,6 +53,12 @@ function App() {
                     >
                       Contacts
                     </button>
+                    <button
+                      onClick={() => setCurrentPage('outreach')}
+                      className={`text-sm font-medium ${currentPage === 'outreach' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                      Outreach
+                    </button>
                   </nav>
                   <div className="flex items-center space-x-4">
                     <span className="text-sm text-gray-700">{user.email}</span>
@@ -86,16 +93,7 @@ function App() {
               <ContactsPage onBack={() => setCurrentPage('dashboard')} />
             )}
             {currentPage === 'outreach' && (
-              <div className="text-center py-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Smart Outreach</h2>
-                <p className="text-gray-600 mb-4">Coming soon! AI-powered outreach campaigns.</p>
-                <button 
-                  onClick={() => setCurrentPage('dashboard')}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Back to Dashboard
-                </button>
-              </div>
+              <SmartOutreachPage onBack={() => setCurrentPage('dashboard')} />
             )}
           </main>
         </div>
