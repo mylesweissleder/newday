@@ -512,18 +512,8 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
         {/* Integration Options */}
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Integrations</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Import</h2>
             <div className="space-y-3">
-              <button className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-white font-bold text-sm">in</span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">LinkedIn</h3>
-                  <p className="text-sm text-gray-500">Import connections and contact details</p>
-                </div>
-                <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Coming Soon</div>
-              </button>
 
               <button 
                 onClick={() => setShowGoogleImport(true)}
@@ -544,27 +534,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
                 <div className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Available</div>
               </button>
 
-              <button className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <div className="h-10 w-10 bg-orange-500 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-white font-bold text-sm">SF</span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">Salesforce</h3>
-                  <p className="text-sm text-gray-500">Sync contacts from your CRM</p>
-                </div>
-                <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Coming Soon</div>
-              </button>
 
-              <button className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <div className="h-10 w-10 bg-red-500 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-white font-bold text-sm">G</span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">Google Contacts</h3>
-                  <p className="text-sm text-gray-500">Import from Gmail and Google Workspace</p>
-                </div>
-                <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Coming Soon</div>
-              </button>
             </div>
           </div>
 
