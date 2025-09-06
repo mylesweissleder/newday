@@ -88,17 +88,17 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Right side - Login */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 min-h-screen lg:min-h-0">
-          <div className="max-w-md w-full space-y-8">
+        <div className="w-full lg:w-1/2 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 min-h-screen">
+          <div className="max-w-md w-full space-y-6">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+          <h2 className="text-center text-2xl lg:text-3xl font-bold text-gray-900">
             Network CRM Login
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             AI-Powered Contact Management
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">

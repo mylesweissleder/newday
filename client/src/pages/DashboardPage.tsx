@@ -78,7 +78,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
       }
       
       // For production, try API call
-      const contactsResponse = await fetch(`${API_BASE_URL}/api/contacts`, {
+      const contactsResponse = await fetch(`${API_BASE_URL}/api/contacts?limit=500`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -86,21 +86,30 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
       })
 
       if (contactsResponse.ok) {
-        const contacts = await contactsResponse.json()
+        const data = await contactsResponse.json()
+        const contacts = data.contacts || []
+        const totalCount = data.pagination?.total || contacts.length
         
         setStats({
-          totalContacts: contacts.length,
+          totalContacts: totalCount,
           tier1Contacts: contacts.filter((c: any) => c.tier === 'TIER_1').length,
           recentUploads: contacts.filter((c: any) => {
             const uploadDate = new Date(c.createdAt)
             const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
             return uploadDate > weekAgo
           }).length,
-          pendingOutreach: contacts.filter((c: any) => c.status === 'ACTIVE').length
+          pendingOutreach: contacts.filter((c: any) => c.status === 'ACTIVE' || !c.status).length
         })
         
-        // Get recent contacts
-        setRecentContacts(contacts.slice(0, 5))
+        // Get recent contacts (sorted by creation date)
+        const sortedContacts = contacts.sort((a: any, b: any) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        setRecentContacts(sortedContacts.slice(0, 5))
+      } else {
+        // If API fails, try to show real data from local storage or use demo data
+        console.warn('API call failed, using fallback data')
+        throw new Error('API call failed')
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)

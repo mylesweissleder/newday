@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import ContactEditModal from '../components/ContactEditModal'
 
 interface Contact {
   id: string
@@ -31,6 +32,8 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [editingContact, setEditingContact] = useState<Contact | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
 
@@ -157,6 +160,57 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
       case 'TIER_1': return '⭐ Tier 1'
       case 'TIER_2': return '🔸 Tier 2'
       default: return '◯ Tier 3'
+    }
+  }
+
+  const handleEditContact = (contact: Contact) => {
+    setEditingContact(contact)
+    setIsEditModalOpen(true)
+  }
+
+  const handleSaveContact = async (updatedContact: Contact) => {
+    const token = localStorage.getItem('auth-token')
+    
+    if (token === 'demo-token') {
+      // Update in demo data
+      setContacts(prev => prev.map(c => 
+        c.id === updatedContact.id ? { ...updatedContact, updatedAt: new Date().toISOString() } : c
+      ))
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/contacts/${updatedContact.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          firstName: updatedContact.firstName,
+          lastName: updatedContact.lastName,
+          email: updatedContact.email,
+          company: updatedContact.company,
+          position: updatedContact.position,
+          phone: updatedContact.phone,
+          tier: updatedContact.tier.toUpperCase(),
+          linkedinUrl: updatedContact.linkedinUrl,
+          relationshipNotes: updatedContact.relationshipNotes
+        })
+      })
+
+      if (response.ok) {
+        const savedContact = await response.json()
+        setContacts(prev => prev.map(c => 
+          c.id === updatedContact.id ? savedContact : c
+        ))
+      } else {
+        throw new Error('Failed to save contact')
+      }
+    } catch (error) {
+      console.error('Error saving contact:', error)
+      alert('Failed to save contact. Please try again.')
+      throw error
     }
   }
 
@@ -321,7 +375,11 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
                           </button>
-                          <button className="p-2 hover:bg-gray-100 rounded-full" title="Edit Contact">
+                          <button 
+                            onClick={() => handleEditContact(contact)}
+                            className="p-2 hover:bg-gray-100 rounded-full" 
+                            title="Edit Contact"
+                          >
                             <svg style={{width: '16px', height: '16px'}} className="text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
@@ -363,6 +421,17 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
           </div>
         )}
       </div>
+
+      {/* Contact Edit Modal */}
+      <ContactEditModal
+        contact={editingContact}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setEditingContact(null)
+        }}
+        onSave={handleSaveContact}
+      />
     </div>
   )
 }
