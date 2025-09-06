@@ -31,7 +31,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         {/* Left side - Brief */}
         <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white">
           <div className="flex flex-col justify-center px-12 py-16">
@@ -88,7 +88,7 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Right side - Login */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full lg:w-1/2 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 min-h-screen lg:min-h-0">
           <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">

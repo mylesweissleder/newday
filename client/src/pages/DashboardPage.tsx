@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react'
 
-const DashboardPage: React.FC = () => {
+interface DashboardPageProps {
+  onImportContacts: () => void
+  onNetworkAnalysis: () => void
+  onSmartOutreach: () => void
+}
+
+const DashboardPage: React.FC<DashboardPageProps> = ({ 
+  onImportContacts, 
+  onNetworkAnalysis, 
+  onSmartOutreach 
+}) => {
   const [stats, setStats] = useState({
     totalContacts: 0,
     tier1Contacts: 0,
@@ -279,7 +289,7 @@ const DashboardPage: React.FC = () => {
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="group cursor-pointer">
+            <div className="group cursor-pointer" onClick={onImportContacts}>
               <div className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group-hover:shadow-md">
                 <div className="text-center">
                   <div className="mx-auto h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
@@ -297,7 +307,7 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="group cursor-pointer">
+            <div className="group cursor-pointer" onClick={onNetworkAnalysis}>
               <div className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all duration-200 group-hover:shadow-md">
                 <div className="text-center">
                   <div className="mx-auto h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-200 transition-colors">
@@ -314,7 +324,7 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="group cursor-pointer">
+            <div className="group cursor-pointer" onClick={onSmartOutreach}>
               <div className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 group-hover:shadow-md">
                 <div className="text-center">
                   <div className="mx-auto h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
