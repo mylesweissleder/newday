@@ -31,7 +31,7 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? 
-    ['https://whatintheworldwasthat.com', 'https://www.whatintheworldwasthat.com', 'https://network-crm.vercel.app'] : 
+    ['https://api.whatintheworldwasthat.com', 'https://whatintheworldwasthat.com', 'https://www.whatintheworldwasthat.com', 'https://network-crm.vercel.app'] : 
     ['http://localhost:3000'],
   credentials: true
 }));
