@@ -15,7 +15,7 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.whatintheworldwasthat.com'
   
   // Helper to get API headers with site password
   const getApiHeaders = (includeAuth = false) => {
@@ -172,11 +172,17 @@ export const useAuth = () => {
       setLoading(true)
       setError(null)
 
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: getApiHeaders(),
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userData),
+        signal: controller.signal
       })
+
+      clearTimeout(timeoutId)
 
       let data
       try {
@@ -200,9 +206,14 @@ export const useAuth = () => {
         setLoading(false)
         return { success: false, error: errorMessage }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Registration error:', err)
-      const errorMessage = 'Network error. Please try again.'
+      let errorMessage = 'Network error. Please try again.'
+      
+      if (err.name === 'AbortError') {
+        errorMessage = 'Request timed out. Please check your connection and try again.'
+      }
+      
       setError(errorMessage)
       setLoading(false)
       return { success: false, error: errorMessage }

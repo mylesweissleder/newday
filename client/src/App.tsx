@@ -8,9 +8,10 @@ import ContactsPage from './pages/ContactsPage'
 import SmartOutreachPage from './pages/SmartOutreachPage'
 import AboutPage from './pages/AboutPage'
 import SettingsPage from './pages/SettingsPage'
+import CrewManagementPage from './pages/CrewManagementPage'
 import LoadingSpinner from './components/LoadingSpinner'
 
-type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'contacts' | 'about' | 'settings'
+type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'contacts' | 'about' | 'settings' | 'crew'
 
 function App() {
   const { user, loading, logout } = useAuth()
@@ -63,6 +64,14 @@ function App() {
                     >
                       Opportunities
                     </button>
+                    {(user?.role === 'CREW_LEADER' || user?.role === 'ADMIN') && (
+                      <button
+                        onClick={() => setCurrentPage('crew')}
+                        className={`text-sm font-medium ${currentPage === 'crew' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                      >
+                        Crew
+                      </button>
+                    )}
                     <button
                       onClick={() => setCurrentPage('about')}
                       className={`text-sm font-medium ${currentPage === 'about' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
@@ -136,6 +145,16 @@ function App() {
                     >
                       Opportunities
                     </button>
+                    {(user?.role === 'CREW_LEADER' || user?.role === 'ADMIN') && (
+                      <button
+                        onClick={() => {setCurrentPage('crew'); setMobileMenuOpen(false)}}
+                        className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
+                          currentPage === 'crew' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        }`}
+                      >
+                        Crew
+                      </button>
+                    )}
                     <button
                       onClick={() => {setCurrentPage('about'); setMobileMenuOpen(false)}}
                       className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
@@ -189,6 +208,9 @@ function App() {
             )}
             {currentPage === 'settings' && (
               <SettingsPage />
+            )}
+            {currentPage === 'crew' && (
+              <CrewManagementPage />
             )}
           </main>
         </div>

@@ -27,19 +27,29 @@ model Account {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  password    String
-  firstName   String
-  lastName    String
-  profilePic  String?
-  bio         String?
-  phone       String?
-  timezone    String?
-  role        UserRole @default(MEMBER)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isActive    Boolean  @default(true)
+  id              String   @id @default(cuid())
+  email           String   @unique
+  password        String?
+  firstName       String
+  lastName        String
+  profilePic      String?
+  bio             String?
+  phone           String?
+  timezone        String?
+  role            UserRole @default(MEMBER)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isActive        Boolean  @default(true)
+  
+  // Invitation system
+  invitationToken String?  @unique
+  invitedAt       DateTime?
+  invitedBy       String?
+  acceptedAt      DateTime?
+  
+  // Activity tracking
+  lastLoginAt     DateTime?
+  loginCount      Int      @default(0)
   
   // Relations
   account   Account @relation(fields: [accountId], references: [id])
@@ -212,6 +222,7 @@ model Outreach {
 
 // Enums
 enum UserRole {
+  CREW_LEADER
   ADMIN
   MEMBER
   VIEWER

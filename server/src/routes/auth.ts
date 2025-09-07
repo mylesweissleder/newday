@@ -70,15 +70,17 @@ router.post('/register', async (req: Request, res: Response) => {
         }
       });
 
-      // Create admin user
+      // Create admin user (first user becomes crew leader)
       const user = await tx.user.create({
         data: {
           email,
           password: hashedPassword,
           firstName,
           lastName,
-          role: 'ADMIN',
-          accountId: account.id
+          role: 'CREW_LEADER',
+          accountId: account.id,
+          lastLoginAt: new Date(),
+          loginCount: 1
         }
       });
 
@@ -132,6 +134,15 @@ router.post('/login', async (req: Request, res: Response) => {
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+
+    // Update login tracking
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastLoginAt: new Date(),
+        loginCount: user.loginCount + 1
+      }
+    });
 
     // Generate token
     const token = generateToken(user.id, user.accountId, user.email);
