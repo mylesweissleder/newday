@@ -62,7 +62,9 @@ router.get('/', async (req: Request, res: Response) => {
         { lastName: { contains: search as string, mode: 'insensitive' } },
         { email: { contains: search as string, mode: 'insensitive' } },
         { company: { contains: search as string, mode: 'insensitive' } },
-        { position: { contains: search as string, mode: 'insensitive' } }
+        { position: { contains: search as string, mode: 'insensitive' } },
+        { relationshipNotes: { contains: search as string, mode: 'insensitive' } },
+        { source: { contains: search as string, mode: 'insensitive' } }
       ];
     }
 
@@ -370,6 +372,116 @@ router.get('/:id/analytics', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Contact analytics error:', error);
     res.status(500).json({ error: 'Failed to fetch contact analytics' });
+  }
+});
+
+// Bulk operations
+router.post('/bulk/delete', async (req: Request, res: Response) => {
+  try {
+    const { contactIds } = req.body;
+
+    if (!Array.isArray(contactIds) || contactIds.length === 0) {
+      return res.status(400).json({ error: 'Contact IDs array required' });
+    }
+
+    const result = await prisma.contact.updateMany({
+      where: {
+        id: { in: contactIds },
+        accountId: req.user!.accountId
+      },
+      data: {
+        status: ContactStatus.ARCHIVED,
+        updatedById: req.user!.id
+      }
+    });
+
+    res.json({ 
+      message: `${result.count} contacts archived successfully`,
+      archivedCount: result.count 
+    });
+  } catch (error) {
+    console.error('Bulk delete error:', error);
+    res.status(500).json({ error: 'Failed to delete contacts' });
+  }
+});
+
+router.post('/bulk/update-tier', async (req: Request, res: Response) => {
+  try {
+    const { contactIds, tier } = req.body;
+
+    if (!Array.isArray(contactIds) || contactIds.length === 0) {
+      return res.status(400).json({ error: 'Contact IDs array required' });
+    }
+
+    if (!tier || !Object.values(ContactTier).includes(tier)) {
+      return res.status(400).json({ error: 'Valid tier required' });
+    }
+
+    const result = await prisma.contact.updateMany({
+      where: {
+        id: { in: contactIds },
+        accountId: req.user!.accountId
+      },
+      data: {
+        tier: tier as ContactTier,
+        updatedById: req.user!.id
+      }
+    });
+
+    res.json({ 
+      message: `${result.count} contacts updated to ${tier}`,
+      updatedCount: result.count 
+    });
+  } catch (error) {
+    console.error('Bulk tier update error:', error);
+    res.status(500).json({ error: 'Failed to update contact tiers' });
+  }
+});
+
+router.post('/bulk/add-tags', async (req: Request, res: Response) => {
+  try {
+    const { contactIds, tags } = req.body;
+
+    if (!Array.isArray(contactIds) || contactIds.length === 0) {
+      return res.status(400).json({ error: 'Contact IDs array required' });
+    }
+
+    if (!Array.isArray(tags) || tags.length === 0) {
+      return res.status(400).json({ error: 'Tags array required' });
+    }
+
+    // Get existing contacts with their current tags
+    const contacts = await prisma.contact.findMany({
+      where: {
+        id: { in: contactIds },
+        accountId: req.user!.accountId
+      },
+      select: { id: true, tags: true }
+    });
+
+    // Update each contact with merged tags
+    const updatePromises = contacts.map(contact => {
+      const existingTags = contact.tags || [];
+      const mergedTags = [...new Set([...existingTags, ...tags])];
+      
+      return prisma.contact.update({
+        where: { id: contact.id },
+        data: {
+          tags: mergedTags,
+          updatedById: req.user!.id
+        }
+      });
+    });
+
+    await Promise.all(updatePromises);
+
+    res.json({ 
+      message: `Tags added to ${contacts.length} contacts`,
+      updatedCount: contacts.length 
+    });
+  } catch (error) {
+    console.error('Bulk add tags error:', error);
+    res.status(500).json({ error: 'Failed to add tags to contacts' });
   }
 });
 
