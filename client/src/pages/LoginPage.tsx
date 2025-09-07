@@ -100,6 +100,15 @@ const LoginPage: React.FC = () => {
                 <li>• Get personal introductions that matter</li>
                 <li>• Land opportunities through trust and connection</li>
               </ul>
+              
+              <div className="mt-4 pt-4 border-t border-white border-opacity-20">
+                <button
+                  onClick={() => setViewMode('about')}
+                  className="text-blue-100 hover:text-white text-sm underline"
+                >
+                  About TrueCrew
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -177,13 +186,6 @@ const LoginPage: React.FC = () => {
                 Create New Account
               </button>
               
-              <button
-                type="button"
-                onClick={() => setViewMode('about')}
-                className="w-full bg-gray-50 text-gray-600 border border-gray-300 py-2 px-4 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 text-sm font-medium"
-              >
-                About TrueCrew
-              </button>
             </div>
           </div>
         </form>

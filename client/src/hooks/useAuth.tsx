@@ -23,8 +23,6 @@ export const useAuth = () => {
       'Content-Type': 'application/json'
     }
     
-    // Add site password for backend security
-    headers['Site-Password'] = 'NetworkCRM2025!'
     
     // Add auth token if needed
     if (includeAuth) {
