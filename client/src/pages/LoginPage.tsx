@@ -92,7 +92,7 @@ const LoginPage: React.FC = () => {
             <div className="mt-8 p-6 bg-white bg-opacity-10 rounded-lg backdrop-blur-sm">
               <div className="flex items-center space-x-2 mb-3">
                 <span className="text-yellow-400 text-lg">⭐</span>
-                <h4 className="font-semibold">Expected Outcomes</h4>
+                <h4 className="font-semibold">What You Gain</h4>
               </div>
               <ul className="text-sm text-blue-100 space-y-1">
                 <li>• Skip the cold email grind</li>
