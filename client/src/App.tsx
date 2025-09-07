@@ -36,8 +36,8 @@ function App() {
               <div className="flex justify-between items-center py-6">
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-2xl">🐺</span>
-                    <h1 className="text-2xl font-bold text-gray-900">SmartPack</h1>
+                    <span className="text-2xl">🤝</span>
+                    <h1 className="text-2xl font-bold text-gray-900">TrustCircle</h1>
                   </div>
                   <p className="text-sm text-gray-600">Welcome back, {user.firstName} — let's find your next opportunity</p>
                 </div>
@@ -47,7 +47,7 @@ function App() {
                       onClick={() => setCurrentPage('dashboard')}
                       className={`text-sm font-medium ${currentPage === 'dashboard' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
                     >
-                      Pack Hub
+                      Dashboard
                     </button>
                     <button
                       onClick={() => setCurrentPage('contacts')}

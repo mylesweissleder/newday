@@ -7,6 +7,7 @@ interface RegisterPageProps {
 
 const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
   const { register, loading, error } = useAuth()
+  const invitationToken = null // For now, no invitation system
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -83,7 +84,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
               Create Account
             </h1>
             <p className="text-gray-600">
-              Start managing your professional network with AI
+              Join a trusted circle. Share connections. Land opportunities together.
             </p>
           </div>
 
@@ -140,7 +141,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
                   formErrors.email ? 'border-red-300' : 'border-gray-300'
                 }`}
                 placeholder="john@company.com"
-                disabled={loading || !!invitedEmail}
+                disabled={loading}
               />
               {formErrors.email && (
                 <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>

@@ -5,7 +5,7 @@ import RegisterPage from '../components/RegisterPage'
 type ViewMode = 'login' | 'register'
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('demo@networkcrm.com')
+  const [email, setEmail] = useState('demo@trustcircle.com')
   const [password, setPassword] = useState('demo123456')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -46,10 +46,10 @@ const LoginPage: React.FC = () => {
           <div className="flex flex-col justify-center px-12 py-16">
             <div className="mb-8">
               <div className="flex items-center space-x-3 mb-4">
-                <span className="text-4xl">🐺</span>
-                <h1 className="text-4xl font-bold">SmartPack</h1>
+                <span className="text-4xl">🤝</span>
+                <h1 className="text-4xl font-bold">TrustCircle</h1>
               </div>
-              <p className="text-xl text-blue-100">Referrals beat cold outreach.</p>
+              <p className="text-xl text-blue-100">Turn your shared connections into career opportunities.</p>
             </div>
             
             <div className="space-y-6">
@@ -58,8 +58,8 @@ const LoginPage: React.FC = () => {
                   ✓
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Form Your Pack</h3>
-                  <p className="text-blue-100 text-sm">Invite 2–5 trusted peers — other job seekers, consultants, or project-hunters who share your hustle.</p>
+                  <h3 className="font-semibold text-lg">Gather Your Trusted Circle</h3>
+                  <p className="text-blue-100 text-sm">Invite 2–5 close colleagues, mentors, or peers who know different industries and companies. Share your combined networks securely within your circle.</p>
                 </div>
               </div>
 
@@ -68,8 +68,8 @@ const LoginPage: React.FC = () => {
                   ✓
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Referral Radar</h3>
-                  <p className="text-blue-100 text-sm">Instantly see who in your pack can open a door. Map warm connections to hiring managers, founders, and budget owners.</p>
+                  <h3 className="font-semibold text-lg">Connect Your Professional Life</h3>
+                  <p className="text-blue-100 text-sm">Upload your contacts and connect Gmail & LinkedIn. We'll map who knows whom—finding warm paths to decision makers through your circle's combined networks.</p>
                 </div>
               </div>
 
@@ -78,8 +78,8 @@ const LoginPage: React.FC = () => {
                   ✓
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Smart Messaging</h3>
-                  <p className="text-blue-100 text-sm">AI helps draft intros and proposals that sound natural and on-point. No more cold outreach — just warm connections.</p>
+                  <h3 className="font-semibold text-lg">Get Thoughtful Introductions</h3>
+                  <p className="text-blue-100 text-sm">When you find an opportunity, we help craft warm, personal introduction requests to your circle members who can make the connection happen.</p>
                 </div>
               </div>
             </div>
@@ -90,10 +90,10 @@ const LoginPage: React.FC = () => {
                 <h4 className="font-semibold">Expected Outcomes</h4>
               </div>
               <ul className="text-sm text-blue-100 space-y-1">
-                <li>• Land faster through referrals</li>
-                <li>• Access your pack's combined network</li>
-                <li>• Get warm intros to decision makers</li>
-                <li>• Community over cold outreach</li>
+                <li>• Skip the cold email grind</li>
+                <li>• Leverage your circle's combined relationships</li>
+                <li>• Get personal introductions that matter</li>
+                <li>• Land opportunities through trust and connection</li>
               </ul>
             </div>
           </div>
@@ -105,11 +105,11 @@ const LoginPage: React.FC = () => {
         <div>
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-2">
-              <span className="text-2xl">🐺</span>
-              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">SmartPack</h2>
+              <span className="text-2xl">🤝</span>
+              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">TrustCircle</h2>
             </div>
             <p className="text-sm text-gray-600">
-              Join your pack — referrals beat cold outreach
+              Where trusted connections become career opportunities
             </p>
           </div>
         </div>
@@ -162,7 +162,7 @@ const LoginPage: React.FC = () => {
           <div className="text-center space-y-4">
             <div className="text-sm text-gray-500 space-y-1">
               <p className="font-medium">Demo Credentials:</p>
-              <p>Email: demo@smartpack.com</p>
+              <p>Email: demo@trustcircle.com</p>
               <p>Password: demo123456</p>
             </div>
             

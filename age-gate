@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age Verification - Peep Show Theater</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(45deg, #8B0000, #2F1B14);
+            color: #FFD700;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .age-gate-container {
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #FFD700;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .warning-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px #8B0000;
+        }
+
+        .warning-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #FFF;
+        }
+
+        .age-verification {
+            margin-bottom: 30px;
+        }
+
+        .age-verification p {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .age-btn {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: 2px solid #FFD700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            min-width: 120px;
+        }
+
+        .yes-btn {
+            background: linear-gradient(45deg, #228B22, #006400);
+            color: #FFD700;
+        }
+
+        .yes-btn:hover {
+            background: linear-gradient(45deg, #006400, #228B22);
+            transform: scale(1.05);
+        }
+
+        .no-btn {
+            background: linear-gradient(45deg, #8B0000, #A0522D);
+            color: #FFD700;
+        }
+
+        .no-btn:hover {
+            background: linear-gradient(45deg, #A0522D, #8B0000);
+            transform: scale(1.05);
+        }
+
+        .disclaimer {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #CCC;
+            line-height: 1.4;
+        }
+
+        .vintage-frame {
+            border: 2px solid #8B0000;
+            padding: 20px;
+            margin: 20px 0;
+            background: rgba(139, 0, 0, 0.1);
+        }
+
+        @media (max-width: 600px) {
+            .age-gate-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .age-btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="age-gate-container">
+        <div class="warning-icon">⚠️</div>
+        
+        <h1>AGE VERIFICATION REQUIRED</h1>
+        
+        <div class="vintage-frame">
+            <div class="warning-text">
+                <p><strong>⚠️ ADULT CONTENT WARNING ⚠️</strong></p>
+                <p>This site contains vintage adult entertainment from the 1920s-1950s era. 
+                Content may include nudity, sexual themes, and mature subject matter.</p>
+            </div>
+        </div>
+
+        <div class="age-verification">
+            <p>Are you 18 years of age or older?</p>
+        </div>
+
+        <div class="button-group">
+            <button class="age-btn yes-btn" onclick="enterSite()">
+                YES - I AM 18+
+            </button>
+            <button class="age-btn no-btn" onclick="exitSite()">
+                NO - UNDER 18
+            </button>
+        </div>
+
+        <div class="disclaimer">
+            <p><strong>Legal Notice:</strong> All content is from historical archives and public domain sources from 1920-1950. By entering, you confirm you are of legal age in your jurisdiction and consent to viewing mature historical content.</p>
+        </div>
+    </div>
+
+    <script>
+        function enterSite() {
+            // Set age verification cookie/localStorage
+            localStorage.setItem('ageVerified', 'true');
+            localStorage.setItem('ageVerificationDate', new Date().toISOString());
+            
+            // Redirect to main theater
+            window.location.href = '/';
+        }
+
+        function exitSite() {
+            // Clear any existing verification
+            localStorage.removeItem('ageVerified');
+            
+            // Redirect away or show message
+            alert('You must be 18 or older to access this content.');
+            
+            // Redirect to a safe site
+            window.location.href = 'https://www.google.com';
+        }
+
+        // Check if already verified (within 24 hours)
+        window.onload = function() {
+            const verified = localStorage.getItem('ageVerified');
+            const verificationDate = localStorage.getItem('ageVerificationDate');
+            
+            if (verified === 'true' && verificationDate) {
+                const dayAgo = new Date();
+                dayAgo.setDate(dayAgo.getDate() - 1);
+                
+                if (new Date(verificationDate) > dayAgo) {
+                    // Still within 24 hour verification window
+                    window.location.href = '/';
+                }
+            }
+        };
+    </script>
+</body>
+</html>
