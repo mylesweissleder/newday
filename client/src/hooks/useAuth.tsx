@@ -74,11 +74,12 @@ export const useAuth = () => {
         localStorage.removeItem('auth-token')
         setUser(null)
       } else {
-        setError('Failed to fetch user profile')
+        // Profile endpoint might not exist - don't show error to user
+        console.warn('Profile endpoint not available, continuing without user data')
       }
     } catch (err) {
-      console.error('Error fetching user profile:', err)
-      setError('Network error')
+      console.warn('Error fetching user profile:', err)
+      // Don't set error - allow user to continue
     }
     
     setLoading(false)

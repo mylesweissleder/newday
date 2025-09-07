@@ -104,10 +104,14 @@ const LoginPage: React.FC = () => {
               <div className="mt-4 pt-4 border-t border-white border-opacity-20">
                 <button
                   onClick={() => setViewMode('about')}
-                  className="text-blue-100 hover:text-white text-sm underline"
+                  className="text-blue-100 hover:text-white text-sm underline mb-3 block"
                 >
                   About TrueCrew
                 </button>
+                
+                <p className="text-blue-100 text-xs leading-relaxed">
+                  👉 It's simple: bring a few people you trust, and we'll help you unlock what's possible — together.
+                </p>
               </div>
             </div>
           </div>
