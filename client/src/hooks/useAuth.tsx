@@ -37,8 +37,21 @@ export const useAuth = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('auth-token')
+    const storedUser = localStorage.getItem('user-data')
+    
     if (token && token !== 'demo-token') {
-      fetchUserProfile(token)
+      // Restore user from localStorage if available
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser)
+          console.log('useAuth: Restored user from localStorage:', userData)
+          setUser(userData)
+        } catch (err) {
+          console.error('Failed to parse stored user data:', err)
+          localStorage.removeItem('user-data')
+        }
+      }
+      setLoading(false)
     } else if (token === 'demo-token') {
       // Restore demo user from localStorage
       const demoUser = {
@@ -56,6 +69,7 @@ export const useAuth = () => {
       setLoading(false)
     }
   }, [])
+
 
   const fetchUserProfile = async (token: string) => {
     try {
@@ -144,16 +158,18 @@ export const useAuth = () => {
 
       if (response.ok) {
         localStorage.setItem('auth-token', data.token)
+        localStorage.setItem('user-data', JSON.stringify(data.user))
         setUser(data.user)
         setLoading(false)
         return { success: true }
       } else {
-        setError(data.message || 'Login failed')
+        const errorMessage = data.message || 'Login failed'
+        setError(errorMessage)
         setLoading(false)
-        return { success: false, error: data.message || 'Invalid credentials' }
+        return { success: false, error: errorMessage }
       }
     } catch (err) {
-      console.error('Login error:', err)
+      console.error('useAuth: Login error caught:', err)
       const errorMessage = 'Network error. Please try again.'
       setError(errorMessage)
       setLoading(false)
@@ -168,15 +184,10 @@ export const useAuth = () => {
     lastName: string
     accountName?: string
   }) => {
-    console.log('useAuth: register() called with:', userData.email)
-    
     try {
-      console.log('useAuth: Setting loading state to true')
       setLoading(true)
       setError(null)
 
-      console.log('useAuth: Making fetch request to:', `${API_BASE_URL}/api/auth/register`)
-      
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
 
@@ -187,15 +198,12 @@ export const useAuth = () => {
         signal: controller.signal
       })
 
-      console.log('useAuth: Response status:', response.status)
       clearTimeout(timeoutId)
 
       let data
       try {
         data = await response.json()
-        console.log('useAuth: Response data:', data)
       } catch (parseError) {
-        console.error('useAuth: Failed to parse response:', parseError)
         const errorMessage = `Server error (${response.status}). Please try again.`
         setError(errorMessage)
         setLoading(false)
@@ -203,15 +211,14 @@ export const useAuth = () => {
       }
 
       if (response.ok) {
-        console.log('useAuth: Registration successful, setting user and token')
         localStorage.setItem('auth-token', data.token)
+        localStorage.setItem('user-data', JSON.stringify(data.user))
         setUser(data.user)
         setLoading(false)
-        setError(null) // Clear any errors
+        setError(null)
         return { success: true }
       } else {
         const errorMessage = data.error || data.message || `Registration failed (${response.status})`
-        console.error('useAuth: Registration failed:', errorMessage)
         setError(errorMessage)
         setLoading(false)
         return { success: false, error: errorMessage }
@@ -232,6 +239,7 @@ export const useAuth = () => {
 
   const logout = () => {
     localStorage.removeItem('auth-token')
+    localStorage.removeItem('user-data')
     setUser(null)
   }
 

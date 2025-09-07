@@ -39,13 +39,17 @@ const generateToken = (userId: string, accountId: string, email: string): string
 
 // Register new account and admin user
 router.post('/register', async (req: Request, res: Response) => {
+  console.log('Server: Registration request received for:', req.body.email);
+  
   try {
     const { error, value } = registerSchema.validate(req.body);
     if (error) {
+      console.error('Server: Registration validation error:', error.details[0].message);
       return res.status(400).json({ error: error.details[0].message });
     }
 
     const { accountName, email, password, firstName, lastName } = value;
+    console.log('Server: Registration validated, creating account and user...');
 
     // Check if email already exists
     const existingUser = await prisma.user.findUnique({
@@ -89,8 +93,9 @@ router.post('/register', async (req: Request, res: Response) => {
 
     // Generate token
     const token = generateToken(result.user.id, result.account.id, result.user.email);
+    console.log('Server: Token generated, sending response...');
 
-    res.status(201).json({
+    const responseData = {
       message: 'Account created successfully',
       token,
       user: {
@@ -102,7 +107,14 @@ router.post('/register', async (req: Request, res: Response) => {
         accountId: result.account.id,
         accountName: result.account.name
       }
+    };
+    
+    console.log('Server: Sending registration success response:', {
+      ...responseData,
+      token: token ? 'TOKEN_PROVIDED' : 'NO_TOKEN'
     });
+
+    res.status(201).json(responseData);
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Registration failed' });
@@ -111,13 +123,17 @@ router.post('/register', async (req: Request, res: Response) => {
 
 // Login
 router.post('/login', async (req: Request, res: Response) => {
+  console.log('Server: Login request received for:', req.body.email);
+  
   try {
     const { error, value } = loginSchema.validate(req.body);
     if (error) {
+      console.error('Server: Login validation error:', error.details[0].message);
       return res.status(400).json({ error: error.details[0].message });
     }
 
     const { email, password } = value;
+    console.log('Server: Login validated, checking user...');
 
     // Find user with account
     const user = await prisma.user.findUnique({

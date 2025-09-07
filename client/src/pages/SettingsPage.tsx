@@ -75,7 +75,7 @@ const SettingsPage: React.FC = () => {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -98,7 +98,7 @@ const SettingsPage: React.FC = () => {
 
   const fetchAccountInfo = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/account`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -116,7 +116,7 @@ const SettingsPage: React.FC = () => {
   const updateProfile = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
         method: 'PUT',
         headers: {
@@ -150,7 +150,7 @@ const SettingsPage: React.FC = () => {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/password`, {
         method: 'PUT',
         headers: {
@@ -179,7 +179,7 @@ const SettingsPage: React.FC = () => {
   const updateAccount = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/account`, {
         method: 'PUT',
         headers: {
@@ -213,7 +213,7 @@ const SettingsPage: React.FC = () => {
     const imageUrl = `https://via.placeholder.com/150?text=${encodeURIComponent(profile?.firstName?.[0] || 'U')}`;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/profile-picture`, {
         method: 'POST',
         headers: {
