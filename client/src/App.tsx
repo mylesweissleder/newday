@@ -19,6 +19,7 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   console.log('App render - user:', user, 'loading:', loading)
+  console.log('App render - user exists?', !!user, 'should show dashboard?', !!user && !loading)
 
   if (loading) {
     return (

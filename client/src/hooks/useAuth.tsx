@@ -207,6 +207,7 @@ export const useAuth = () => {
         localStorage.setItem('auth-token', data.token)
         setUser(data.user)
         setLoading(false)
+        setError(null) // Clear any errors
         return { success: true }
       } else {
         const errorMessage = data.error || data.message || `Registration failed (${response.status})`
