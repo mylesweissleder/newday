@@ -335,7 +335,7 @@ const LoginPage: React.FC = () => {
           <div className="mt-12 border-t border-gray-200 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-base text-gray-400">
-                &copy; 2024 TrueCrew, Inc. All rights reserved.
+                &copy; 2025 TrueCrew, Inc. All rights reserved.
               </p>
               <div className="mt-4 md:mt-0 flex space-x-6">
                 <a href="#" className="text-gray-400 hover:text-gray-500 text-sm">
