@@ -302,8 +302,88 @@ The TrueCrew Team
     };
   }
 
+  // Welcome Email for New Account Creation
+  generateWelcomeEmail(data: {
+    userName: string;
+    userEmail: string;
+    accountName: string;
+  }): EmailTemplate {
+    const { userName, userEmail, accountName } = data;
+    
+    const subject = `Welcome to TrueCrew, ${userName}! Your account is ready 🤝`;
+    
+    const html = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #2563eb; margin: 0; font-size: 28px;">🤝 Welcome to TrueCrew!</h1>
+          <div style="font-size: 48px; margin: 10px 0;">🎉</div>
+        </div>
+
+        <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 25px; text-align: center; margin-bottom: 25px;">
+          <h2 style="margin: 0 0 15px 0; color: #0369a1; font-size: 20px;">Your crew journey begins now, ${userName}!</h2>
+          <p style="margin: 0; color: #0369a1; font-size: 16px;">Account "${accountName}" is ready to go.</p>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+          <h3 style="color: #1f2937; margin: 0 0 15px 0; font-size: 18px;">🚀 What's Next?</h3>
+          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px;">
+            <ul style="margin: 0; padding-left: 20px; color: #4b5563;">
+              <li style="margin-bottom: 10px;"><strong>Invite your crew:</strong> Add 2-5 trusted colleagues to your account</li>
+              <li style="margin-bottom: 10px;"><strong>Upload contacts:</strong> Connect your professional network</li>
+              <li style="margin-bottom: 10px;"><strong>Start networking:</strong> Find warm paths to decision makers</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="background: #fef3c7; border: 1px solid #d97706; border-radius: 6px; padding: 20px; text-align: center; margin-bottom: 25px;">
+          <p style="margin: 0; color: #92400e; font-size: 16px;">
+            <strong>🚧 MVP Internal Tool</strong><br>
+            <span style="font-size: 14px;">This is currently an internal sandbox for Myles and Chris. We're exploring making this a real product to help people find meaningful career connections.</span>
+          </p>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 25px;">
+          <a href="https://api.whatintheworldwasthat.com" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            Open TrueCrew Dashboard
+          </a>
+        </div>
+
+        <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
+          <p style="margin: 0;">Welcome to the crew! 🤝</p>
+          <p style="margin: 5px 0 0 0;">The TrueCrew Team</p>
+        </div>
+      </div>
+    `;
+
+    const text = `
+Welcome to TrueCrew, ${userName}!
+
+Your account "${accountName}" is ready to go.
+
+WHAT'S NEXT:
+• Invite your crew: Add 2-5 trusted colleagues to your account
+• Upload contacts: Connect your professional network  
+• Start networking: Find warm paths to decision makers
+
+MVP NOTICE:
+This is currently an internal sandbox for Myles and Chris. We're exploring making this a real product to help people find meaningful career connections.
+
+Open your dashboard: https://api.whatintheworldwasthat.com
+
+Welcome to the crew! 🤝
+The TrueCrew Team
+    `;
+
+    return {
+      to: [userEmail],
+      subject,
+      html,
+      text
+    };
+  }
+
   // Test Email
-  async sendTestEmail(recipientEmail: string, type: 'referral' | 'confirmation' | 'success' = 'referral') {
+  async sendTestEmail(recipientEmail: string, type: 'referral' | 'confirmation' | 'success' | 'welcome' = 'referral') {
     let template: EmailTemplate;
 
     switch (type) {
@@ -342,6 +422,14 @@ The TrueCrew Team
           requesterName: 'Alex Johnson',
           contactName: 'Sarah Chen',
           outcome: 'scheduled a meeting'
+        });
+        break;
+
+      case 'welcome':
+        template = this.generateWelcomeEmail({
+          userName: 'Myles',
+          userEmail: recipientEmail,
+          accountName: 'My Test Account'
         });
         break;
     }

@@ -12,7 +12,7 @@ router.post('/test', async (req, res) => {
       return res.status(400).json({ error: 'Email address required' });
     }
 
-    const validTypes = ['referral', 'confirmation', 'success'];
+    const validTypes = ['referral', 'confirmation', 'success', 'welcome'];
     if (!validTypes.includes(type)) {
       return res.status(400).json({ 
         error: `Invalid email type. Must be one of: ${validTypes.join(', ')}` 
@@ -20,7 +20,7 @@ router.post('/test', async (req, res) => {
     }
 
     console.log(`Sending ${type} test email to ${email}...`);
-    const result = await emailService.sendTestEmail(email, type as 'referral' | 'confirmation' | 'success');
+    const result = await emailService.sendTestEmail(email, type as 'referral' | 'confirmation' | 'success' | 'welcome');
     
     res.json({ 
       success: true, 
@@ -48,7 +48,7 @@ router.post('/test/all', async (req, res) => {
     console.log(`Sending all test emails to ${email}...`);
     
     const results = [];
-    const types: Array<'referral' | 'confirmation' | 'success'> = ['referral', 'confirmation', 'success'];
+    const types: Array<'referral' | 'confirmation' | 'success' | 'welcome'> = ['referral', 'confirmation', 'success', 'welcome'];
     
     for (const type of types) {
       try {
