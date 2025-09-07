@@ -47,9 +47,6 @@ const SettingsPage: React.FC = () => {
 
   // Profile form state
   const [profileForm, setProfileForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
     bio: '',
     phone: '',
     timezone: ''
@@ -87,9 +84,6 @@ const SettingsPage: React.FC = () => {
         const profileData = await response.json();
         setProfile(profileData);
         setProfileForm({
-          firstName: profileData.firstName || '',
-          lastName: profileData.lastName || '',
-          email: profileData.email || '',
           bio: profileData.bio || '',
           phone: profileData.phone || '',
           timezone: profileData.timezone || ''
@@ -327,43 +321,24 @@ const SettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Profile Form */}
+                {/* Profile Info Display */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500">Name</label>
+                      <p className="text-sm text-gray-900 mt-1">
+                        {profile?.firstName} {profile?.lastName}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500">Email</label>
+                      <p className="text-sm text-gray-900 mt-1">{profile?.email}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Profile Form */}
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      value={profileForm.firstName}
-                      onChange={(e) => setProfileForm(prev => ({ ...prev, firstName: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      value={profileForm.lastName}
-                      onChange={(e) => setProfileForm(prev => ({ ...prev, lastName: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={profileForm.email}
-                      onChange={(e) => setProfileForm(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">

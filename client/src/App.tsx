@@ -92,6 +92,13 @@ function App() {
                     >
                       ⚙️
                     </button>
+                    <button
+                      onClick={logout}
+                      className="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      title="Sign Out"
+                    >
+                      🚪
+                    </button>
                   </div>
                 </div>
 

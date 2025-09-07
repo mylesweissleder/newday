@@ -59,7 +59,7 @@ const CrewManagementPage: React.FC = () => {
   const [inviteLoading, setInviteLoading] = useState(false)
   const [inviteSuccess, setInviteSuccess] = useState('')
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.whatintheworldwasthat.com'
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
 
   const getApiHeaders = () => {
     const token = localStorage.getItem('auth-token')
