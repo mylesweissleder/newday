@@ -45,8 +45,11 @@ const LoginPage: React.FC = () => {
         <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white">
           <div className="flex flex-col justify-center px-12 py-16">
             <div className="mb-8">
-              <h1 className="text-4xl font-bold mb-4">Network CRM</h1>
-              <p className="text-xl text-blue-100">AI-Powered Contact Management & Network Mining</p>
+              <div className="flex items-center space-x-3 mb-4">
+                <span className="text-4xl">🐺</span>
+                <h1 className="text-4xl font-bold">SmartPack</h1>
+              </div>
+              <p className="text-xl text-blue-100">Referrals beat cold outreach.</p>
             </div>
             
             <div className="space-y-6">
@@ -55,8 +58,8 @@ const LoginPage: React.FC = () => {
                   ✓
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Smart Contact Management</h3>
-                  <p className="text-blue-100 text-sm">Bulk import from LinkedIn, Gmail, CRM. AI automatically categorizes and tiers your contacts by value and relationship strength.</p>
+                  <h3 className="font-semibold text-lg">Form Your Pack</h3>
+                  <p className="text-blue-100 text-sm">Invite 2–5 trusted peers — other job seekers, consultants, or project-hunters who share your hustle.</p>
                 </div>
               </div>
 
@@ -65,8 +68,8 @@ const LoginPage: React.FC = () => {
                   ✓
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">AI Network Analysis</h3>
-                  <p className="text-blue-100 text-sm">Discover hidden connections, identify influencers, find warm introduction paths, and map relationships for strategic networking.</p>
+                  <h3 className="font-semibold text-lg">Referral Radar</h3>
+                  <p className="text-blue-100 text-sm">Instantly see who in your pack can open a door. Map warm connections to hiring managers, founders, and budget owners.</p>
                 </div>
               </div>
 
@@ -75,8 +78,8 @@ const LoginPage: React.FC = () => {
                   ✓
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Automated Outreach</h3>
-                  <p className="text-blue-100 text-sm">GPT-4 generates personalized messages for each contact. Launch campaigns across email and LinkedIn with 25% higher response rates.</p>
+                  <h3 className="font-semibold text-lg">Smart Messaging</h3>
+                  <p className="text-blue-100 text-sm">AI helps draft intros and proposals that sound natural and on-point. No more cold outreach — just warm connections.</p>
                 </div>
               </div>
             </div>
@@ -87,10 +90,10 @@ const LoginPage: React.FC = () => {
                 <h4 className="font-semibold">Expected Outcomes</h4>
               </div>
               <ul className="text-sm text-blue-100 space-y-1">
-                <li>• 10x faster contact organization</li>
-                <li>• 25% higher outreach response rates</li>
-                <li>• 3-5x more warm introductions</li>
-                <li>• Network-driven revenue opportunities</li>
+                <li>• Land faster through referrals</li>
+                <li>• Access your pack's combined network</li>
+                <li>• Get warm intros to decision makers</li>
+                <li>• Community over cold outreach</li>
               </ul>
             </div>
           </div>
@@ -100,12 +103,15 @@ const LoginPage: React.FC = () => {
         <div className="w-full lg:w-1/2 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 min-h-screen">
           <div className="max-w-md w-full space-y-6">
         <div>
-          <h2 className="text-center text-2xl lg:text-3xl font-bold text-gray-900">
-            Network CRM Login
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            AI-Powered Contact Management
-          </p>
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <span className="text-2xl">🐺</span>
+              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">SmartPack</h2>
+            </div>
+            <p className="text-sm text-gray-600">
+              Join your pack — referrals beat cold outreach
+            </p>
+          </div>
         </div>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -156,7 +162,7 @@ const LoginPage: React.FC = () => {
           <div className="text-center space-y-4">
             <div className="text-sm text-gray-500 space-y-1">
               <p className="font-medium">Demo Credentials:</p>
-              <p>Email: demo@networkcrm.com</p>
+              <p>Email: demo@smartpack.com</p>
               <p>Password: demo123456</p>
             </div>
             

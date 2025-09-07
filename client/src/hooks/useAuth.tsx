@@ -117,7 +117,7 @@ export const useAuth = () => {
       setError(null)
       
       // Demo mode - keep existing demo functionality
-      if (email === 'demo@networkcrm.com' && password === 'demo123456') {
+      if ((email === 'demo@smartpack.com' || email === 'demo@networkcrm.com') && password === 'demo123456') {
         const demoUser = {
           id: 'demo-user-id',
           email: 'demo@networkcrm.com',
