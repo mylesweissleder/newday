@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { ContactTier } from '@prisma/client';
+import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -53,7 +54,7 @@ interface BulkImportResult {
 }
 
 // Bulk upload CSV file
-router.post('/bulk-csv', upload.single('file'), async (req: Request, res: Response) => {
+router.post('/bulk-csv', upload.single('file'), authenticateToken, async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -90,13 +91,17 @@ router.post('/bulk-csv', upload.single('file'), async (req: Request, res: Respon
       mapping = await detectColumnMapping(req.file.path);
     }
 
+    // Get user context with fallbacks
+    const accountId = req.user?.accountId || 'default-account';
+    const userId = req.user?.id || 'default-user';
+
     const result = await processBulkCSV(
       req.file.path, 
       mapping, 
       source, 
       owner,
-      req.user!.accountId,
-      req.user!.id,
+      accountId,
+      userId,
       { skipDuplicates, defaultTier }
     );
 
@@ -115,7 +120,7 @@ router.post('/bulk-csv', upload.single('file'), async (req: Request, res: Respon
 });
 
 // Preview CSV file structure
-router.post('/preview-csv', upload.single('file'), async (req: Request, res: Response) => {
+router.post('/preview-csv', upload.single('file'), authenticateToken, async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -137,7 +142,7 @@ router.post('/preview-csv', upload.single('file'), async (req: Request, res: Res
 });
 
 // Bulk import from multiple predefined lists
-router.post('/bulk-predefined', async (req: Request, res: Response) => {
+router.post('/bulk-predefined', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { lists, owner = 'MW' } = req.body;
 
@@ -226,13 +231,17 @@ router.post('/bulk-predefined', async (req: Request, res: Response) => {
       }
 
       if (fs.existsSync(filePath)) {
+        // Get user context with fallbacks
+        const accountId = req.user?.accountId || 'default-account';
+        const userId = req.user?.id || 'default-user';
+
         const result = await processBulkCSV(
           filePath,
           mapping,
           source,
           owner,
-          req.user!.accountId,
-          req.user!.id,
+          accountId,
+          userId,
           { skipDuplicates: true, defaultTier: 'TIER_3', isSpecialFormat: listType === 'higher-tide' }
         );
 
