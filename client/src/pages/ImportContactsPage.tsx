@@ -2,6 +2,38 @@ import React, { useState, useRef } from 'react'
 import Papa from 'papaparse'
 import GoogleContactsImport from '../components/GoogleContactsImport'
 
+interface ContactHistory {
+  email?: string
+  company?: string
+  position?: string
+  phone?: string
+  detectedAt: Date
+  source: string
+  confidence: 'high' | 'medium' | 'low'
+}
+
+interface LinkedInMessage {
+  id: string
+  conversationId: string
+  sender: string // Email of who sent the message
+  recipient: string // Email of who received the message  
+  content: string
+  sentAt: Date
+  direction: 'sent' | 'received'
+  importedBy: string // Email of user who imported this data
+  messageThread?: string // Thread identifier
+}
+
+interface LinkedInInteraction {
+  type: 'profile_view' | 'post_like' | 'post_comment' | 'connection_request' | 'endorsement'
+  actor: string // Who performed the action
+  target: string // Who was the target
+  content?: string // Comment text, etc.
+  occurredAt: Date
+  importedBy: string // Who imported this data
+  platform: 'linkedin' | 'email' | 'other'
+}
+
 interface Contact {
   firstName: string
   lastName: string
@@ -10,11 +42,20 @@ interface Contact {
   position?: string
   phone?: string
   tier?: string
+  linkedinUrl?: string
+  relationshipNotes?: string
+  tags?: string[]
+  customFields?: Record<string, any>
+  careerHistory?: ContactHistory[]
+  linkedinMessages?: LinkedInMessage[] // Messages segmented by user
+  linkedinInteractions?: LinkedInInteraction[] // All interactions with clear attribution
   sources?: Array<{
     fileName: string
     uploadedBy?: string
     uploadedAt: Date
     originalData: any
+    customFieldsDetected?: string[]
+    dataType?: 'contacts' | 'messages' | 'interactions' | 'connections'
   }>
 }
 
@@ -65,6 +106,196 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
     return email.toLowerCase().trim().replace(/\+.*@/, '@') // Remove + aliases
   }
 
+  // Helper function to detect data type based on content
+  const detectDataType = (values: string[]): string => {
+    const nonEmptyValues = values.filter(v => v && v.trim()).slice(0, 10) // Sample first 10 non-empty values
+    if (nonEmptyValues.length === 0) return 'unknown'
+
+    let emailCount = 0
+    let phoneCount = 0
+    let nameCount = 0
+    let companyCount = 0
+    let urlCount = 0
+
+    nonEmptyValues.forEach(value => {
+      const val = value.trim().toLowerCase()
+      
+      // Email detection
+      if (val.includes('@') && val.includes('.')) emailCount++
+      
+      // Phone detection (various formats)
+      if (/^[\+\-\s\(\)0-9]{10,}$/.test(val.replace(/\s/g, ''))) phoneCount++
+      
+      // URL detection
+      if (val.startsWith('http') || val.includes('linkedin.com') || val.includes('www.')) urlCount++
+      
+      // Name detection (2-3 words, mostly letters)
+      if (/^[a-zA-Z\s\-\'\.]{2,50}$/.test(val) && val.split(' ').length <= 3 && val.split(' ').length >= 2) {
+        nameCount++
+      }
+      
+      // Company detection (contains common business words or Inc, LLC, Corp, etc.)
+      if (/\b(inc|llc|corp|ltd|company|group|solutions|services|technologies|tech|consulting)\b/i.test(val) ||
+          /\b(co\.|co$|corporation|limited)\b/i.test(val)) {
+        companyCount++
+      }
+    })
+
+    const total = nonEmptyValues.length
+    
+    // Determine type based on highest confidence
+    if (emailCount / total > 0.7) return 'email'
+    if (phoneCount / total > 0.6) return 'phone'
+    if (urlCount / total > 0.5) return 'linkedinUrl'
+    if (companyCount / total > 0.4) return 'company'
+    if (nameCount / total > 0.6) return 'fullName'
+    
+    return 'unknown'
+  }
+
+  // Helper function to analyze headerless data structure
+  const analyzeHeaderlessData = (data: any[]): {[colIndex: number]: string} => {
+    const columnMappings: {[colIndex: number]: string} = {}
+    
+    if (data.length === 0) return columnMappings
+    
+    // Get column count from first row
+    const firstRow = data[0]
+    const columnCount = Array.isArray(firstRow) ? firstRow.length : Object.keys(firstRow).length
+    
+    // Analyze each column
+    for (let colIndex = 0; colIndex < columnCount; colIndex++) {
+      const columnValues = data.map(row => {
+        if (Array.isArray(row)) {
+          return row[colIndex] || ''
+        } else {
+          const keys = Object.keys(row)
+          return row[keys[colIndex]] || ''
+        }
+      }).map(val => String(val))
+      
+      const detectedType = detectDataType(columnValues)
+      columnMappings[colIndex] = detectedType
+    }
+    
+    // Post-process: ensure we have required fields and handle duplicates
+    const usedTypes = Object.values(columnMappings)
+    
+    // If we found a fullName but no firstName/lastName, split it
+    const fullNameIndex = Object.keys(columnMappings).find(key => columnMappings[parseInt(key)] === 'fullName')
+    if (fullNameIndex && !usedTypes.includes('firstName') && !usedTypes.includes('lastName')) {
+      // Keep fullName mapping, we'll handle splitting in processing
+    }
+    
+    return columnMappings
+  }
+
+  // Helper function to process LinkedIn message data with proper attribution
+  const processLinkedInMessages = (messageData: any[], importedBy: string): LinkedInMessage[] => {
+    return messageData.map((row, index) => ({
+      id: `msg_${Date.now()}_${index}`,
+      conversationId: row.conversationId || `conv_${row.participant || index}`,
+      sender: row.direction === 'OUTGOING' ? importedBy : (row.participant || 'unknown'),
+      recipient: row.direction === 'INCOMING' ? importedBy : (row.participant || 'unknown'),
+      content: row.content || row.message || '',
+      sentAt: new Date(row.date || row.timestamp || Date.now()),
+      direction: row.direction === 'OUTGOING' ? 'sent' : 'received',
+      importedBy,
+      messageThread: row.conversationId || `thread_${row.participant}`
+    }))
+  }
+
+  // Helper function to process LinkedIn interactions with attribution  
+  const processLinkedInInteractions = (interactionData: any[], importedBy: string): LinkedInInteraction[] => {
+    return interactionData.map(row => ({
+      type: detectInteractionType(row.action || row.type),
+      actor: row.direction === 'OUTGOING' ? importedBy : (row.person || row.target),
+      target: row.direction === 'INCOMING' ? importedBy : (row.person || row.target), 
+      content: row.content || row.comment || '',
+      occurredAt: new Date(row.date || row.timestamp || Date.now()),
+      importedBy,
+      platform: 'linkedin'
+    }))
+  }
+
+  // Helper function to detect interaction type
+  const detectInteractionType = (action: string): LinkedInInteraction['type'] => {
+    const normalized = action?.toLowerCase() || ''
+    if (normalized.includes('view')) return 'profile_view'
+    if (normalized.includes('like')) return 'post_like' 
+    if (normalized.includes('comment')) return 'post_comment'
+    if (normalized.includes('connect')) return 'connection_request'
+    if (normalized.includes('endorse')) return 'endorsement'
+    return 'profile_view' // default
+  }
+
+  // Helper function to detect career progression and merge contacts
+  const mergeContactWithHistory = (existingContact: Contact, newContactData: Contact & { sourceFile: string }): Contact => {
+    const merged = { ...existingContact }
+    const newHistory: ContactHistory[] = []
+    
+    // Check for changes that indicate career progression
+    if (newContactData.email !== existingContact.email && newContactData.email) {
+      newHistory.push({
+        email: existingContact.email,
+        detectedAt: new Date(),
+        source: newContactData.sourceFile,
+        confidence: 'high'
+      })
+      merged.email = newContactData.email // Update to most recent email
+    }
+    
+    if (newContactData.company !== existingContact.company && newContactData.company) {
+      newHistory.push({
+        company: existingContact.company,
+        detectedAt: new Date(),
+        source: newContactData.sourceFile,
+        confidence: 'high'
+      })
+      merged.company = newContactData.company // Update to most recent company
+    }
+    
+    if (newContactData.position !== existingContact.position && newContactData.position) {
+      newHistory.push({
+        position: existingContact.position,
+        detectedAt: new Date(),
+        source: newContactData.sourceFile,
+        confidence: 'high'
+      })
+      merged.position = newContactData.position // Update to most recent position
+    }
+    
+    if (newContactData.phone !== existingContact.phone && newContactData.phone) {
+      newHistory.push({
+        phone: existingContact.phone,
+        detectedAt: new Date(),
+        source: newContactData.sourceFile,
+        confidence: 'medium'
+      })
+      merged.phone = newContactData.phone // Update to most recent phone
+    }
+    
+    // Merge career history
+    merged.careerHistory = [...(existingContact.careerHistory || []), ...newHistory]
+    
+    // Merge other fields
+    merged.relationshipNotes = [existingContact.relationshipNotes, newContactData.relationshipNotes]
+      .filter(Boolean).join('\\n\\n')
+    
+    merged.tags = [...new Set([...(existingContact.tags || []), ...(newContactData.tags || [])])]
+    
+    // Merge custom fields
+    merged.customFields = {
+      ...existingContact.customFields,
+      ...newContactData.customFields
+    }
+    
+    // Merge sources
+    merged.sources = [...(existingContact.sources || []), ...(newContactData.sources || [])]
+    
+    return merged
+  }
+
   // Find duplicates across all parsed contacts
   const findDuplicates = (allContacts: Array<Contact & { sourceFile: string }>): DuplicateGroup[] => {
     const emailGroups = new Map<string, Array<Contact & { sourceFile: string }>>()
@@ -94,36 +325,17 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
     return duplicateGroups
   }
 
-  // Intelligently merge duplicate contacts
+  // Intelligently merge duplicate contacts with career progression tracking
   const mergeContacts = (contacts: Array<Contact & { sourceFile: string }>): Contact => {
-    const merged: Contact = {
-      firstName: '',
-      lastName: '',
-      email: contacts[0].email,
-      sources: []
+    if (contacts.length === 1) return contacts[0]
+    
+    // Start with the first contact as base
+    let merged = contacts[0]
+    
+    // Apply career progression logic for each subsequent contact
+    for (let i = 1; i < contacts.length; i++) {
+      merged = mergeContactWithHistory(merged, contacts[i])
     }
-
-    // Track all sources
-    contacts.forEach(contact => {
-      merged.sources!.push({
-        fileName: contact.sourceFile,
-        uploadedAt: new Date(),
-        originalData: contact
-      })
-    })
-
-    // Merge fields - prefer non-empty values
-    contacts.forEach(contact => {
-      if (!merged.firstName && contact.firstName) merged.firstName = contact.firstName
-      if (!merged.lastName && contact.lastName) merged.lastName = contact.lastName
-      if (!merged.company && contact.company) merged.company = contact.company
-      if (!merged.position && contact.position) merged.position = contact.position
-      if (!merged.phone && contact.phone) merged.phone = contact.phone
-      // Use highest tier
-      if (!merged.tier || (contact.tier && contact.tier < merged.tier)) {
-        merged.tier = contact.tier
-      }
-    })
 
     return merged
   }
@@ -168,35 +380,74 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
     for (const file of files) {
       try {
         const text = await file.text()
-        const results = Papa.parse<any>(text, {
+        // Try to parse with headers first
+        let results = Papa.parse<any>(text, {
           header: true,
           skipEmptyLines: true,
-          transformHeader: (header: string) => {
-            // Normalize common header variations
-            const normalized = header.toLowerCase().trim().replace(/[_\s]+/g, '')
-            
-            // Name fields
-            if (normalized === 'fullname' || normalized === 'name') return 'fullName'
-            if (normalized.includes('first') && normalized.includes('name')) return 'firstName'
-            if (normalized.includes('last') && normalized.includes('name')) return 'lastName'
-            
-            // Contact fields
-            if (normalized.includes('email')) return 'email'
-            if (normalized.includes('phone') || normalized.includes('mobile') || normalized.includes('cell')) return 'phone'
-            
-            // Professional fields
-            if (normalized.includes('company') || normalized === 'organization' || normalized === 'org') return 'company'
-            if (normalized.includes('position') || normalized.includes('title') || normalized.includes('job') || normalized === 'role') return 'position'
-            
-            // LinkedIn specific
-            if (normalized === 'linkedinurl' || normalized.includes('linkedin')) return 'linkedinUrl'
-            
-            // Tier/priority
-            if (normalized.includes('tier') || normalized.includes('priority') || normalized.includes('level')) return 'tier'
-            
-            return header
-          }
+          preview: 5 // Preview to check if headers exist
         })
+        
+        let hasValidHeaders = false
+        if (results.meta.fields && results.meta.fields.length > 0) {
+          const fields = results.meta.fields
+          // Check if first row looks like headers (contains common field names or no @ symbols)
+          hasValidHeaders = fields.some(field => {
+            const normalized = field.toLowerCase()
+            return normalized.includes('name') || normalized.includes('email') || 
+                   normalized.includes('company') || normalized.includes('phone') ||
+                   (field && !field.includes('@'))
+          })
+        }
+        
+        if (!hasValidHeaders) {
+          // Parse as headerless data
+          results = Papa.parse<any>(text, {
+            header: false,
+            skipEmptyLines: true
+          })
+          
+          // Analyze column patterns
+          const columnMappings = analyzeHeaderlessData(results.data)
+          
+          // Transform data using detected patterns
+          const transformedData = results.data.map(row => {
+            const transformedRow: any = {}
+            
+            if (Array.isArray(row)) {
+              row.forEach((value, index) => {
+                const detectedType = columnMappings[index] || 'unknown'
+                if (detectedType !== 'unknown') {
+                  transformedRow[detectedType] = value
+                } else {
+                  transformedRow[`column_${index}`] = value
+                }
+              })
+            }
+            
+            return transformedRow
+          })
+          
+          results.data = transformedData
+        } else {
+          // Re-parse with proper header transformation
+          results = Papa.parse<any>(text, {
+            header: true,
+            skipEmptyLines: true,
+            transformHeader: (header: string) => {
+              const normalized = header.toLowerCase().trim().replace(/[_\s]+/g, '')
+              
+              if (normalized === 'fullname' || normalized === 'name') return 'fullName'
+              if (normalized.includes('first') && normalized.includes('name')) return 'firstName'
+              if (normalized.includes('last') && normalized.includes('name')) return 'lastName'
+              if (normalized.includes('email')) return 'email'
+              if (normalized.includes('phone')) return 'phone'
+              if (normalized.includes('company')) return 'company'
+              if (normalized.includes('position') || normalized.includes('title')) return 'position'
+              
+              return header
+            }
+          })
+        }
 
         const contacts: Contact[] = []
         const errors: string[] = []
@@ -225,6 +476,29 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
             return
           }
 
+          // Parse tags from various formats
+          let parsedTags: string[] = []
+          if (row.tags) {
+            if (typeof row.tags === 'string') {
+              parsedTags = row.tags.split(/[,;|]/).map(tag => tag.trim()).filter(Boolean)
+            }
+          }
+
+          // Collect all unmapped custom fields for preservation
+          const customFields: Record<string, any> = {}
+          const standardFields = new Set([
+            'firstName', 'lastName', 'fullName', 'email', 'phone', 'mobile', 'company', 
+            'organization', 'position', 'title', 'role', 'linkedinUrl', 'tier', 'notes', 
+            'relationshipNotes', 'tags', 'lastContactDate', 'source', 'interactionHistory',
+            'mutualConnections', 'personalNotes', 'industry'
+          ])
+          
+          Object.entries(row).forEach(([key, value]) => {
+            if (!standardFields.has(key) && value && value.toString().trim()) {
+              customFields[key] = value
+            }
+          })
+
           const contact: Contact = {
             firstName,
             lastName,
@@ -233,10 +507,20 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
             position: row.position || row.title || row.role || '',
             phone: row.phone || row.mobile || '',
             tier: row.tier || row.priority || 'TIER_3',
+            linkedinUrl: row.linkedinUrl || '',
+            relationshipNotes: [
+              row.relationshipNotes,
+              row.notes,
+              row.personalNotes,
+              row.interactionHistory
+            ].filter(Boolean).join('\\n\\n'),
+            tags: parsedTags,
+            customFields: Object.keys(customFields).length > 0 ? customFields : undefined,
             sources: [{
               fileName: file.name,
               uploadedAt: new Date(),
-              originalData: row
+              originalData: row,
+              customFieldsDetected: Object.keys(customFields)
             }]
           }
 

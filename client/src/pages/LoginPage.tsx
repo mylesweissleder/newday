@@ -1,11 +1,15 @@
 import React, { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import RegisterPage from '../components/RegisterPage'
+
+type ViewMode = 'login' | 'register'
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('demo@networkcrm.com')
   const [password, setPassword] = useState('demo123456')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('login')
   const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,6 +31,11 @@ const LoginPage: React.FC = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Handle registration view
+  if (viewMode === 'register') {
+    return <RegisterPage onBack={() => setViewMode('login')} />
   }
 
   return (
@@ -144,17 +153,25 @@ const LoginPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="text-center text-sm text-gray-500 space-y-1">
-            <p className="font-medium">Demo Credentials:</p>
-            <p>Email: demo@networkcrm.com</p>
-            <p>Password: demo123456</p>
-            <button 
-              type="button" 
-              onClick={() => handleSubmit(new Event('submit') as any)}
-              className="mt-2 text-blue-600 hover:text-blue-800 text-xs"
-            >
-              🔧 Test Login Function
-            </button>
+          <div className="text-center space-y-4">
+            <div className="text-sm text-gray-500 space-y-1">
+              <p className="font-medium">Demo Credentials:</p>
+              <p>Email: demo@networkcrm.com</p>
+              <p>Password: demo123456</p>
+            </div>
+            
+            <div className="border-t border-gray-200 pt-4">
+              <p className="text-sm text-gray-600 mb-2">
+                Don't have an account?
+              </p>
+              <button
+                type="button"
+                onClick={() => setViewMode('register')}
+                className="w-full bg-white text-blue-600 border border-blue-600 py-2 px-4 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm font-medium"
+              >
+                Create New Account
+              </button>
+            </div>
           </div>
         </form>
           </div>

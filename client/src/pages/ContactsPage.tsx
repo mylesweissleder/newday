@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import ContactEditModal from '../components/ContactEditModal'
+import BulkContactActions from '../components/BulkContactActions'
+import { validateContact } from '../utils/dataValidation'
+import { safeFetch, safeContactOperation, getUserFriendlyMessage } from '../utils/errorHandling'
+import { LocalBackupManager, performDataIntegrityCheck, exportContactData, downloadBackup } from '../utils/dataBackup'
 
 interface Contact {
   id: string
@@ -34,6 +38,8 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
   const [totalPages, setTotalPages] = useState(1)
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [systemError, setSystemError] = useState<string | null>(null)
+  const [dataIntegrityStatus, setDataIntegrityStatus] = useState<any>(null)
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
 
@@ -41,63 +47,80 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
     fetchContacts()
   }, [currentPage, searchTerm, selectedTier])
 
-  const fetchContacts = async () => {
-    const token = localStorage.getItem('auth-token')
-    
-    if (token === 'demo-token') {
-      // Demo data
-      const demoContacts = [
-        {
-          id: '1',
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@techcorp.com',
-          company: 'TechCorp Inc',
-          position: 'CEO',
-          tier: 'TIER_1',
-          tags: ['imported', 'linkedin'],
-          source: 'LinkedIn Export',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          _count: { outreach: 3, relationships: 2 }
-        },
-        {
-          id: '2',
-          firstName: 'Jane',
-          lastName: 'Smith',
-          email: 'jane.smith@startupxyz.com',
-          company: 'StartupXYZ',
-          position: 'CTO',
-          tier: 'TIER_1',
-          tags: ['imported', 'event'],
-          source: 'SFNT Event',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          _count: { outreach: 5, relationships: 1 }
-        },
-        {
-          id: '3',
-          firstName: 'Mike',
-          lastName: 'Johnson',
-          email: 'mike.j@consulting.com',
-          company: 'Consulting Group',
-          position: 'Partner',
-          tier: 'TIER_2',
-          tags: ['imported'],
-          source: 'CSV Import',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          _count: { outreach: 1, relationships: 0 }
-        }
-      ]
-      
-      setContacts(demoContacts)
-      setTotalPages(1)
-      setLoading(false)
-      return
+  // Auto-backup when contacts change
+  useEffect(() => {
+    if (contacts.length > 0 && LocalBackupManager.needsBackup()) {
+      LocalBackupManager.createBackup(contacts, 'current-user', 'current-account')
     }
+  }, [contacts])
 
-    try {
+  // Perform data integrity check
+  useEffect(() => {
+    if (contacts.length > 0) {
+      const integrityCheck = performDataIntegrityCheck(contacts)
+      setDataIntegrityStatus(integrityCheck)
+      
+      if (!integrityCheck.isHealthy) {
+        console.warn('Data integrity issues detected:', integrityCheck.issues)
+      }
+    }
+  }, [contacts])
+
+  const fetchContacts = async () => {
+    const result = await safeContactOperation(async () => {
+      const token = localStorage.getItem('auth-token')
+      
+      if (token === 'demo-token') {
+        // Demo data with validation
+        const demoContacts = [
+          {
+            id: '1',
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john.doe@techcorp.com',
+            company: 'TechCorp Inc',
+            position: 'CEO',
+            tier: 'TIER_1',
+            tags: ['imported', 'linkedin'],
+            source: 'LinkedIn Export',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            _count: { outreach: 3, relationships: 2 }
+          },
+          {
+            id: '2',
+            firstName: 'Jane',
+            lastName: 'Smith',
+            email: 'jane.smith@startupxyz.com',
+            company: 'StartupXYZ',
+            position: 'CTO',
+            tier: 'TIER_1',
+            tags: ['imported', 'event'],
+            source: 'SFNT Event',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            _count: { outreach: 5, relationships: 1 }
+          },
+          {
+            id: '3',
+            firstName: 'Mike',
+            lastName: 'Johnson',
+            email: 'mike.j@consulting.com',
+            company: 'Consulting Group',
+            position: 'Partner',
+            tier: 'TIER_2',
+            tags: ['imported'],
+            source: 'CSV Import',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            _count: { outreach: 1, relationships: 0 }
+          }
+        ]
+        
+        setTotalPages(1)
+        return demoContacts
+      }
+
       setLoading(true)
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -106,23 +129,24 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
         ...(selectedTier && { tier: selectedTier })
       })
 
-      const response = await fetch(`${API_BASE_URL}/api/contacts?${params}`, {
+      const response = await safeFetch(`${API_BASE_URL}/api/contacts?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        setContacts(data.contacts)
-        setTotalPages(data.pagination.totalPages)
-      } else {
-        console.error('Failed to fetch contacts')
-        setContacts([])
-      }
-    } catch (error) {
-      console.error('Error fetching contacts:', error)
+      const data = await response.json()
+      setTotalPages(data.pagination?.totalPages || 1)
+      return data.contacts || []
+
+    }, 'fetchContacts', { currentPage, searchTerm, selectedTier })
+
+    if (result.data) {
+      setContacts(result.data)
+      setSystemError(null)
+    } else if (result.error) {
+      setSystemError(getUserFriendlyMessage(result.error))
       setContacts([])
     }
 
@@ -214,6 +238,164 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
     }
   }
 
+  const handleBulkDelete = async (contactIds: string[]) => {
+    const token = localStorage.getItem('auth-token')
+    
+    if (token === 'demo-token') {
+      setContacts(prev => prev.filter(c => !contactIds.includes(c.id)))
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/contacts/bulk-delete`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ contactIds })
+      })
+
+      if (response.ok) {
+        setContacts(prev => prev.filter(c => !contactIds.includes(c.id)))
+      } else {
+        throw new Error('Failed to delete contacts')
+      }
+    } catch (error) {
+      console.error('Error deleting contacts:', error)
+      alert('Failed to delete contacts. Please try again.')
+      throw error
+    }
+  }
+
+  const handleBulkUpdateTier = async (contactIds: string[], tier: string) => {
+    const token = localStorage.getItem('auth-token')
+    
+    if (token === 'demo-token') {
+      setContacts(prev => prev.map(c => 
+        contactIds.includes(c.id) ? { ...c, tier, updatedAt: new Date().toISOString() } : c
+      ))
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/contacts/bulk-update-tier`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ contactIds, tier })
+      })
+
+      if (response.ok) {
+        const updatedContacts = await response.json()
+        setContacts(prev => prev.map(c => {
+          const updated = updatedContacts.find((u: Contact) => u.id === c.id)
+          return updated || c
+        }))
+      } else {
+        throw new Error('Failed to update contact tiers')
+      }
+    } catch (error) {
+      console.error('Error updating contact tiers:', error)
+      alert('Failed to update contact tiers. Please try again.')
+      throw error
+    }
+  }
+
+  const handleBulkAddTags = async (contactIds: string[], tags: string[]) => {
+    const token = localStorage.getItem('auth-token')
+    
+    if (token === 'demo-token') {
+      setContacts(prev => prev.map(c => 
+        contactIds.includes(c.id) ? {
+          ...c, 
+          tags: [...(c.tags || []), ...tags].filter((tag, index, arr) => arr.indexOf(tag) === index),
+          updatedAt: new Date().toISOString()
+        } : c
+      ))
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/contacts/bulk-add-tags`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ contactIds, tags })
+      })
+
+      if (response.ok) {
+        const updatedContacts = await response.json()
+        setContacts(prev => prev.map(c => {
+          const updated = updatedContacts.find((u: Contact) => u.id === c.id)
+          return updated || c
+        }))
+      } else {
+        throw new Error('Failed to add tags to contacts')
+      }
+    } catch (error) {
+      console.error('Error adding tags to contacts:', error)
+      alert('Failed to add tags to contacts. Please try again.')
+      throw error
+    }
+  }
+
+  const handleBulkExport = (contactIds: string[]) => {
+    const selectedContactsData = contacts.filter(c => contactIds.includes(c.id))
+    const csvContent = [
+      ['First Name', 'Last Name', 'Email', 'Company', 'Position', 'Phone', 'Tier', 'Tags', 'Source'],
+      ...selectedContactsData.map(c => [
+        c.firstName,
+        c.lastName,
+        c.email,
+        c.company || '',
+        c.position || '',
+        c.phone || '',
+        c.tier,
+        (c.tags || []).join(';'),
+        c.source || ''
+      ])
+    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `contacts_export_${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  }
+
+  const handleClearSelection = () => {
+    setSelectedContacts(new Set())
+  }
+
+  // Emergency export functionality
+  const handleEmergencyExport = async () => {
+    try {
+      const exportData = await exportContactData(contacts, {
+        includeCustomFields: true,
+        includeInteractions: true,
+        includeCampaigns: true,
+        format: 'json'
+      })
+      
+      const timestamp = new Date().toISOString().split('T')[0]
+      downloadBackup(exportData, `contacts_backup_${timestamp}.json`, 'application/json')
+    } catch (error) {
+      console.error('Export failed:', error)
+      alert('Failed to export contacts. Please try again.')
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -233,8 +415,80 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
         </div>
         <div className="flex items-center space-x-4">
           <span className="text-sm text-gray-500">{contacts.length} contacts</span>
+          
+          {/* System Health Indicators */}
+          {dataIntegrityStatus && !dataIntegrityStatus.isHealthy && (
+            <div className="flex items-center text-amber-600 text-sm">
+              <svg style={{width: '16px', height: '16px'}} className="mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              Data Issues
+            </div>
+          )}
+          
+          <button
+            onClick={handleEmergencyExport}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            title="Export all contacts as backup"
+          >
+            🔒 Backup
+          </button>
         </div>
       </div>
+
+      {/* System Error Alert */}
+      {systemError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <svg style={{width: '20px', height: '20px'}} className="text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h4 className="text-red-800 font-medium">System Error</h4>
+              <p className="text-red-700 text-sm">{systemError}</p>
+            </div>
+            <button
+              onClick={() => setSystemError(null)}
+              className="ml-auto text-red-600 hover:text-red-800"
+            >
+              <svg style={{width: '20px', height: '20px'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Data Integrity Warning */}
+      {dataIntegrityStatus && !dataIntegrityStatus.isHealthy && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <svg style={{width: '20px', height: '20px'}} className="text-amber-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <div>
+              <h4 className="text-amber-800 font-medium">Data Quality Issues Detected</h4>
+              <div className="text-amber-700 text-sm mt-1">
+                {dataIntegrityStatus.summary.missingEmails > 0 && (
+                  <p>• {dataIntegrityStatus.summary.missingEmails} contacts missing email addresses</p>
+                )}
+                {dataIntegrityStatus.summary.duplicateEmails > 0 && (
+                  <p>• {dataIntegrityStatus.summary.duplicateEmails} duplicate email addresses found</p>
+                )}
+                {dataIntegrityStatus.summary.incompleteRecords > 0 && (
+                  <p>• {dataIntegrityStatus.summary.incompleteRecords} contacts with incomplete information</p>
+                )}
+              </div>
+              <button
+                onClick={handleEmergencyExport}
+                className="mt-2 text-amber-800 underline text-sm hover:text-amber-900"
+              >
+                Create backup before fixing issues
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow border p-6">
@@ -431,6 +685,16 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
           setEditingContact(null)
         }}
         onSave={handleSaveContact}
+      />
+
+      {/* Bulk Contact Actions */}
+      <BulkContactActions
+        selectedContacts={contacts.filter(c => selectedContacts.has(c.id))}
+        onDelete={handleBulkDelete}
+        onUpdateTier={handleBulkUpdateTier}
+        onAddTags={handleBulkAddTags}
+        onExport={handleBulkExport}
+        onClearSelection={handleClearSelection}
       />
     </div>
   )

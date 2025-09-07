@@ -13,8 +13,32 @@ interface User {
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.whatintheworldwasthat.com'
+  
+  // Helper to get API headers with site password
+  const getApiHeaders = (includeAuth = false) => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    }
+    
+    // Add site password
+    const sitePassword = localStorage.getItem('site-password')
+    if (sitePassword) {
+      headers['X-Site-Password'] = sitePassword
+    }
+    
+    // Add auth token if needed
+    if (includeAuth) {
+      const token = localStorage.getItem('auth-token')
+      if (token && token !== 'demo-token') {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+    }
+    
+    return headers
+  }
 
   useEffect(() => {
     const token = localStorage.getItem('auth-token')
@@ -39,36 +63,144 @@ export const useAuth = () => {
   }, [])
 
   const fetchUserProfile = async (token: string) => {
-    // Skip API call for demo mode to avoid CORS issues
-    console.log('Skipping API profile fetch for demo mode')
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+        headers: getApiHeaders(true)
+      })
+
+      if (response.ok) {
+        const userData = await response.json()
+        setUser(userData)
+      } else if (response.status === 401) {
+        // Token expired or invalid
+        localStorage.removeItem('auth-token')
+        setUser(null)
+      } else {
+        setError('Failed to fetch user profile')
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err)
+      setError('Network error')
+    }
+    
     setLoading(false)
   }
 
-  const login = async (email: string, password: string) => {
-    console.log('Login called with:', { email, password })
-    
-    // Demo mode - simulate API call for demo credentials
-    if (email === 'demo@networkcrm.com' && password === 'demo123456') {
-      console.log('Using demo login')
-      const demoUser = {
-        id: 'demo-user-id',
-        email: 'demo@networkcrm.com',
-        firstName: 'Demo',
-        lastName: 'User',
-        role: 'ADMIN',
-        accountId: 'demo-account-id',
-        accountName: 'Demo Account'
-      }
-      
-      localStorage.setItem('auth-token', 'demo-token')
-      console.log('Setting demo user:', demoUser)
-      setUser(demoUser)
-      console.log('Demo user set, state should update')
-      return { success: true }
-    }
+  const refreshToken = async () => {
+    try {
+      const token = localStorage.getItem('auth-token')
+      if (!token || token === 'demo-token') return false
 
-    // For now, return error for non-demo credentials to avoid CORS issues
-    return { success: false, error: 'Invalid credentials. Use demo@networkcrm.com / demo123456' }
+      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+        method: 'POST',
+        headers: getApiHeaders(true)
+      })
+
+      if (response.ok) {
+        const { token: newToken } = await response.json()
+        localStorage.setItem('auth-token', newToken)
+        return true
+      } else {
+        localStorage.removeItem('auth-token')
+        setUser(null)
+        return false
+      }
+    } catch (err) {
+      console.error('Error refreshing token:', err)
+      return false
+    }
+  }
+
+  const login = async (email: string, password: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Demo mode - keep existing demo functionality
+      if (email === 'demo@networkcrm.com' && password === 'demo123456') {
+        const demoUser = {
+          id: 'demo-user-id',
+          email: 'demo@networkcrm.com',
+          firstName: 'Demo',
+          lastName: 'User',
+          role: 'ADMIN',
+          accountId: 'demo-account-id',
+          accountName: 'Demo Account'
+        }
+        
+        localStorage.setItem('auth-token', 'demo-token')
+        setUser(demoUser)
+        setLoading(false)
+        return { success: true }
+      }
+
+      // Real authentication
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: getApiHeaders(),
+        body: JSON.stringify({ email, password })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        localStorage.setItem('auth-token', data.token)
+        setUser(data.user)
+        setLoading(false)
+        return { success: true }
+      } else {
+        setError(data.message || 'Login failed')
+        setLoading(false)
+        return { success: false, error: data.message || 'Invalid credentials' }
+      }
+    } catch (err) {
+      console.error('Login error:', err)
+      const errorMessage = 'Network error. Please try again.'
+      setError(errorMessage)
+      setLoading(false)
+      return { success: false, error: errorMessage }
+    }
+  }
+
+  const register = async (userData: {
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    accountName?: string
+  }) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: getApiHeaders(),
+        body: JSON.stringify(userData)
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        localStorage.setItem('auth-token', data.token)
+        setUser(data.user)
+        setLoading(false)
+        return { success: true }
+      } else {
+        setError(data.message || 'Registration failed')
+        setLoading(false)
+        return { success: false, error: data.message || 'Registration failed' }
+      }
+    } catch (err) {
+      console.error('Registration error:', err)
+      const errorMessage = 'Network error. Please try again.'
+      setError(errorMessage)
+      setLoading(false)
+      return { success: false, error: errorMessage }
+    }
   }
 
   const logout = () => {
@@ -76,10 +208,26 @@ export const useAuth = () => {
     setUser(null)
   }
 
+  // Set up automatic token refresh
+  useEffect(() => {
+    const token = localStorage.getItem('auth-token')
+    if (token && token !== 'demo-token' && user) {
+      // Refresh token every 50 minutes (assuming 1-hour expiry)
+      const interval = setInterval(() => {
+        refreshToken()
+      }, 50 * 60 * 1000)
+
+      return () => clearInterval(interval)
+    }
+  }, [user])
+
   return {
     user,
     loading,
+    error,
     login,
-    logout
+    register,
+    logout,
+    refreshToken
   }
 }
