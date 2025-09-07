@@ -78,10 +78,11 @@ export const withRetry = async <T>(
   throw lastError
 }
 
-// Helper to get API headers
+// Helper to get API headers with site password
 const getApiHeaders = (additionalHeaders: Record<string, string> = {}) => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Site-Password': 'NetworkCRM2025!',
     ...additionalHeaders
   }
   

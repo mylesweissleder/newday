@@ -17,11 +17,14 @@ export const useAuth = () => {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
   
-  // Helper to get API headers 
+  // Helper to get API headers with site password
   const getApiHeaders = (includeAuth = false) => {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     }
+    
+    // Add site password for backend security
+    headers['Site-Password'] = 'NetworkCRM2025!'
     
     // Add auth token if needed
     if (includeAuth) {
