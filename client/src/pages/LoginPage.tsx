@@ -5,7 +5,7 @@ import RegisterPage from '../components/RegisterPage'
 type ViewMode = 'login' | 'register'
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('demo@trustcircle.com')
+  const [email, setEmail] = useState('demo@truecrew.com')
   const [password, setPassword] = useState('demo123456')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -47,9 +47,9 @@ const LoginPage: React.FC = () => {
             <div className="mb-8">
               <div className="flex items-center space-x-3 mb-4">
                 <span className="text-4xl">🤝</span>
-                <h1 className="text-4xl font-bold">TrustCircle</h1>
+                <h1 className="text-4xl font-bold">TrueCrew</h1>
               </div>
-              <p className="text-xl text-blue-100">Turn your shared connections into career opportunities.</p>
+              <p className="text-xl text-blue-100">Your crew's connections unlock career opportunities.</p>
             </div>
             
             <div className="space-y-6">
@@ -58,8 +58,8 @@ const LoginPage: React.FC = () => {
                   ✓
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Gather Your Trusted Circle</h3>
-                  <p className="text-blue-100 text-sm">Invite 2–5 close colleagues, mentors, or peers who know different industries and companies. Share your combined networks securely within your circle.</p>
+                  <h3 className="font-semibold text-lg">Assemble Your Crew</h3>
+                  <p className="text-blue-100 text-sm">Invite 2–5 trusted colleagues, mentors, or peers who know different industries and companies. Share your combined networks securely within your crew.</p>
                 </div>
               </div>
 
@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">Connect Your Professional Life</h3>
-                  <p className="text-blue-100 text-sm">Upload your contacts and connect Gmail & LinkedIn. We'll map who knows whom—finding warm paths to decision makers through your circle's combined networks.</p>
+                  <p className="text-blue-100 text-sm">Upload your contacts and connect Gmail & LinkedIn. We'll map who knows whom—finding warm paths to decision makers through your crew's combined networks.</p>
                 </div>
               </div>
 
@@ -79,7 +79,7 @@ const LoginPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">Get Thoughtful Introductions</h3>
-                  <p className="text-blue-100 text-sm">When you find an opportunity, we help craft warm, personal introduction requests to your circle members who can make the connection happen.</p>
+                  <p className="text-blue-100 text-sm">When you find an opportunity, we help craft warm, personal introduction requests to your crew members who can make the connection happen.</p>
                 </div>
               </div>
             </div>
@@ -91,7 +91,7 @@ const LoginPage: React.FC = () => {
               </div>
               <ul className="text-sm text-blue-100 space-y-1">
                 <li>• Skip the cold email grind</li>
-                <li>• Leverage your circle's combined relationships</li>
+                <li>• Leverage your crew's combined relationships</li>
                 <li>• Get personal introductions that matter</li>
                 <li>• Land opportunities through trust and connection</li>
               </ul>
@@ -106,10 +106,10 @@ const LoginPage: React.FC = () => {
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-2">
               <span className="text-2xl">🤝</span>
-              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">TrustCircle</h2>
+              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">TrueCrew</h2>
             </div>
             <p className="text-sm text-gray-600">
-              Where trusted connections become career opportunities
+              Where your crew's connections become career opportunities
             </p>
           </div>
         </div>
@@ -162,7 +162,7 @@ const LoginPage: React.FC = () => {
           <div className="text-center space-y-4">
             <div className="text-sm text-gray-500 space-y-1">
               <p className="font-medium">Demo Credentials:</p>
-              <p>Email: demo@trustcircle.com</p>
+              <p>Email: demo@truecrew.com</p>
               <p>Password: demo123456</p>
             </div>
             

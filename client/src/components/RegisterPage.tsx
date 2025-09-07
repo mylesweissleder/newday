@@ -84,7 +84,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
               Create Account
             </h1>
             <p className="text-gray-600">
-              Join a trusted circle. Share connections. Land opportunities together.
+              Join your trusted crew. Share connections. Land opportunities together.
             </p>
           </div>
 

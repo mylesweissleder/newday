@@ -37,7 +37,7 @@ function App() {
               <div className="flex justify-between items-center py-4 lg:py-6">
                 <div className="flex items-center space-x-2">
                   <span className="text-xl sm:text-2xl">🤝</span>
-                  <h1 className="text-lg sm:text-2xl font-bold text-gray-900">TrustCircle</h1>
+                  <h1 className="text-lg sm:text-2xl font-bold text-gray-900">TrueCrew</h1>
                 </div>
 
                 {/* Desktop Navigation */}
