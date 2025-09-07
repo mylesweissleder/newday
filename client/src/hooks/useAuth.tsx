@@ -225,18 +225,7 @@ export const useAuth = () => {
     setUser(null)
   }
 
-  // Set up automatic token refresh
-  useEffect(() => {
-    const token = localStorage.getItem('auth-token')
-    if (token && token !== 'demo-token' && user) {
-      // Refresh token every 50 minutes (assuming 1-hour expiry)
-      const interval = setInterval(() => {
-        refreshToken()
-      }, 50 * 60 * 1000)
-
-      return () => clearInterval(interval)
-    }
-  }, [user])
+  // Automatic token refresh disabled since tokens now last 1 year
 
   return {
     user,

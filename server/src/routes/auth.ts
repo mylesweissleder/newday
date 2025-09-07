@@ -33,7 +33,7 @@ const generateToken = (userId: string, accountId: string, email: string): string
   return jwt.sign(
     { userId, accountId, email },
     process.env.JWT_SECRET as string,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    { expiresIn: '365d' } // 1 year instead of 7 days
   );
 };
 
