@@ -247,8 +247,8 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/contacts/bulk-delete`, {
-        method: 'DELETE',
+      const response = await fetch(`${API_BASE_URL}/api/contacts/bulk/delete`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -279,8 +279,8 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/contacts/bulk-update-tier`, {
-        method: 'PUT',
+      const response = await fetch(`${API_BASE_URL}/api/contacts/bulk/update-tier`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -319,8 +319,8 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/contacts/bulk-add-tags`, {
-        method: 'PUT',
+      const response = await fetch(`${API_BASE_URL}/api/contacts/bulk/add-tags`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -569,8 +569,15 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {contacts.map((contact) => (
-              <div key={contact.id} className="px-6 py-4 hover:bg-gray-50">
+            {contacts.map((contact) => {
+              const isShared = contact.tags?.includes('shared');
+              const hasPhone = contact.phone && contact.phone.trim() !== '';
+              const lastContactDays = contact.lastContactDate 
+                ? Math.floor((Date.now() - new Date(contact.lastContactDate).getTime()) / (1000 * 60 * 60 * 24))
+                : null;
+              
+              return (
+              <div key={contact.id} className={`px-6 py-4 hover:bg-gray-50 ${isShared ? 'border-l-4 border-purple-400' : ''}`}>
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -582,8 +589,13 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
                   <div className="ml-4 flex-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <div className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                        <div className={`h-12 w-12 ${isShared ? 'bg-gradient-to-r from-purple-500 to-pink-600' : 'bg-gradient-to-r from-blue-500 to-purple-600'} rounded-full flex items-center justify-center text-white font-semibold relative`}>
                           {contact.firstName[0]}{contact.lastName[0]}
+                          {isShared && (
+                            <div className="absolute -top-1 -right-1 h-4 w-4 bg-purple-500 rounded-full flex items-center justify-center" title="Shared Contact">
+                              <span className="text-xs text-white">👥</span>
+                            </div>
+                          )}
                         </div>
                         <div>
                           <div className="flex items-center space-x-2">
@@ -593,6 +605,14 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
                             <span className={`px-2 py-1 text-xs rounded-full font-medium border ${getTierColor(contact.tier)}`}>
                               {getTierLabel(contact.tier)}
                             </span>
+                            {hasPhone && (
+                              <span className="text-green-600 text-xs" title={contact.phone}>📱</span>
+                            )}
+                            {lastContactDays !== null && lastContactDays < 7 && (
+                              <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
+                                Active
+                              </span>
+                            )}
                           </div>
                           <p className="text-sm text-blue-600">{contact.email}</p>
                           {(contact.company || contact.position) && (
@@ -601,6 +621,72 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
                               {contact.company && <span className="font-medium">{contact.company}</span>}
                               {contact.company && contact.position && <span className="mx-2">•</span>}
                               {contact.position && <span>{contact.position}</span>}
+                            </div>
+                          )}
+                          {contact.source && (
+                            <div className="flex items-center text-xs text-gray-400 mt-1">
+                              <span className="mr-1">📂</span>
+                              <span>{contact.source}</span>
+                            </div>
+                          )}
+                          {contact.relationshipNotes && (
+                            <div className="text-xs text-gray-500 mt-1 italic">
+                              <span className="mr-1">📝</span>
+                              <span className="line-clamp-2">{contact.relationshipNotes}</span>
+                            </div>
+                          )}
+                          {contact.tags && contact.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {contact.tags.filter(tag => !['shared'].includes(tag)).slice(0, 5).map((tag, idx) => (
+                                <span key={idx} className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
+                                  {tag}
+                                </span>
+                              ))}
+                              {contact.tags.length > 5 && (
+                                <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-500 rounded-full">
+                                  +{contact.tags.length - 5}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {(contact.linkedinUrl || contact.twitterUrl || contact.website) && (
+                            <div className="flex items-center space-x-3 mt-2">
+                              {contact.linkedinUrl && (
+                                <a 
+                                  href={contact.linkedinUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 flex items-center text-xs"
+                                  title="View LinkedIn Profile"
+                                >
+                                  <span className="mr-1">💼</span>
+                                  LinkedIn
+                                </a>
+                              )}
+                              {contact.twitterUrl && (
+                                <a 
+                                  href={contact.twitterUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-400 hover:text-blue-600 flex items-center text-xs"
+                                  title="View Twitter Profile"
+                                >
+                                  <span className="mr-1">🐦</span>
+                                  Twitter
+                                </a>
+                              )}
+                              {contact.website && (
+                                <a 
+                                  href={contact.website} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-gray-600 hover:text-gray-800 flex items-center text-xs"
+                                  title="Visit Website"
+                                >
+                                  <span className="mr-1">🌐</span>
+                                  Website
+                                </a>
+                              )}
                             </div>
                           )}
                         </div>
@@ -644,7 +730,8 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
 

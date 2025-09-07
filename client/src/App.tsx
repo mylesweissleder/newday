@@ -7,9 +7,10 @@ import NetworkAnalysisPage from './pages/NetworkAnalysisPage'
 import ContactsPage from './pages/ContactsPage'
 import SmartOutreachPage from './pages/SmartOutreachPage'
 import AboutPage from './pages/AboutPage'
+import SettingsPage from './pages/SettingsPage'
 import LoadingSpinner from './components/LoadingSpinner'
 
-type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'contacts' | 'about'
+type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'contacts' | 'about' | 'settings'
 
 function App() {
   const { user, loading, logout } = useAuth()
@@ -72,10 +73,15 @@ function App() {
                   <div className="flex items-center space-x-4">
                     <span className="text-sm text-gray-700 hidden xl:inline">{user.email}</span>
                     <button
-                      onClick={logout}
-                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium"
+                      onClick={() => setCurrentPage('settings')}
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        currentPage === 'settings' 
+                          ? 'bg-blue-100 text-blue-700' 
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      }`}
+                      title="Settings"
                     >
-                      Logout
+                      ⚙️
                     </button>
                   </div>
                 </div>
@@ -138,17 +144,19 @@ function App() {
                     >
                       About
                     </button>
+                    <button
+                      onClick={() => {setCurrentPage('settings'); setMobileMenuOpen(false)}}
+                      className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
+                        currentPage === 'settings' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      Settings
+                    </button>
                   </div>
                   <div className="border-t border-gray-200 mt-4 pt-4">
                     <div className="px-3 py-2">
                       <p className="text-sm text-gray-500">{user.email}</p>
                     </div>
-                    <button
-                      onClick={logout}
-                      className="w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md"
-                    >
-                      Logout
-                    </button>
                   </div>
                 </div>
               )}
@@ -178,6 +186,9 @@ function App() {
             )}
             {currentPage === 'about' && (
               <AboutPage onBack={() => setCurrentPage('dashboard')} />
+            )}
+            {currentPage === 'settings' && (
+              <SettingsPage />
             )}
           </main>
         </div>

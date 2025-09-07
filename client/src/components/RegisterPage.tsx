@@ -53,18 +53,26 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Clear any previous errors
+    setFormErrors({})
+    
     if (!validateForm()) return
 
-    const result = await register({
-      email: formData.email,
-      password: formData.password,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      accountName: formData.accountName
-    })
+    try {
+      const result = await register({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        accountName: formData.accountName
+      })
 
-    if (!result.success && result.error) {
-      setFormErrors({ submit: result.error })
+      if (!result.success) {
+        setFormErrors({ submit: result.error || 'Registration failed. Please try again.' })
+      }
+    } catch (error) {
+      console.error('Registration error:', error)
+      setFormErrors({ submit: 'Network error. Please check your connection and try again.' })
     }
   }
 

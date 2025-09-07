@@ -178,7 +178,16 @@ export const useAuth = () => {
         body: JSON.stringify(userData)
       })
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError)
+        const errorMessage = `Server error (${response.status}). Please try again.`
+        setError(errorMessage)
+        setLoading(false)
+        return { success: false, error: errorMessage }
+      }
 
       if (response.ok) {
         localStorage.setItem('auth-token', data.token)
@@ -186,9 +195,10 @@ export const useAuth = () => {
         setLoading(false)
         return { success: true }
       } else {
-        setError(data.message || 'Registration failed')
+        const errorMessage = data.error || data.message || `Registration failed (${response.status})`
+        setError(errorMessage)
         setLoading(false)
-        return { success: false, error: data.message || 'Registration failed' }
+        return { success: false, error: errorMessage }
       }
     } catch (err) {
       console.error('Registration error:', err)
