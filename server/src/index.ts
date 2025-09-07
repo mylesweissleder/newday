@@ -38,10 +38,7 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Apply site access control in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(siteAccessControl);
-}
+// Site access control removed - using Site-Password headers for security instead
 
 // Health check
 app.get('/health', (req, res) => {
