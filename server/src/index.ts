@@ -15,6 +15,7 @@ import importRoutes from './routes/import';
 import uploadRoutes from './routes/upload';
 import analyticsRoutes from './routes/analytics';
 import siteAccessRoutes from './routes/siteAccess';
+import emailRoutes from './routes/email';
 
 // Middleware imports
 import { authenticateToken } from './middleware/auth';
@@ -56,6 +57,7 @@ app.use('/api/ai', authenticateToken, aiRoutes);
 app.use('/api/import', authenticateToken, importRoutes);
 app.use('/api/upload', authenticateToken, uploadRoutes);
 app.use('/api/analytics', authenticateToken, analyticsRoutes);
+app.use('/api/email', emailRoutes);
 
 // Error handling
 app.use(errorHandler);
