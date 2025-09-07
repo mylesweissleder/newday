@@ -160,12 +160,6 @@ const LoginPage: React.FC = () => {
           </div>
 
           <div className="text-center space-y-4">
-            <div className="text-sm text-gray-500 space-y-1">
-              <p className="font-medium">Demo Credentials:</p>
-              <p>Email: demo@truecrew.com</p>
-              <p>Password: demo123456</p>
-            </div>
-            
             <div className="border-t border-gray-200 pt-4">
               <p className="text-sm text-gray-600 mb-2">
                 Don't have an account?

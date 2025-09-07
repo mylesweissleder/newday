@@ -6,9 +6,10 @@ import ImportContactsPage from './pages/ImportContactsPage'
 import NetworkAnalysisPage from './pages/NetworkAnalysisPage'
 import ContactsPage from './pages/ContactsPage'
 import SmartOutreachPage from './pages/SmartOutreachPage'
+import AboutPage from './pages/AboutPage'
 import LoadingSpinner from './components/LoadingSpinner'
 
-type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'contacts'
+type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'contacts' | 'about'
 
 function App() {
   const { user, loading, logout } = useAuth()
@@ -60,6 +61,12 @@ function App() {
                       className={`text-sm font-medium ${currentPage === 'outreach' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                       Opportunities
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage('about')}
+                      className={`text-sm font-medium ${currentPage === 'about' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                      About
                     </button>
                   </nav>
                   <div className="flex items-center space-x-4">
@@ -123,6 +130,14 @@ function App() {
                     >
                       Opportunities
                     </button>
+                    <button
+                      onClick={() => {setCurrentPage('about'); setMobileMenuOpen(false)}}
+                      className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
+                        currentPage === 'about' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      About
+                    </button>
                   </div>
                   <div className="border-t border-gray-200 mt-4 pt-4">
                     <div className="px-3 py-2">
@@ -160,6 +175,9 @@ function App() {
             )}
             {currentPage === 'outreach' && (
               <SmartOutreachPage onBack={() => setCurrentPage('dashboard')} />
+            )}
+            {currentPage === 'about' && (
+              <AboutPage onBack={() => setCurrentPage('dashboard')} />
             )}
           </main>
         </div>
