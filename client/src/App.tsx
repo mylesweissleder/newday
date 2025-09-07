@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import SiteAccessGate from './components/SiteAccessGate'
 import { useAuth } from './hooks/useAuth'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
@@ -26,7 +25,7 @@ function App() {
   }
 
   return (
-    <SiteAccessGate>
+    <div className="App">
       {!user ? (
         <LoginPage />
       ) : (
@@ -98,7 +97,7 @@ function App() {
           </main>
         </div>
       )}
-    </SiteAccessGate>
+    </div>
   )
 }
 

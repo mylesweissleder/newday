@@ -78,17 +78,11 @@ export const withRetry = async <T>(
   throw lastError
 }
 
-// Helper to get API headers with site password
+// Helper to get API headers
 const getApiHeaders = (additionalHeaders: Record<string, string> = {}) => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...additionalHeaders
-  }
-  
-  // Add site password
-  const sitePassword = localStorage.getItem('site-password')
-  if (sitePassword) {
-    headers['X-Site-Password'] = sitePassword
   }
   
   return headers
