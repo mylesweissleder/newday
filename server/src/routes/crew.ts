@@ -27,9 +27,17 @@ const hasCrewPermissions = (userRole: string): boolean => {
 // Get all crew members (crew leaders and admins only)
 router.get('/members', async (req: Request, res: Response) => {
   try {
+    console.log('Crew members request - user:', req.user);
+    
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId }
+      where: { id: req.user.id }
     });
+
+    console.log('Current user found:', currentUser?.email, currentUser?.role);
 
     if (!currentUser || !hasCrewPermissions(currentUser.role)) {
       return res.status(403).json({ error: 'Crew leadership access required' });
@@ -37,7 +45,7 @@ router.get('/members', async (req: Request, res: Response) => {
 
     const crewMembers = await prisma.user.findMany({
       where: { 
-        accountId: req.user!.accountId,
+        accountId: req.user.accountId,
       },
       select: {
         id: true,

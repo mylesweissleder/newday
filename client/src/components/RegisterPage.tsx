@@ -58,6 +58,8 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
     
     if (!validateForm()) return
 
+    console.log('RegisterPage: Starting registration...', formData.email)
+
     try {
       const result = await register({
         email: formData.email,
@@ -67,11 +69,17 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
         accountName: formData.accountName
       })
 
-      if (!result.success) {
-        setFormErrors({ submit: result.error || 'Registration failed. Please try again.' })
+      console.log('RegisterPage: Registration result:', result)
+
+      if (!result || !result.success) {
+        const errorMessage = result?.error || 'Registration failed. Please try again.'
+        console.error('RegisterPage: Registration failed:', errorMessage)
+        setFormErrors({ submit: errorMessage })
+      } else {
+        console.log('RegisterPage: Registration successful!')
       }
     } catch (error) {
-      console.error('Registration error:', error)
+      console.error('RegisterPage: Registration error caught:', error)
       setFormErrors({ submit: 'Network error. Please check your connection and try again.' })
     }
   }

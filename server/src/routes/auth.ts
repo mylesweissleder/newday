@@ -200,6 +200,39 @@ router.get('/profile', async (req: Request, res: Response) => {
   res.json({ message: 'Profile endpoint available' });
 });
 
+// Refresh token endpoint
+router.post('/refresh', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ error: 'Access token required' });
+    }
+
+    // Verify current token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    
+    // Get user details from database to ensure they're still active
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: { account: true }
+    });
+
+    if (!user || !user.isActive || !user.account.isActive) {
+      return res.status(401).json({ error: 'Invalid or inactive user' });
+    }
+
+    // Generate new token
+    const newToken = generateToken(user.id, user.accountId, user.email);
+
+    res.json({ token: newToken });
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(403).json({ error: 'Invalid or expired token' });
+  }
+});
+
 export default router;
 
 
