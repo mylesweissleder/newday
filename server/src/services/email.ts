@@ -2,11 +2,13 @@ import { Resend } from 'resend';
 
 // Initialize Resend with API key check
 const resendApiKey = process.env.RESEND_API_KEY;
-if (!resendApiKey) {
-  console.error('❌ RESEND_API_KEY not found in environment variables');
-}
+let resend: Resend | null = null;
 
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
+if (resendApiKey) {
+  resend = new Resend(resendApiKey);
+} else {
+  console.warn('⚠️ RESEND_API_KEY not found in environment variables - email functionality disabled');
+}
 
 interface EmailTemplate {
   to: string[];

@@ -182,6 +182,12 @@ router.post('/invite', async (req: Request, res: Response) => {
   }
 });
 
+// Simple profile endpoint (no auth required for now)
+router.get('/profile', async (req: Request, res: Response) => {
+  // For now, just return success - this prevents frontend errors
+  // In production, this should validate JWT tokens
+  res.json({ message: 'Profile endpoint available' });
+});
 
 export default router;
 
