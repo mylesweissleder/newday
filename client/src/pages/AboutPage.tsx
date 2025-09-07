@@ -191,6 +191,13 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
             Back to TrueCrew
           </button>
         </div>
+
+        {/* Copyright Footer */}
+        <div className="text-center mt-12 pt-8 border-t border-gray-200">
+          <p className="text-sm text-gray-500">
+            © 2025 TrueCrew. All rights reserved.
+          </p>
+        </div>
       </div>
     </div>
   )
