@@ -168,10 +168,15 @@ export const useAuth = () => {
     lastName: string
     accountName?: string
   }) => {
+    console.log('useAuth: register() called with:', userData.email)
+    
     try {
+      console.log('useAuth: Setting loading state to true')
       setLoading(true)
       setError(null)
 
+      console.log('useAuth: Making fetch request to:', `${API_BASE_URL}/api/auth/register`)
+      
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
 
@@ -182,13 +187,15 @@ export const useAuth = () => {
         signal: controller.signal
       })
 
+      console.log('useAuth: Response status:', response.status)
       clearTimeout(timeoutId)
 
       let data
       try {
         data = await response.json()
+        console.log('useAuth: Response data:', data)
       } catch (parseError) {
-        console.error('Failed to parse response:', parseError)
+        console.error('useAuth: Failed to parse response:', parseError)
         const errorMessage = `Server error (${response.status}). Please try again.`
         setError(errorMessage)
         setLoading(false)
@@ -196,18 +203,20 @@ export const useAuth = () => {
       }
 
       if (response.ok) {
+        console.log('useAuth: Registration successful, setting user and token')
         localStorage.setItem('auth-token', data.token)
         setUser(data.user)
         setLoading(false)
         return { success: true }
       } else {
         const errorMessage = data.error || data.message || `Registration failed (${response.status})`
+        console.error('useAuth: Registration failed:', errorMessage)
         setError(errorMessage)
         setLoading(false)
         return { success: false, error: errorMessage }
       }
     } catch (err: any) {
-      console.error('Registration error:', err)
+      console.error('useAuth: Registration error caught:', err)
       let errorMessage = 'Network error. Please try again.'
       
       if (err.name === 'AbortError') {

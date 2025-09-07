@@ -53,12 +53,21 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Clear any previous errors
+    console.log('RegisterPage: Form submitted, button clicked')
+    
+    // Clear any previous errors immediately
     setFormErrors({})
     
-    if (!validateForm()) return
+    // Validate form before proceeding
+    if (!validateForm()) {
+      console.log('RegisterPage: Form validation failed')
+      return
+    }
 
-    console.log('RegisterPage: Starting registration...', formData.email)
+    console.log('RegisterPage: Starting registration for:', formData.email)
+    
+    // Show immediate visual feedback
+    setFormErrors({ submit: 'Creating your account...' })
 
     try {
       const result = await register({
@@ -77,6 +86,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
         setFormErrors({ submit: errorMessage })
       } else {
         console.log('RegisterPage: Registration successful!')
+        setFormErrors({ submit: 'Account created successfully! Redirecting...' })
       }
     } catch (error) {
       console.error('RegisterPage: Registration error caught:', error)
@@ -239,8 +249,16 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
             </div>
 
             {(error || formErrors.submit) && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-600 text-sm">
+              <div className={`border rounded-lg p-4 ${
+                formErrors.submit === 'Creating your account...' || formErrors.submit === 'Account created successfully! Redirecting...'
+                  ? 'bg-blue-50 border-blue-200' 
+                  : 'bg-red-50 border-red-200'
+              }`}>
+                <p className={`text-sm ${
+                  formErrors.submit === 'Creating your account...' || formErrors.submit === 'Account created successfully! Redirecting...'
+                    ? 'text-blue-600' 
+                    : 'text-red-600'
+                }`}>
                   {error || formErrors.submit}
                 </p>
               </div>

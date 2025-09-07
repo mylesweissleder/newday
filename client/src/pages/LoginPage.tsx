@@ -57,6 +57,17 @@ const LoginPage: React.FC = () => {
               <p className="text-xl text-blue-100">Your crew's connections unlock career opportunities.</p>
             </div>
             
+            {/* MVP Internal Tool Notice */}
+            <div className="mb-8 p-4 bg-yellow-400 bg-opacity-20 rounded-lg border border-yellow-400 border-opacity-30">
+              <div className="flex items-center space-x-2 mb-2">
+                <span className="text-yellow-300 text-lg">🚧</span>
+                <h4 className="font-semibold text-yellow-100">MVP Internal Tool</h4>
+              </div>
+              <p className="text-yellow-100 text-sm leading-relaxed">
+                This is an internal sandbox tool for Myles and Chris. We're exploring the possibility of making this a real product — geared towards helping close networks grow, get hired, and find resources. Built in a weekend, it's showing promising potential for MRR.
+              </p>
+            </div>
+
             <div className="space-y-6">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0 h-6 w-6 bg-blue-400 rounded-full flex items-center justify-center mt-1 text-white text-xs font-bold">
@@ -91,14 +102,14 @@ const LoginPage: React.FC = () => {
 
             <div className="mt-8 p-6 bg-white bg-opacity-10 rounded-lg backdrop-blur-sm">
               <div className="flex items-center space-x-2 mb-3">
-                <span className="text-yellow-400 text-lg">⭐</span>
-                <h4 className="font-semibold">What You Gain</h4>
+                <span className="text-yellow-400 text-lg">🎯</span>
+                <h4 className="font-semibold">Our Vision</h4>
               </div>
-              <ul className="text-sm text-blue-100 space-y-1">
-                <li>• Skip the cold email grind</li>
-                <li>• Leverage your crew's combined relationships</li>
-                <li>• Get personal introductions that matter</li>
-                <li>• Land opportunities through trust and connection</li>
+              <ul className="text-sm text-blue-100 space-y-2">
+                <li>• Help those who need it most — beyond the Silicon Valley bubble</li>
+                <li>• Specially priced for wider adoption and accessibility</li>
+                <li>• Focus on people struggling to find connection in job searches</li>
+                <li>• Turn trusted relationships into career opportunities</li>
               </ul>
               
               <div className="mt-4 pt-4 border-t border-white border-opacity-20">
@@ -110,7 +121,7 @@ const LoginPage: React.FC = () => {
                 </button>
                 
                 <p className="text-blue-100 text-xs leading-relaxed">
-                  👉 It's simple: bring a few people you trust, and we'll help you unlock what's possible — together.
+                  👉 Building something meaningful: helping people find work through genuine connections, not cold outreach.
                 </p>
               </div>
             </div>
