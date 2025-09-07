@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import RegisterPage from '../components/RegisterPage'
+import AboutPage from './AboutPage'
 
-type ViewMode = 'login' | 'register'
+type ViewMode = 'login' | 'register' | 'about'
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('demo@truecrew.com')
@@ -36,6 +37,10 @@ const LoginPage: React.FC = () => {
   // Handle registration view
   if (viewMode === 'register') {
     return <RegisterPage onBack={() => setViewMode('login')} />
+  }
+  
+  if (viewMode === 'about') {
+    return <AboutPage onBack={() => setViewMode('login')} />
   }
 
   return (
@@ -170,6 +175,14 @@ const LoginPage: React.FC = () => {
                 className="w-full bg-white text-blue-600 border border-blue-600 py-2 px-4 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm font-medium"
               >
                 Create New Account
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setViewMode('about')}
+                className="w-full bg-gray-50 text-gray-600 border border-gray-300 py-2 px-4 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 text-sm font-medium"
+              >
+                About TrueCrew
               </button>
             </div>
           </div>
