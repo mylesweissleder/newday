@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import JoinCodeManager from '../components/JoinCodeManager'
 
 interface CrewMember {
   id: string
@@ -43,7 +44,7 @@ interface CrewAnalytics {
 
 const CrewManagementPage: React.FC = () => {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<'members' | 'analytics' | 'invite'>('members')
+  const [activeTab, setActiveTab] = useState<'members' | 'analytics' | 'invite' | 'join-codes'>('members')
   const [crewMembers, setCrewMembers] = useState<CrewMember[]>([])
   const [analytics, setAnalytics] = useState<CrewAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
@@ -236,7 +237,7 @@ const CrewManagementPage: React.FC = () => {
         <div className="mb-6">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
-              {['members', 'analytics', 'invite'].map((tab) => (
+              {['members', 'analytics', 'invite', 'join-codes'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab as any)}
@@ -246,7 +247,7 @@ const CrewManagementPage: React.FC = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'join-codes' ? 'Join Codes' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
               ))}
             </nav>
@@ -446,6 +447,11 @@ const CrewManagementPage: React.FC = () => {
               </>
             )}
           </div>
+        )}
+
+        {/* Join Codes Tab */}
+        {activeTab === 'join-codes' && (
+          <JoinCodeManager />
         )}
 
         {/* Invite Tab */}

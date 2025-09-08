@@ -18,6 +18,10 @@ model Account {
   updatedAt   DateTime @updatedAt
   isActive    Boolean  @default(true)
   
+  // Join code system for crew members
+  joinCode    String?  @unique
+  joinCodeEnabled Boolean @default(false)
+  
   // Relations
   users       User[]
   contacts    Contact[]

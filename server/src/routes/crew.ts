@@ -458,6 +458,217 @@ router.delete('/members/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Generate or regenerate join code for the crew
+router.post('/join-code/generate', async (req: Request, res: Response) => {
+  try {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+      include: { account: true }
+    });
+
+    if (!currentUser || !hasCrewPermissions(currentUser.role)) {
+      return res.status(403).json({ error: 'Crew leadership access required' });
+    }
+
+    // Generate a readable join code (e.g., CREW-ABC123)
+    const joinCode = `CREW-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+
+    const updatedAccount = await prisma.account.update({
+      where: { id: req.user!.accountId },
+      data: {
+        joinCode,
+        joinCodeEnabled: true
+      },
+      select: {
+        joinCode: true,
+        joinCodeEnabled: true,
+        name: true
+      }
+    });
+
+    res.json({
+      message: 'Join code generated successfully',
+      joinCode: updatedAccount.joinCode,
+      enabled: updatedAccount.joinCodeEnabled,
+      accountName: updatedAccount.name
+    });
+  } catch (error) {
+    console.error('Generate join code error:', error);
+    res.status(500).json({ error: 'Failed to generate join code' });
+  }
+});
+
+// Get current join code
+router.get('/join-code', async (req: Request, res: Response) => {
+  try {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+      include: { account: true }
+    });
+
+    if (!currentUser || !hasCrewPermissions(currentUser.role)) {
+      return res.status(403).json({ error: 'Crew leadership access required' });
+    }
+
+    res.json({
+      joinCode: currentUser.account.joinCode,
+      enabled: currentUser.account.joinCodeEnabled,
+      accountName: currentUser.account.name
+    });
+  } catch (error) {
+    console.error('Get join code error:', error);
+    res.status(500).json({ error: 'Failed to get join code' });
+  }
+});
+
+// Toggle join code enabled/disabled
+router.put('/join-code/toggle', async (req: Request, res: Response) => {
+  try {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+      include: { account: true }
+    });
+
+    if (!currentUser || !hasCrewPermissions(currentUser.role)) {
+      return res.status(403).json({ error: 'Crew leadership access required' });
+    }
+
+    const { enabled } = req.body;
+
+    const updatedAccount = await prisma.account.update({
+      where: { id: req.user!.accountId },
+      data: { joinCodeEnabled: enabled },
+      select: {
+        joinCode: true,
+        joinCodeEnabled: true,
+        name: true
+      }
+    });
+
+    res.json({
+      message: `Join code ${enabled ? 'enabled' : 'disabled'} successfully`,
+      joinCode: updatedAccount.joinCode,
+      enabled: updatedAccount.joinCodeEnabled
+    });
+  } catch (error) {
+    console.error('Toggle join code error:', error);
+    res.status(500).json({ error: 'Failed to toggle join code' });
+  }
+});
+
+// Join crew using join code (for members)
+router.post('/join-request', async (req: Request, res: Response) => {
+  try {
+    const { joinCode } = req.body;
+
+    if (!joinCode) {
+      return res.status(400).json({ error: 'Join code is required' });
+    }
+
+    // Find account by join code
+    const account = await prisma.account.findUnique({
+      where: { joinCode: joinCode.toUpperCase() }
+    });
+
+    if (!account || !account.joinCodeEnabled) {
+      return res.status(404).json({ error: 'Invalid or inactive join code' });
+    }
+
+    // Check if user is already authenticated
+    if (!req.user?.userId) {
+      return res.status(401).json({ error: 'User must be logged in to join a crew' });
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user.userId }
+    });
+
+    if (!currentUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if user is already in this account
+    if (currentUser.accountId === account.id) {
+      return res.status(400).json({ error: 'You are already a member of this crew' });
+    }
+
+    // Update user's account to join the crew
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.userId },
+      data: {
+        accountId: account.id,
+        role: 'MEMBER', // Default role for join requests
+        invitedAt: new Date(),
+        acceptedAt: new Date()
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        accountId: true,
+        account: {
+          select: { name: true }
+        }
+      }
+    });
+
+    res.json({
+      message: 'Successfully joined the crew!',
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        role: updatedUser.role,
+        accountId: updatedUser.accountId,
+        accountName: updatedUser.account.name
+      }
+    });
+  } catch (error) {
+    console.error('Join crew error:', error);
+    res.status(500).json({ error: 'Failed to join crew' });
+  }
+});
+
+// Search crew by join code (public endpoint to preview crew info)
+router.get('/search/:joinCode', async (req: Request, res: Response) => {
+  try {
+    const { joinCode } = req.params;
+
+    const account = await prisma.account.findUnique({
+      where: { joinCode: joinCode.toUpperCase() },
+      select: {
+        id: true,
+        name: true,
+        joinCodeEnabled: true,
+        createdAt: true,
+        _count: {
+          select: {
+            users: {
+              where: { isActive: true }
+            }
+          }
+        }
+      }
+    });
+
+    if (!account || !account.joinCodeEnabled) {
+      return res.status(404).json({ error: 'Crew not found or join code is inactive' });
+    }
+
+    res.json({
+      accountName: account.name,
+      memberCount: account._count.users,
+      createdAt: account.createdAt
+    });
+  } catch (error) {
+    console.error('Search crew error:', error);
+    res.status(500).json({ error: 'Failed to search crew' });
+  }
+});
+
 // Get crew analytics
 router.get('/analytics', async (req: Request, res: Response) => {
   try {
@@ -552,6 +763,120 @@ router.get('/analytics', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Get crew analytics error:', error);
     res.status(500).json({ error: 'Failed to get crew analytics' });
+  }
+});
+
+// Search for existing users to add to crew
+router.get('/search', async (req: Request, res: Response) => {
+  try {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user!.userId }
+    });
+
+    if (!currentUser || !hasCrewPermissions(currentUser.role)) {
+      return res.status(403).json({ error: 'Crew leadership access required' });
+    }
+
+    const { email } = req.query;
+
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Email parameter is required' });
+    }
+
+    // Find users by email that are not already in this account
+    const users = await prisma.user.findMany({
+      where: {
+        email: {
+          contains: email,
+          mode: 'insensitive'
+        },
+        accountId: {
+          not: req.user!.accountId
+        },
+        isActive: true
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        profilePic: true,
+        account: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
+      take: 10
+    });
+
+    res.json(users);
+  } catch (error) {
+    console.error('Search users error:', error);
+    res.status(500).json({ error: 'Failed to search users' });
+  }
+});
+
+// Add existing user to crew
+router.post('/add-member', async (req: Request, res: Response) => {
+  try {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user!.userId }
+    });
+
+    if (!currentUser || !hasCrewPermissions(currentUser.role)) {
+      return res.status(403).json({ error: 'Crew leadership access required' });
+    }
+
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Find the target user
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!targetUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (targetUser.accountId === req.user!.accountId) {
+      return res.status(400).json({ error: 'User is already a member of this crew' });
+    }
+
+    // Update the user to join this account
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        accountId: req.user!.accountId,
+        role: 'MEMBER', // Default role
+        invitedAt: new Date(),
+        invitedBy: req.user!.userId,
+        acceptedAt: new Date()
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        account: {
+          select: { name: true }
+        }
+      }
+    });
+
+    res.json({
+      message: 'User added to crew successfully',
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Add crew member error:', error);
+    res.status(500).json({ error: 'Failed to add crew member' });
   }
 });
 

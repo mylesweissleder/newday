@@ -9,9 +9,10 @@ import SmartOutreachPage from './pages/SmartOutreachPage'
 import AboutPage from './pages/AboutPage'
 import SettingsPage from './pages/SettingsPage'
 import CrewManagementPage from './pages/CrewManagementPage'
+import JoinCrewPage from './pages/JoinCrewPage'
 import LoadingSpinner from './components/LoadingSpinner'
 
-type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'contacts' | 'about' | 'settings' | 'crew'
+type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'contacts' | 'about' | 'settings' | 'crew' | 'join-crew'
 
 function App() {
   const { user, loading, logout } = useAuth()
@@ -73,6 +74,12 @@ function App() {
                         Crew
                       </button>
                     )}
+                    <button
+                      onClick={() => setCurrentPage('join-crew')}
+                      className={`text-sm font-medium ${currentPage === 'join-crew' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                      Join Crew
+                    </button>
                     <button
                       onClick={() => setCurrentPage('about')}
                       className={`text-sm font-medium ${currentPage === 'about' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
@@ -164,6 +171,14 @@ function App() {
                       </button>
                     )}
                     <button
+                      onClick={() => {setCurrentPage('join-crew'); setMobileMenuOpen(false)}}
+                      className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
+                        currentPage === 'join-crew' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      Join Crew
+                    </button>
+                    <button
                       onClick={() => {setCurrentPage('about'); setMobileMenuOpen(false)}}
                       className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
                         currentPage === 'about' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -219,6 +234,9 @@ function App() {
             )}
             {currentPage === 'crew' && (
               <CrewManagementPage />
+            )}
+            {currentPage === 'join-crew' && (
+              <JoinCrewPage />
             )}
           </main>
         </div>
