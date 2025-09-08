@@ -31,8 +31,8 @@ export const authenticateToken = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    // Read token from HTTP-only cookie instead of Authorization header
+    const token = req.cookies['auth-token'];
 
     if (!token) {
       res.status(401).json({ error: 'Access token required' });
@@ -48,6 +48,13 @@ export const authenticateToken = async (
     });
 
     if (!user || !user.isActive || !user.account.isActive) {
+      // Clear invalid cookie
+      res.clearCookie('auth-token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/'
+      });
       res.status(401).json({ error: 'Invalid or inactive user' });
       return;
     }
@@ -63,6 +70,13 @@ export const authenticateToken = async (
 
     next();
   } catch (error) {
+    // Clear invalid cookie
+    res.clearCookie('auth-token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/'
+    });
     res.status(403).json({ error: 'Invalid or expired token' });
   }
 };

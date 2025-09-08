@@ -51,6 +51,10 @@ model User {
   invitedBy       String?
   acceptedAt      DateTime?
   
+  // Password reset system
+  resetToken      String?  @unique
+  resetTokenExpiry DateTime?
+  
   // Activity tracking
   lastLoginAt     DateTime?
   loginCount      Int      @default(0)
@@ -63,6 +67,7 @@ model User {
   contactsCreated Contact[] @relation("CreatedBy")
   contactsUpdated Contact[] @relation("UpdatedBy")
   outreachSent    Outreach[]
+  campaignsCreated Campaign[] @relation("CampaignCreatedBy")
   
   @@map("users")
 }
@@ -165,6 +170,12 @@ model Campaign {
   // Templates
   emailTemplate    String?
   linkedinTemplate String?
+  emailSubject     String?
+  
+  // Performance tracking
+  totalSent       Int @default(0)
+  totalOpened     Int @default(0)
+  totalResponded  Int @default(0)
   
   // Metadata
   createdAt DateTime @default(now())
@@ -174,7 +185,11 @@ model Campaign {
   account   Account @relation(fields: [accountId], references: [id])
   accountId String
   
-  contacts CampaignContact[]
+  createdBy   User?   @relation("CampaignCreatedBy", fields: [createdById], references: [id])
+  createdById String?
+  
+  contacts       CampaignContact[]
+  emailTemplates CampaignEmailTemplate[]
   
   @@map("campaigns")
 }
@@ -190,12 +205,34 @@ model CampaignContact {
   
   status           CampaignContactStatus @default(PENDING)
   personalizedNote String?
+  lastContacted    DateTime?
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   @@unique([campaignId, contactId])
   @@map("campaign_contacts")
+}
+
+model CampaignEmailTemplate {
+  id String @id @default(cuid())
+  
+  name        String
+  subject     String
+  bodyText    String
+  bodyHtml    String?
+  isDefault   Boolean @default(false)
+  
+  // Template variables/placeholders
+  variables   String[] @default([])
+  
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("campaign_email_templates")
 }
 
 model Outreach {

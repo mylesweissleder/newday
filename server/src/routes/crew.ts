@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import Joi from 'joi';
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
+import { emailService } from '../services/email';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -151,9 +152,32 @@ router.post('/invite', async (req: Request, res: Response) => {
       }
     });
 
-    // TODO: Send invitation email with token
-    // For now, return the invitation link
+    // Send invitation email with token
     const invitationLink = `${process.env.CLIENT_URL || 'https://api.whatintheworldwasthat.com'}/accept-invitation?token=${invitationToken}`;
+    
+    try {
+      const inviterUser = await prisma.user.findUnique({
+        where: { id: req.user!.userId },
+        include: { account: true }
+      });
+
+      if (inviterUser) {
+        const invitationEmail = emailService.generateCrewInvitationEmail({
+          inviteeName: firstName,
+          inviterName: `${inviterUser.firstName} ${inviterUser.lastName}`,
+          accountName: inviterUser.account.name,
+          role: role,
+          invitationLink: invitationLink
+        });
+        
+        invitationEmail.to = [email];
+        await emailService.sendEmail(invitationEmail);
+        console.log('Invitation email sent successfully to:', email);
+      }
+    } catch (emailError) {
+      console.error('Failed to send invitation email:', emailError);
+      // Don't fail the whole operation if email fails
+    }
 
     res.status(201).json({
       message: 'Crew member invited successfully',

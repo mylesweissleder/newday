@@ -302,6 +302,161 @@ The TrueCrew Team
     };
   }
 
+  // Crew Invitation Email Template
+  generateCrewInvitationEmail(data: {
+    inviteeName: string;
+    inviterName: string;
+    accountName: string;
+    role: string;
+    invitationLink: string;
+  }): EmailTemplate {
+    const { inviteeName, inviterName, accountName, role, invitationLink } = data;
+    
+    const subject = `${inviterName} invited you to join the ${accountName} crew on TrueCrew`;
+    
+    const html = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #2563eb; margin: 0; font-size: 28px;">🤝 TrueCrew</h1>
+          <div style="font-size: 48px; margin: 10px 0;">🎊</div>
+          <p style="color: #6b7280; margin: 5px 0 0 0;">You're Invited to Join a Crew!</p>
+        </div>
+
+        <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 25px; text-align: center; margin-bottom: 25px;">
+          <h2 style="margin: 0 0 15px 0; color: #0369a1; font-size: 20px;">Hi ${inviteeName}!</h2>
+          <p style="margin: 0; color: #0369a1; font-size: 16px;"><strong>${inviterName}</strong> has invited you to join the <strong>${accountName}</strong> crew as a <strong>${role.toLowerCase()}</strong>.</p>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+          <h3 style="color: #1f2937; margin: 0 0 15px 0; font-size: 18px;">🚀 What is TrueCrew?</h3>
+          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px;">
+            <ul style="margin: 0; padding-left: 20px; color: #4b5563;">
+              <li style="margin-bottom: 10px;"><strong>Network Together:</strong> Pool your professional networks to help each other</li>
+              <li style="margin-bottom: 10px;"><strong>Make Warm Introductions:</strong> Connect crew members with valuable contacts</li>
+              <li style="margin-bottom: 10px;"><strong>Track Success:</strong> See when your introductions lead to real opportunities</li>
+              <li style="margin-bottom: 0px;"><strong>Build Relationships:</strong> Strengthen your professional community</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 25px;">
+          <a href="${invitationLink}" style="display: inline-block; background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+            Accept Invitation & Join Crew
+          </a>
+        </div>
+
+        <div style="background: #fef3c7; border: 1px solid #d97706; border-radius: 6px; padding: 15px; margin-bottom: 25px; text-align: center;">
+          <p style="margin: 0; color: #92400e; font-size: 14px;">
+            ⏰ This invitation expires in 7 days.<br>
+            You'll need to set up a password when you accept the invitation.
+          </p>
+        </div>
+
+        <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
+          <p style="margin: 0;">Welcome to the crew! 🤝</p>
+          <p style="margin: 5px 0 0 0;">The TrueCrew Team</p>
+        </div>
+      </div>
+    `;
+
+    const text = `
+Hi ${inviteeName}!
+
+${inviterName} has invited you to join the ${accountName} crew as a ${role.toLowerCase()} on TrueCrew.
+
+WHAT IS TRUECREW?
+• Network Together: Pool your professional networks to help each other
+• Make Warm Introductions: Connect crew members with valuable contacts  
+• Track Success: See when your introductions lead to real opportunities
+• Build Relationships: Strengthen your professional community
+
+Accept your invitation and join the crew: ${invitationLink}
+
+This invitation expires in 7 days. You'll need to set up a password when you accept.
+
+Welcome to the crew! 🤝
+The TrueCrew Team
+    `;
+
+    return {
+      to: [],
+      subject,
+      html,
+      text
+    };
+  }
+
+  // Password Reset Email Template
+  generatePasswordResetEmail(data: {
+    userName: string;
+    resetLink: string;
+  }): EmailTemplate {
+    const { userName, resetLink } = data;
+    
+    const subject = `Reset your TrueCrew password`;
+    
+    const html = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #2563eb; margin: 0; font-size: 24px;">🤝 TrueCrew</h1>
+          <p style="color: #6b7280; margin: 5px 0 0 0;">Password Reset Request</p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h2 style="margin: 0 0 15px 0; color: #1f2937; font-size: 18px;">Hi ${userName},</h2>
+          <p style="margin: 0; color: #374151;">
+            We received a request to reset your TrueCrew password. Click the button below to create a new password.
+          </p>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 25px;">
+          <a href="${resetLink}" style="display: inline-block; background-color: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            Reset Password
+          </a>
+        </div>
+
+        <div style="background: #fef3c7; border: 1px solid #d97706; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+          <p style="margin: 0; color: #92400e; font-size: 14px;">
+            ⏰ This reset link expires in 1 hour for security.<br>
+            🔒 If you didn't request this, you can safely ignore this email.
+          </p>
+        </div>
+
+        <div style="background: #f3f4f6; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+          <p style="margin: 0; color: #6b7280; font-size: 12px;">
+            <strong>Security tip:</strong> If you're having trouble clicking the button, copy and paste this link: ${resetLink}
+          </p>
+        </div>
+
+        <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
+          <p style="margin: 0;">Stay secure! 🔐</p>
+          <p style="margin: 5px 0 0 0;">The TrueCrew Team</p>
+        </div>
+      </div>
+    `;
+
+    const text = `
+Hi ${userName},
+
+We received a request to reset your TrueCrew password. 
+
+Reset your password: ${resetLink}
+
+This reset link expires in 1 hour for security.
+If you didn't request this, you can safely ignore this email.
+
+Stay secure! 🔐
+The TrueCrew Team
+    `;
+
+    return {
+      to: [],
+      subject,
+      html,
+      text
+    };
+  }
+
   // Welcome Email for New Account Creation
   generateWelcomeEmail(data: {
     userName: string;
@@ -383,7 +538,7 @@ The TrueCrew Team
   }
 
   // Test Email
-  async sendTestEmail(recipientEmail: string, type: 'referral' | 'confirmation' | 'success' | 'welcome' = 'referral') {
+  async sendTestEmail(recipientEmail: string, type: 'referral' | 'confirmation' | 'success' | 'welcome' | 'invitation' | 'password-reset' = 'referral') {
     let template: EmailTemplate;
 
     switch (type) {
@@ -430,6 +585,23 @@ The TrueCrew Team
           userName: 'Myles',
           userEmail: recipientEmail,
           accountName: 'My Test Account'
+        });
+        break;
+
+      case 'invitation':
+        template = this.generateCrewInvitationEmail({
+          inviteeName: 'Alex Johnson',
+          inviterName: 'Myles',
+          accountName: 'TrueCrew Test Account',
+          role: 'MEMBER',
+          invitationLink: 'https://api.whatintheworldwasthat.com/accept-invitation?token=test123'
+        });
+        break;
+
+      case 'password-reset':
+        template = this.generatePasswordResetEmail({
+          userName: 'Myles',
+          resetLink: 'https://api.whatintheworldwasthat.com/reset-password?token=test456'
         });
         break;
     }

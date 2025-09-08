@@ -13,7 +13,8 @@ const createCampaignSchema = Joi.object({
   startDate: Joi.date().optional(),
   endDate: Joi.date().optional(),
   emailTemplate: Joi.string().optional().allow(''),
-  linkedinTemplate: Joi.string().optional().allow('')
+  linkedinTemplate: Joi.string().optional().allow(''),
+  emailSubject: Joi.string().optional().allow('')
 });
 
 // Get all campaigns
@@ -68,7 +69,8 @@ router.post('/', async (req: Request, res: Response) => {
     const campaign = await prisma.campaign.create({
       data: {
         ...value,
-        accountId: req.user!.accountId
+        accountId: req.user!.accountId,
+        createdById: req.user!.id
       }
     });
 

@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Joi from 'joi';
 import { PrismaClient } from '@prisma/client';
+import { emailService } from '../services/email';
+import crypto from 'crypto';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -28,6 +30,15 @@ const inviteUserSchema = Joi.object({
   role: Joi.string().valid('ADMIN', 'MEMBER', 'VIEWER').default('MEMBER')
 });
 
+const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().required()
+});
+
+const resetPasswordSchema = Joi.object({
+  token: Joi.string().required(),
+  password: Joi.string().min(8).required()
+});
+
 // Generate JWT token
 const generateToken = (userId: string, accountId: string, email: string): string => {
   return jwt.sign(
@@ -35,6 +46,29 @@ const generateToken = (userId: string, accountId: string, email: string): string
     process.env.JWT_SECRET as string,
     { expiresIn: '365d' } // 1 year instead of 7 days
   );
+};
+
+// Cookie management functions
+const setCookies = (res: Response, token: string) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Set HTTP-only cookie for authentication
+  res.cookie('auth-token', token, {
+    httpOnly: true,
+    secure: isProduction, // Use secure cookies in production
+    sameSite: isProduction ? 'none' : 'lax', // Allow cross-origin in production
+    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year in milliseconds
+    path: '/'
+  });
+};
+
+const clearCookies = (res: Response) => {
+  res.clearCookie('auth-token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    path: '/'
+  });
 };
 
 // Register new account and admin user
@@ -95,9 +129,26 @@ router.post('/register', async (req: Request, res: Response) => {
     const token = generateToken(result.user.id, result.account.id, result.user.email);
     console.log('Server: Token generated, sending response...');
 
+    // Send welcome email
+    try {
+      const welcomeEmail = emailService.generateWelcomeEmail({
+        userName: `${result.user.firstName} ${result.user.lastName}`,
+        userEmail: result.user.email,
+        accountName: result.account.name
+      });
+      
+      await emailService.sendEmail(welcomeEmail);
+      console.log('Welcome email sent successfully to:', result.user.email);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Don't fail the registration if email fails
+    }
+
+    // Set HTTP-only cookie
+    setCookies(res, token);
+
     const responseData = {
       message: 'Account created successfully',
-      token,
       user: {
         id: result.user.id,
         email: result.user.email,
@@ -109,10 +160,7 @@ router.post('/register', async (req: Request, res: Response) => {
       }
     };
     
-    console.log('Server: Sending registration success response:', {
-      ...responseData,
-      token: token ? 'TOKEN_PROVIDED' : 'NO_TOKEN'
-    });
+    console.log('Server: Sending registration success response with HTTP-only cookie set');
 
     res.status(201).json(responseData);
   } catch (error) {
@@ -160,12 +208,12 @@ router.post('/login', async (req: Request, res: Response) => {
       }
     });
 
-    // Generate token
+    // Generate token and set HTTP-only cookie
     const token = generateToken(user.id, user.accountId, user.email);
+    setCookies(res, token);
 
     res.json({
       message: 'Login successful',
-      token,
       user: {
         id: user.id,
         email: user.email,
@@ -209,18 +257,52 @@ router.post('/invite', async (req: Request, res: Response) => {
   }
 });
 
-// Simple profile endpoint (no auth required for now)
+// Profile endpoint - validates JWT cookie
 router.get('/profile', async (req: Request, res: Response) => {
-  // For now, just return success - this prevents frontend errors
-  // In production, this should validate JWT tokens
-  res.json({ message: 'Profile endpoint available' });
+  try {
+    const token = req.cookies['auth-token'];
+
+    if (!token) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    
+    // Get user details from database
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: { account: true }
+    });
+
+    if (!user || !user.isActive || !user.account.isActive) {
+      clearCookies(res);
+      return res.status(401).json({ error: 'Invalid or inactive user' });
+    }
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        accountId: user.accountId,
+        accountName: user.account.name
+      }
+    });
+  } catch (error) {
+    console.error('Profile error:', error);
+    clearCookies(res);
+    res.status(403).json({ error: 'Invalid or expired token' });
+  }
 });
 
 // Refresh token endpoint
 router.post('/refresh', async (req: Request, res: Response) => {
   try {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    // Get token from cookie instead of Authorization header
+    const token = req.cookies['auth-token'];
 
     if (!token) {
       return res.status(401).json({ error: 'Access token required' });
@@ -236,16 +318,174 @@ router.post('/refresh', async (req: Request, res: Response) => {
     });
 
     if (!user || !user.isActive || !user.account.isActive) {
+      clearCookies(res);
       return res.status(401).json({ error: 'Invalid or inactive user' });
     }
 
-    // Generate new token
+    // Generate new token and set new cookie
     const newToken = generateToken(user.id, user.accountId, user.email);
+    setCookies(res, newToken);
 
-    res.json({ token: newToken });
+    res.json({ message: 'Token refreshed successfully' });
   } catch (error) {
     console.error('Token refresh error:', error);
+    clearCookies(res);
     res.status(403).json({ error: 'Invalid or expired token' });
+  }
+});
+
+// Logout endpoint
+router.post('/logout', (req: Request, res: Response) => {
+  try {
+    clearCookies(res);
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Logout failed' });
+  }
+});
+
+// Request password reset
+router.post('/forgot-password', async (req: Request, res: Response) => {
+  try {
+    const { error, value } = forgotPasswordSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    const { email } = value;
+
+    // Find user by email
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { 
+        id: true, 
+        email: true, 
+        firstName: true, 
+        lastName: true,
+        isActive: true 
+      }
+    });
+
+    // Always return success to prevent email enumeration attacks
+    if (!user || !user.isActive) {
+      return res.json({ 
+        message: 'If an account with that email exists, a password reset link has been sent.' 
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date();
+    resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1); // 1 hour expiry
+
+    // Save reset token to database
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken,
+        resetTokenExpiry
+      }
+    });
+
+    // Send password reset email
+    try {
+      const resetLink = `${process.env.CLIENT_URL || 'https://api.whatintheworldwasthat.com'}/reset-password?token=${resetToken}`;
+      
+      const resetEmail = emailService.generatePasswordResetEmail({
+        userName: `${user.firstName} ${user.lastName}`,
+        resetLink: resetLink
+      });
+      
+      resetEmail.to = [user.email];
+      await emailService.sendEmail(resetEmail);
+      console.log('Password reset email sent successfully to:', user.email);
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError);
+      // Still return success to user but log the error
+    }
+
+    res.json({ 
+      message: 'If an account with that email exists, a password reset link has been sent.' 
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Password reset failed' });
+  }
+});
+
+// Reset password with token
+router.post('/reset-password', async (req: Request, res: Response) => {
+  try {
+    const { error, value } = resetPasswordSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    const { token, password } = value;
+
+    // Find user by reset token
+    const user = await prisma.user.findUnique({
+      where: { resetToken: token },
+      select: { 
+        id: true, 
+        resetTokenExpiry: true,
+        email: true,
+        firstName: true,
+        lastName: true
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    // Check if token is expired
+    if (!user.resetTokenExpiry || user.resetTokenExpiry < new Date()) {
+      return res.status(400).json({ error: 'Reset token has expired' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Update password and clear reset token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null
+      }
+    });
+
+    res.json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Password reset failed' });
+  }
+});
+
+// Test email endpoint (for development/testing)
+router.post('/test-email', async (req: Request, res: Response) => {
+  try {
+    const { email, type } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const validTypes = ['referral', 'confirmation', 'success', 'welcome', 'invitation', 'password-reset'];
+    const emailType = validTypes.includes(type) ? type : 'welcome';
+
+    await emailService.sendTestEmail(email, emailType as any);
+
+    res.json({ 
+      message: `Test ${emailType} email sent successfully to ${email}`,
+      type: emailType
+    });
+  } catch (error) {
+    console.error('Test email error:', error);
+    res.status(500).json({ error: 'Failed to send test email' });
   }
 });
 
