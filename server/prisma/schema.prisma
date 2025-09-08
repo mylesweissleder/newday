@@ -26,6 +26,8 @@ model Account {
   users       User[]
   contacts    Contact[]
   campaigns   Campaign[]
+  opportunities OpportunitySuggestion[]
+  networkGaps NetworkGap[]
   
   @@map("accounts")
 }
@@ -90,10 +92,16 @@ model Contact {
   source      String?
   status      ContactStatus @default(ACTIVE)
   
-  // AI Insights
-  aiInsights     Json?
-  personalityScore Float?
-  engagementScore  Float?
+  // AI Insights and Scoring
+  aiInsights          Json?
+  personalityScore    Float?
+  engagementScore     Float?
+  priorityScore       Float?        // Overall AI priority score (0-100)
+  opportunityScore    Float?        // Opportunity likelihood score (0-100)
+  strategicValue      Float?        // Strategic networking value (0-100)
+  scoringFactors      Json?         // Detailed breakdown of scoring factors
+  lastScoringUpdate   DateTime?     // When scores were last calculated
+  opportunityFlags    String[]      // AI-detected opportunity indicators
   
   // Relationship tracking
   connectionDate    DateTime?
@@ -125,11 +133,23 @@ model Contact {
   relationships ContactRelationship[] @relation("Contact")
   relatedTo     ContactRelationship[] @relation("RelatedContact")
   
+  // Potential relationships
+  potentialRelationships PotentialRelationship[] @relation("PotentialContact")
+  potentialRelatedTo     PotentialRelationship[] @relation("PotentialRelatedContact")
+  
+  // Network analytics
+  networkAnalytics NetworkAnalytics?
+  
   // Outreach history
   outreach Outreach[]
   
   // Campaign associations
   campaignContacts CampaignContact[]
+  
+  // Opportunity associations
+  primaryOpportunities   OpportunitySuggestion[] @relation("PrimaryOpportunityContact")
+  secondaryOpportunities OpportunitySuggestion[] @relation("SecondaryOpportunityContact")
+  opportunityContacts    OpportunityContact[]
   
   @@unique([email, accountId])
   @@map("contacts")
@@ -138,21 +158,102 @@ model Contact {
 model ContactRelationship {
   id String @id @default(cuid())
   
-  contact         Contact @relation("Contact", fields: [contactId], references: [id])
+  contact         Contact @relation("Contact", fields: [contactId], references: [id], onDelete: Cascade)
   contactId       String
   
-  relatedContact  Contact @relation("RelatedContact", fields: [relatedContactId], references: [id])
+  relatedContact  Contact @relation("RelatedContact", fields: [relatedContactId], references: [id], onDelete: Cascade)
   relatedContactId String
   
   relationshipType RelationshipType
-  strength         Float? // 0-1 scale
+  strength         Float? @default(0.5) // 0-1 scale
+  confidence      Float? @default(0.5) // How confident we are in this relationship (0-1)
   notes           String?
+  source          String? // How was this relationship discovered (manual, linkedin, email_domain, etc.)
+  
+  // Relationship metadata
+  discoveredAt    DateTime @default(now())
+  discoveredBy    String? // User ID who discovered/created this relationship
+  lastVerified    DateTime?
+  isVerified      Boolean @default(false)
+  isMutual        Boolean @default(false) // Is this a bidirectional relationship?
+  
+  // Network analysis fields
+  interactionCount Int @default(0) // Number of times they've interacted
+  sharedConnections Int @default(0) // Number of mutual connections
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   @@unique([contactId, relatedContactId])
+  @@index([relationshipType])
+  @@index([strength])
+  @@index([source])
+  @@index([discoveredAt])
+  @@index([isVerified])
+  @@index([isMutual])
   @@map("contact_relationships")
+}
+
+// Track potential relationships that haven't been verified yet
+model PotentialRelationship {
+  id String @id @default(cuid())
+  
+  contact         Contact @relation("PotentialContact", fields: [contactId], references: [id], onDelete: Cascade)
+  contactId       String
+  
+  relatedContact  Contact @relation("PotentialRelatedContact", fields: [relatedContactId], references: [id], onDelete: Cascade)
+  relatedContactId String
+  
+  relationshipType RelationshipType
+  confidence      Float // How confident we are (0-1)
+  evidence        Json // Evidence for this potential relationship
+  source          String // How was this discovered
+  
+  // Status tracking
+  status          PotentialRelationshipStatus @default(PENDING)
+  reviewedBy      String? // User ID who reviewed
+  reviewedAt      DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([contactId, relatedContactId])
+  @@index([confidence])
+  @@index([source])
+  @@index([status])
+  @@map("potential_relationships")
+}
+
+// Network analysis cache for performance
+model NetworkAnalytics {
+  id String @id @default(cuid())
+  
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contactId String @unique
+  
+  // Network metrics
+  totalConnections    Int @default(0)
+  directConnections   Int @default(0)
+  mutualConnections   Int @default(0)
+  networkReach        Int @default(0) // 2nd degree connections
+  influenceScore      Float @default(0) // Based on network position
+  
+  // Connection diversity
+  industryDiversity   Float @default(0) // How diverse their connections are
+  geographicSpread    Float @default(0)
+  senioritySpread     Float @default(0)
+  
+  // Key connector metrics
+  betweennessCentrality Float @default(0) // How often they bridge different groups
+  clusteringCoefficient Float @default(0) // How connected their connections are
+  
+  // Last calculation
+  lastCalculated DateTime @default(now())
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("network_analytics")
 }
 
 model Campaign {
@@ -331,4 +432,228 @@ enum OutreachStatus {
   OPENED
   RESPONDED
   FAILED
+}
+
+enum PotentialRelationshipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  AUTO_APPROVED
+}
+
+// Opportunity suggestions and recommendations
+model OpportunitySuggestion {
+  id String @id @default(cuid())
+  
+  // Basic info
+  title       String
+  description String
+  category    OpportunityCategory
+  type        OpportunityType
+  priority    OpportunityPriority @default(MEDIUM)
+  
+  // Confidence and scoring
+  confidenceScore   Float    // 0-1 confidence in this suggestion
+  impactScore       Float    // 0-100 potential impact score
+  effortScore       Float    // 0-100 estimated effort required
+  
+  // Status tracking
+  status        OpportunityStatus @default(PENDING)
+  statusReason  String?
+  
+  // Timing and context
+  suggestedAt   DateTime @default(now())
+  bestTiming    DateTime? // When this opportunity should be acted upon
+  expiresAt     DateTime? // When this opportunity expires
+  
+  // AI reasoning and data
+  aiReasoning   Json      // Detailed AI explanation
+  evidence      Json      // Supporting evidence and data
+  metadata      Json?     // Additional context data
+  
+  // Relations
+  account       Account @relation(fields: [accountId], references: [id])
+  accountId     String
+  
+  primaryContact    Contact? @relation("PrimaryOpportunityContact", fields: [primaryContactId], references: [id])
+  primaryContactId  String?
+  
+  secondaryContact    Contact? @relation("SecondaryOpportunityContact", fields: [secondaryContactId], references: [id])
+  secondaryContactId  String?
+  
+  relatedContacts     OpportunityContact[]
+  actions            OpportunityAction[]
+  
+  // User interaction tracking
+  viewedBy      String? // User ID who viewed this
+  viewedAt      DateTime?
+  actedBy       String? // User ID who acted on this
+  actedAt       DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("opportunity_suggestions")
+}
+
+// Junction table for opportunities involving multiple contacts
+model OpportunityContact {
+  id String @id @default(cuid())
+  
+  opportunity     OpportunitySuggestion @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  opportunityId   String
+  
+  contact         Contact @relation(fields: [contactId], references: [id])
+  contactId       String
+  
+  role            OpportunityContactRole // How this contact relates to the opportunity
+  importance      Float @default(0.5)    // 0-1 importance in this opportunity
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([opportunityId, contactId])
+  @@map("opportunity_contacts")
+}
+
+// Track actions taken on opportunities
+model OpportunityAction {
+  id String @id @default(cuid())
+  
+  opportunity     OpportunitySuggestion @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  opportunityId   String
+  
+  actionType      OpportunityActionType
+  actionData      Json? // Action-specific data
+  result          OpportunityActionResult?
+  resultData      Json? // Result-specific data
+  
+  notes           String?
+  
+  takenBy         String // User ID
+  takenAt         DateTime @default(now())
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("opportunity_actions")
+}
+
+// Network gap analysis results
+model NetworkGap {
+  id String @id @default(cuid())
+  
+  account       Account @relation(fields: [accountId], references: [id])
+  accountId     String
+  
+  gapType       NetworkGapType
+  title         String
+  description   String
+  importance    Float @default(0.5) // 0-1 importance score
+  
+  // Gap details
+  targetIndustry     String?
+  targetRole         String?
+  targetCompanySize  String?
+  targetLocation     String?
+  
+  // Current network analysis
+  currentCoverage    Float @default(0) // 0-1 how well this gap is currently covered
+  potentialContacts  Json? // Suggested contacts to fill this gap
+  
+  // Metadata
+  analysisData       Json  // Detailed analysis results
+  suggestions        Json? // Specific suggestions to fill this gap
+  
+  // Status
+  status            NetworkGapStatus @default(ACTIVE)
+  addressedAt       DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("network_gaps")
+}
+
+// Enums for opportunity system
+enum OpportunityCategory {
+  INTRODUCTION
+  RECONNECTION
+  BUSINESS_MATCH
+  NETWORK_EXPANSION
+  STRATEGIC_MOVE
+  EVENT_DRIVEN
+  FOLLOW_UP
+}
+
+enum OpportunityType {
+  WARM_INTRODUCTION
+  COLD_OUTREACH
+  RECONNECT
+  BUSINESS_PROPOSAL
+  PARTNERSHIP
+  CLIENT_REFERRAL
+  JOB_OPPORTUNITY
+  INVESTMENT_OPPORTUNITY
+  KNOWLEDGE_EXCHANGE
+  EVENT_INVITATION
+}
+
+enum OpportunityPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum OpportunityStatus {
+  PENDING
+  VIEWED
+  ACCEPTED
+  DISMISSED
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+  FAILED
+}
+
+enum OpportunityContactRole {
+  PRIMARY_TARGET
+  INTRODUCER
+  MUTUAL_CONNECTION
+  DECISION_MAKER
+  INFLUENCER
+  BENEFICIARY
+}
+
+enum OpportunityActionType {
+  VIEW
+  ACCEPT
+  DISMISS
+  SEND_INTRODUCTION_REQUEST
+  SEND_EMAIL
+  SCHEDULE_MEETING
+  MAKE_CALL
+  SEND_LINKEDIN_MESSAGE
+  CREATE_REMINDER
+  MARK_COMPLETE
+  PROVIDE_FEEDBACK
+}
+
+enum OpportunityActionResult {
+  SUCCESS
+  FAILED
+  PARTIAL
+  NO_RESPONSE
+  DECLINED
+  POSTPONED
+}
+
+enum NetworkGapType {
+  INDUSTRY_GAP
+  ROLE_GAP
+  SENIORITY_GAP
+  GEOGRAPHIC_GAP
+  FUNCTIONAL_GAP
+  COMPANY_SIZE_GAP
+  DIVERSITY_GAP
 }

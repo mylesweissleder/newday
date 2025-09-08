@@ -19,6 +19,10 @@ import siteAccessRoutes from './routes/siteAccess';
 import emailRoutes from './routes/email';
 import userRoutes from './routes/user';
 import crewRoutes from './routes/crew';
+import relationshipRoutes from './routes/relationships';
+import aiScoringRoutes from './routes/aiScoring';
+import opportunityRoutes from './routes/opportunities';
+import networkVisualizationRoutes from './routes/networkVisualization';
 
 // Middleware imports
 import { authenticateToken } from './middleware/auth';
@@ -72,6 +76,10 @@ app.use('/api/upload', authenticateToken, uploadRoutes);
 app.use('/api/analytics', authenticateToken, analyticsRoutes);
 app.use('/api/user', authenticateToken, userRoutes);
 app.use('/api/crew', authenticateToken, crewRoutes);
+app.use('/api/relationships', authenticateToken, relationshipRoutes);
+app.use('/api/ai-scoring', authenticateToken, aiScoringRoutes);
+app.use('/api/opportunities', authenticateToken, opportunityRoutes);
+app.use('/api/network', authenticateToken, networkVisualizationRoutes);
 app.use('/api/email', emailRoutes);
 
 // Error handling

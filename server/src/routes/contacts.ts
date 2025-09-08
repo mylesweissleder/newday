@@ -45,7 +45,11 @@ router.get('/', async (req: Request, res: Response) => {
       tags,
       company,
       sortBy = 'updatedAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      minPriority,
+      minOpportunity,
+      minStrategic,
+      hasOpportunityFlags
     } = req.query;
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -81,6 +85,20 @@ router.get('/', async (req: Request, res: Response) => {
       where.tags = {
         hasSome: tagArray
       };
+    }
+
+    // Add AI scoring filters
+    if (minPriority) {
+      where.priorityScore = { gte: Number(minPriority) };
+    }
+    if (minOpportunity) {
+      where.opportunityScore = { gte: Number(minOpportunity) };
+    }
+    if (minStrategic) {
+      where.strategicValue = { gte: Number(minStrategic) };
+    }
+    if (hasOpportunityFlags === 'true') {
+      where.opportunityFlags = { not: { equals: [] } };
     }
 
     // Get contacts

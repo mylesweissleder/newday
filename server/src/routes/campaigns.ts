@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import Joi from 'joi';
 import { PrismaClient } from '@prisma/client';
 import { CampaignStatus, CampaignContactStatus } from '@prisma/client';
+import { aiScoringService } from '../services/aiScoring';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -286,6 +287,82 @@ router.get('/:id/analytics', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Campaign analytics error:', error);
     res.status(500).json({ error: 'Failed to fetch campaign analytics' });
+  }
+});
+
+/**
+ * Get AI-powered contact suggestions for campaigns
+ */
+router.get('/ai-suggestions', async (req: Request, res: Response) => {
+  try {
+    const { 
+      campaignObjective, 
+      suggestionType = 'priority',
+      limit = 20,
+      minScore = 60
+    } = req.query;
+
+    let contacts = [];
+    
+    switch (suggestionType) {
+      case 'priority':
+        contacts = await aiScoringService.getTopPriorityContacts(
+          req.user!.accountId, 
+          Number(limit)
+        );
+        break;
+      case 'opportunity':
+        contacts = await aiScoringService.getHighOpportunityContacts(
+          req.user!.accountId, 
+          Number(limit)
+        );
+        break;
+      case 'strategic':
+        contacts = await aiScoringService.getStrategicNetworkingRecommendations(
+          req.user!.accountId, 
+          Number(limit)
+        );
+        break;
+      default:
+        contacts = await aiScoringService.getTopPriorityContacts(
+          req.user!.accountId, 
+          Number(limit)
+        );
+    }
+
+    // Filter by minimum score if specified
+    if (minScore) {
+      contacts = contacts.filter(contact => {
+        const score = suggestionType === 'priority' ? contact.priorityScore :
+                     suggestionType === 'opportunity' ? contact.opportunityScore :
+                     contact.strategicValue;
+        return score && score >= Number(minScore);
+      });
+    }
+
+    // Exclude contacts already in active campaigns
+    const activeContacts = await prisma.campaignContact.findMany({
+      where: {
+        campaign: {
+          accountId: req.user!.accountId,
+          status: { in: ['DRAFT', 'ACTIVE'] }
+        }
+      },
+      select: { contactId: true }
+    });
+
+    const activeContactIds = new Set(activeContacts.map(cc => cc.contactId));
+    const suggestedContacts = contacts.filter(contact => !activeContactIds.has(contact.id));
+
+    res.json({
+      contacts: suggestedContacts,
+      suggestionType,
+      count: suggestedContacts.length,
+      excludedActiveContacts: activeContactIds.size
+    });
+  } catch (error) {
+    console.error('AI campaign suggestions error:', error);
+    res.status(500).json({ error: 'Failed to get AI campaign suggestions' });
   }
 });
 
