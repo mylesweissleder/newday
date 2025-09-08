@@ -227,21 +227,21 @@ const CrewManagementPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Crew Management</h1>
-          <p className="text-gray-600">Manage your team members, roles, and analytics</p>
+      <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">Crew Management</h1>
+          <p className="text-sm md:text-base text-gray-600">Manage your team members, roles, and analytics</p>
         </div>
 
         {/* Tab Navigation */}
         <div className="mb-6">
           <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
+            <nav className="-mb-px flex overflow-x-auto">
               {['members', 'analytics', 'invite', 'join-codes'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab as any)}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  className={`flex-shrink-0 py-3 px-4 md:px-6 border-b-2 font-medium text-sm whitespace-nowrap ${
                     activeTab === tab
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -255,23 +255,100 @@ const CrewManagementPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3 md:p-4">
+            <p className="text-red-600 text-xs md:text-sm">{error}</p>
           </div>
         )}
 
         {/* Members Tab */}
         {activeTab === 'members' && (
           <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">Team Members</h2>
+            <div className="px-4 py-4 md:px-6 border-b border-gray-200">
+              <h2 className="text-base md:text-lg font-medium text-gray-900">Team Members</h2>
             </div>
             {loading ? (
               <div className="p-6 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="md:hidden divide-y divide-gray-200">
+                {/* Mobile Card Layout */}
+                {crewMembers.map((member) => (
+                  <div key={member.id} className="p-4 space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-10 w-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                        {member.firstName[0]}{member.lastName[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-medium text-gray-900 truncate">
+                          {member.firstName} {member.lastName}
+                        </h3>
+                        <p className="text-sm text-gray-500 truncate">{member.email}</p>
+                        {member.inviterName && (
+                          <p className="text-xs text-gray-400">
+                            Invited by {member.inviterName}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex-shrink-0">
+                        {getStatusBadge(member)}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        {user?.role === 'CREW_LEADER' && member.id !== user.id ? (
+                          <select
+                            value={member.role}
+                            onChange={(e) => handleUpdateRole(member.id, e.target.value)}
+                            className={`px-3 py-2 text-xs rounded-lg border ${getRoleBadgeColor(member.role)}`}
+                          >
+                            <option value="CREW_LEADER">Crew Leader</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="MEMBER">Member</option>
+                            <option value="VIEWER">Viewer</option>
+                          </select>
+                        ) : (
+                          <span className={`px-2 py-1 text-xs rounded-full ${getRoleBadgeColor(member.role)}`}>
+                            {member.role}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">
+                          {member.lastLoginAt 
+                            ? new Date(member.lastLoginAt).toLocaleDateString()
+                            : 'Never'}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {member.loginCount} logins
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {member.id !== user?.id && (
+                      <div className="pt-2 border-t border-gray-100">
+                        <button
+                          onClick={() => handleToggleActive(member.id, !member.isActive)}
+                          className={`w-full py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${
+                            member.isActive 
+                              ? 'text-red-700 bg-red-50 border-red-200 hover:bg-red-100' 
+                              : 'text-green-700 bg-green-50 border-green-200 hover:bg-green-100'
+                          }`}
+                        >
+                          {member.isActive ? 'Deactivate Member' : 'Activate Member'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Desktop Table Layout */}
+            {!loading && (
+              <div className="hidden md:block overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -468,7 +545,7 @@ const CrewManagementPage: React.FC = () => {
               )}
               
               <form onSubmit={handleInviteMember} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       First Name
@@ -478,7 +555,7 @@ const CrewManagementPage: React.FC = () => {
                       required
                       value={inviteForm.firstName}
                       onChange={(e) => setInviteForm(prev => ({ ...prev, firstName: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:text-sm md:py-2"
                       disabled={inviteLoading}
                     />
                   </div>
@@ -491,7 +568,7 @@ const CrewManagementPage: React.FC = () => {
                       required
                       value={inviteForm.lastName}
                       onChange={(e) => setInviteForm(prev => ({ ...prev, lastName: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:text-sm md:py-2"
                       disabled={inviteLoading}
                     />
                   </div>
@@ -506,7 +583,7 @@ const CrewManagementPage: React.FC = () => {
                     required
                     value={inviteForm.email}
                     onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:text-sm md:py-2"
                     disabled={inviteLoading}
                   />
                 </div>
@@ -518,7 +595,7 @@ const CrewManagementPage: React.FC = () => {
                   <select
                     value={inviteForm.role}
                     onChange={(e) => setInviteForm(prev => ({ ...prev, role: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:text-sm md:py-2"
                     disabled={inviteLoading}
                   >
                     <option value="MEMBER">Member</option>
@@ -531,7 +608,7 @@ const CrewManagementPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={inviteLoading}
-                  className="w-full md:w-auto bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium flex items-center justify-center"
+                  className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium flex items-center justify-center text-base md:text-sm md:py-2 md:w-auto transition-colors"
                 >
                   {inviteLoading && (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

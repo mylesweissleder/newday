@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { api } from '../utils/api'
 
 interface User {
   id: string
@@ -15,111 +16,52 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
-  
-  // Helper to get API headers with site password
-  const getApiHeaders = (includeAuth = false) => {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
-    }
-    
-    
-    // Add auth token if needed
-    if (includeAuth) {
-      const token = localStorage.getItem('auth-token')
-      if (token && token !== 'demo-token') {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-    }
-    
-    return headers
-  }
-
   useEffect(() => {
-    const token = localStorage.getItem('auth-token')
-    const storedUser = localStorage.getItem('user-data')
-    
-    if (token && token !== 'demo-token') {
-      // Restore user from localStorage if available
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser)
-          console.log('useAuth: Restored user from localStorage:', userData)
-          setUser(userData)
-        } catch (err) {
-          console.error('Failed to parse stored user data:', err)
-          localStorage.removeItem('user-data')
+    const checkAuthStatus = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Try to get user profile - this will validate the HTTP-only cookie
+        const response = await api.get('/api/auth/profile')
+
+        if (response.ok) {
+          const data = await response.json()
+          setUser(data.user)
+          console.log('useAuth: User authenticated via cookie:', data.user)
+        } else if (response.status === 401) {
+          // No valid authentication cookie
+          setUser(null)
+        } else {
+          console.warn('Profile endpoint returned unexpected status:', response.status)
+          setUser(null)
         }
+      } catch (err) {
+        console.warn('Error checking auth status:', err)
+        setUser(null)
       }
-      setLoading(false)
-    } else if (token === 'demo-token') {
-      // Restore demo user from localStorage
-      const demoUser = {
-        id: 'demo-user-id',
-        email: 'demo@networkcrm.com',
-        firstName: 'Demo',
-        lastName: 'User',
-        role: 'ADMIN',
-        accountId: 'demo-account-id',
-        accountName: 'Demo Account'
-      }
-      setUser(demoUser)
-      setLoading(false)
-    } else {
+      
       setLoading(false)
     }
+
+    checkAuthStatus()
   }, [])
 
 
-  const fetchUserProfile = async (token: string) => {
-    try {
-      setLoading(true)
-      setError(null)
-      
-      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
-        headers: getApiHeaders(true)
-      })
-
-      if (response.ok) {
-        const userData = await response.json()
-        setUser(userData)
-      } else if (response.status === 401) {
-        // Token expired or invalid
-        localStorage.removeItem('auth-token')
-        setUser(null)
-      } else {
-        // Profile endpoint might not exist - don't show error to user
-        console.warn('Profile endpoint not available, continuing without user data')
-      }
-    } catch (err) {
-      console.warn('Error fetching user profile:', err)
-      // Don't set error - allow user to continue
-    }
-    
-    setLoading(false)
-  }
-
   const refreshToken = async () => {
     try {
-      const token = localStorage.getItem('auth-token')
-      if (!token || token === 'demo-token') return false
-
-      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-        method: 'POST',
-        headers: getApiHeaders(true)
-      })
+      const response = await api.post('/api/auth/refresh')
 
       if (response.ok) {
-        const { token: newToken } = await response.json()
-        localStorage.setItem('auth-token', newToken)
+        console.log('Token refreshed successfully')
         return true
       } else {
-        localStorage.removeItem('auth-token')
         setUser(null)
         return false
       }
     } catch (err) {
       console.error('Error refreshing token:', err)
+      setUser(null)
       return false
     }
   }
@@ -141,24 +83,18 @@ export const useAuth = () => {
           accountName: 'Demo Account'
         }
         
-        localStorage.setItem('auth-token', 'demo-token')
         setUser(demoUser)
         setLoading(false)
         return { success: true }
       }
 
       // Real authentication
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: getApiHeaders(),
-        body: JSON.stringify({ email, password })
-      })
+      const response = await api.post('/api/auth/login', { email, password })
 
       const data = await response.json()
 
       if (response.ok) {
-        localStorage.setItem('auth-token', data.token)
-        localStorage.setItem('user-data', JSON.stringify(data.user))
+        // No need to store token in localStorage - it's now in HTTP-only cookie
         setUser(data.user)
         setLoading(false)
         return { success: true }
@@ -191,10 +127,7 @@ export const useAuth = () => {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: getApiHeaders(),
-        body: JSON.stringify(userData),
+      const response = await api.post('/api/auth/register', userData, {
         signal: controller.signal
       })
 
@@ -211,8 +144,7 @@ export const useAuth = () => {
       }
 
       if (response.ok) {
-        localStorage.setItem('auth-token', data.token)
-        localStorage.setItem('user-data', JSON.stringify(data.user))
+        // No need to store token in localStorage - it's now in HTTP-only cookie
         setUser(data.user)
         setLoading(false)
         setError(null)
@@ -237,9 +169,15 @@ export const useAuth = () => {
     }
   }
 
-  const logout = () => {
-    localStorage.removeItem('auth-token')
-    localStorage.removeItem('user-data')
+  const logout = async () => {
+    try {
+      // Call logout endpoint to clear HTTP-only cookie
+      await api.post('/api/auth/logout')
+    } catch (err) {
+      console.warn('Error calling logout endpoint:', err)
+    }
+    
+    // Clear user state regardless of API call success
     setUser(null)
   }
 
