@@ -87,8 +87,10 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
       } else {
         console.log('RegisterPage: Registration successful!')
         setFormErrors({ submit: 'Account created successfully! Redirecting...' })
-        // The App component will automatically render the dashboard when user state changes
-        // No need for manual redirect since React will re-render when user becomes truthy
+        // Force a page reload to ensure App component re-renders with new user state
+        setTimeout(() => {
+          window.location.reload()
+        }, 500)
       }
     } catch (error) {
       console.error('RegisterPage: Registration error caught:', error)
