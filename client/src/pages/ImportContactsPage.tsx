@@ -855,6 +855,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
             </div>
           </div>
         </div>
+      </div>
 
       {/* Parse Results */}
       {uploadedFiles.length > 0 && (
