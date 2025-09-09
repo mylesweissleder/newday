@@ -232,6 +232,104 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
+// Bulk import contacts
+router.post('/bulk', async (req: Request, res: Response) => {
+  try {
+    const { contacts } = req.body;
+    
+    if (!Array.isArray(contacts) || contacts.length === 0) {
+      return res.status(400).json({ error: 'Contacts array is required and cannot be empty' });
+    }
+
+    // Limit bulk import size to prevent abuse
+    if (contacts.length > 10000) {
+      return res.status(400).json({ error: 'Cannot import more than 10,000 contacts at once' });
+    }
+
+    const results = {
+      success: 0,
+      failed: 0,
+      duplicates: 0,
+      errors: [] as string[]
+    };
+
+    // Process contacts in batches to avoid overwhelming the database
+    const batchSize = 100;
+    const batches = [];
+    for (let i = 0; i < contacts.length; i += batchSize) {
+      batches.push(contacts.slice(i, i + batchSize));
+    }
+
+    console.log(`Processing ${contacts.length} contacts in ${batches.length} batches of ${batchSize}`);
+
+    for (const batch of batches) {
+      const contactsData = [];
+      
+      for (const contactData of batch) {
+        // Validate each contact
+        const { error, value } = createContactSchema.validate(contactData);
+        if (error) {
+          results.failed++;
+          results.errors.push(`Validation error: ${error.details[0].message}`);
+          continue;
+        }
+
+        // Check for existing contact (by email if provided)
+        if (value.email) {
+          try {
+            const existing = await prisma.contact.findFirst({
+              where: {
+                email: value.email,
+                accountId: req.user!.accountId
+              }
+            });
+
+            if (existing) {
+              results.duplicates++;
+              continue;
+            }
+          } catch (err) {
+            console.warn('Error checking for duplicate:', err);
+          }
+        }
+
+        contactsData.push({
+          ...value,
+          accountId: req.user!.accountId,
+          createdById: req.user!.id,
+          updatedById: req.user!.id
+        });
+      }
+
+      // Bulk insert this batch
+      if (contactsData.length > 0) {
+        try {
+          const created = await prisma.contact.createMany({
+            data: contactsData,
+            skipDuplicates: true
+          });
+          results.success += created.count;
+          console.log(`Batch completed: ${created.count} contacts created`);
+        } catch (error) {
+          console.error('Batch insert error:', error);
+          results.failed += contactsData.length;
+          results.errors.push(`Batch insert failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+    }
+
+    console.log(`Bulk import completed: ${results.success} created, ${results.failed} failed, ${results.duplicates} duplicates`);
+
+    res.status(201).json({
+      message: 'Bulk import completed',
+      results
+    });
+  } catch (error) {
+    console.error('Bulk import error:', error);
+    res.status(500).json({ error: 'Failed to import contacts' });
+  }
+});
+
 // Update contact
 router.put('/:id', async (req: Request, res: Response) => {
   try {

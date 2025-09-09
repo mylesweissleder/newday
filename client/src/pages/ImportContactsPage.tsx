@@ -799,39 +799,60 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
     }
 
     try {
-      // Save contacts one by one (could be optimized with bulk endpoint later)
-      for (const contact of parsedContacts) {
-        try {
-          const response = await api.post('/api/contacts', {
-            firstName: contact.firstName,
-            lastName: contact.lastName,
-            email: contact.email,
-            company: contact.company,
-            position: contact.position,
-            phone: contact.phone,
-            tier: contact.tier?.toUpperCase() || 'TIER_3',
-            source: contact.sources?.map(s => s.fileName).join(', ') || 'CSV Import',
-            tags: ['imported', ...uploadedFiles.map(f => f.name.replace(/\.[^/.]+$/, ''))]
-          })
+      // Prepare contacts for bulk import
+      const contactsForImport = parsedContacts.map(contact => ({
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        email: contact.email,
+        company: contact.company,
+        position: contact.position,
+        phone: contact.phone,
+        tier: contact.tier?.toUpperCase() || 'TIER_3',
+        source: contact.sources?.map(s => s.fileName).join(', ') || 'CSV Import',
+        tags: ['imported', ...uploadedFiles.map(f => f.name.replace(/\.[^/.]+$/, ''))]
+      }))
 
-          if (response.ok) {
-            result.success++
-          } else {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-            result.failed++
-            result.errors.push(`${contact.firstName} ${contact.lastName}: ${errorData.error || 'Failed to save'}`)
-          }
-        } catch (error) {
-          result.failed++
-          result.errors.push(`${contact.firstName} ${contact.lastName}: Network error`)
+      console.log(`Starting bulk import of ${contactsForImport.length} contacts...`)
+
+      // Use bulk import endpoint
+      const response = await api.post('/api/contacts/bulk', {
+        contacts: contactsForImport
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const bulkResults = data.results
+
+        result.success = bulkResults.success
+        result.failed = bulkResults.failed
+        result.errors = bulkResults.errors || []
+        
+        // Add duplicates info if available
+        if (bulkResults.duplicates) {
+          result.errors.push(`${bulkResults.duplicates} contacts were skipped as duplicates`)
         }
-      }
 
-      setSaveResult(result)
-      
-      if (result.success > 0) {
-        alert(`Successfully saved ${result.success} contacts to database!${result.failed > 0 ? ` (${result.failed} failed)` : ''}`)
+        setSaveResult(result)
+        
+        console.log('Bulk import completed:', bulkResults)
+
+        if (result.success > 0) {
+          let message = `Successfully saved ${result.success} contacts to database!`
+          if (bulkResults.duplicates > 0) {
+            message += ` (${bulkResults.duplicates} duplicates skipped)`
+          }
+          if (result.failed > 0) {
+            message += ` (${result.failed} failed)`
+          }
+          alert(message)
+        } else {
+          alert('Failed to save contacts. Please check the errors and try again.')
+        }
       } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        result.failed = parsedContacts.length
+        result.errors.push(errorData.error || 'Bulk import failed')
+        setSaveResult(result)
         alert('Failed to save contacts. Please check the errors and try again.')
       }
 
@@ -839,6 +860,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
       result.failed = parsedContacts.length
       result.errors.push('Network connection failed')
       setSaveResult(result)
+      console.error('Bulk import error:', error)
       alert('Failed to connect to server. Please check your connection and try again.')
     }
 

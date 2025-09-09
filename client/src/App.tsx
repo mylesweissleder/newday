@@ -31,12 +31,17 @@ function App() {
 
   // Handle view changes based on user state
   React.useEffect(() => {
-    if (user && appView === 'landing') {
-      setAppView('app')
-    } else if (!user && appView === 'app') {
-      setAppView('landing')
+    console.log('App useEffect: user=', user, 'appView=', appView, 'loading=', loading)
+    if (!loading) {
+      if (user && appView === 'landing') {
+        console.log('App useEffect: Setting appView to app because user logged in')
+        setAppView('app')
+      } else if (!user && appView === 'app') {
+        console.log('App useEffect: Setting appView to landing because user logged out')
+        setAppView('landing')
+      }
     }
-  }, [!!user, appView])
+  }, [user, appView, loading])
 
   if (loading) {
     return (

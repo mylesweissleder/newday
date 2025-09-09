@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { api } from '../utils/api'
 
 interface DashboardPageProps {
   onImportContacts: () => void
@@ -32,62 +33,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('auth-token')
-      
-      // If demo token, use demo data
-      if (token === 'demo-token') {
-        const demoContacts = [
-          {
-            firstName: 'John',
-            lastName: 'Doe',
-            email: 'john.doe@techcorp.com',
-            company: 'TechCorp Inc',
-            position: 'CEO',
-            tier: 'TIER_1',
-            status: 'ACTIVE',
-            createdAt: new Date().toISOString()
-          },
-          {
-            firstName: 'Jane',
-            lastName: 'Smith',
-            email: 'jane.smith@startupxyz.com',
-            company: 'StartupXYZ',
-            position: 'CTO',
-            tier: 'TIER_1',
-            status: 'ACTIVE',
-            createdAt: new Date().toISOString()
-          },
-          {
-            firstName: 'Mike',
-            lastName: 'Johnson',
-            email: 'mike.j@consulting.com',
-            company: 'Consulting Group',
-            position: 'Partner',
-            tier: 'TIER_2',
-            status: 'ACTIVE',
-            createdAt: new Date().toISOString()
-          }
-        ]
-        
-        setStats({
-          totalContacts: 247,
-          tier1Contacts: 38,
-          recentUploads: 15,
-          pendingOutreach: 142
-        })
-        
-        setRecentContacts(demoContacts)
-        setLoading(false)
-        return
-      }
-      
-      // For production, try API call
-      const contactsResponse = await fetch(`${API_BASE_URL}/api/contacts?limit=500`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
+      // Use the API utility which handles HTTP-only cookies
+      const contactsResponse = await api.get('/api/contacts?limit=500')
 
       if (contactsResponse.ok) {
         const data = await contactsResponse.json()
@@ -118,26 +65,15 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)
       
-      // Fallback to demo data on error
+      // Show empty state on error (no demo data)
       setStats({
-        totalContacts: 247,
-        tier1Contacts: 38,
-        recentUploads: 15,
-        pendingOutreach: 142
+        totalContacts: 0,
+        tier1Contacts: 0,
+        recentUploads: 0,
+        pendingOutreach: 0
       })
       
-      setRecentContacts([
-        {
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@techcorp.com',
-          company: 'TechCorp Inc',
-          position: 'CEO',
-          tier: 'TIER_1',
-          status: 'ACTIVE',
-          createdAt: new Date().toISOString()
-        }
-      ])
+      setRecentContacts([])
     } finally {
       setLoading(false)
     }

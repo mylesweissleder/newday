@@ -133,7 +133,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
         {/* Built for People Like Us */}
         <section className="space-y-6 text-center">
           <h2 className="text-3xl font-bold">Built for People Like Us</h2>
-          <div className="text-xl text-white/90 leading-relaxed max-w-2xl mx-auto">
+          <div className="text-xl text-gray-700 leading-relaxed max-w-2xl mx-auto">
             <p className="mb-4">This isn't another CRM.</p>
             <p>It's a private tool for small groups of friends and colleagues who believe in helping each other succeed.</p>
           </div>
