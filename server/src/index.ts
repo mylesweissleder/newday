@@ -39,7 +39,6 @@ dotenv.config();
 const config = getConfig();
 
 const app = express();
-import prisma from "../utils/prisma";
 const PORT = config.port;
 
 // Middleware

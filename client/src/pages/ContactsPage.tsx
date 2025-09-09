@@ -9,6 +9,7 @@ import AIDashboard from '../components/AIDashboard'
 import { validateContact } from '../utils/dataValidation'
 import { safeFetch, safeContactOperation, getUserFriendlyMessage } from '../utils/errorHandling'
 import { LocalBackupManager, performDataIntegrityCheck, exportContactData, downloadBackup } from '../utils/dataBackup'
+import { api } from '../utils/api'
 
 interface Contact {
   id: string
@@ -91,59 +92,6 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
 
   const fetchContacts = async () => {
     const result = await safeContactOperation(async () => {
-      const token = localStorage.getItem('auth-token')
-      
-      if (token === 'demo-token') {
-        // Demo data with validation
-        const demoContacts = [
-          {
-            id: '1',
-            firstName: 'John',
-            lastName: 'Doe',
-            email: 'john.doe@techcorp.com',
-            company: 'TechCorp Inc',
-            position: 'CEO',
-            tier: 'TIER_1',
-            tags: ['imported', 'linkedin'],
-            source: 'LinkedIn Export',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            _count: { outreach: 3, relationships: 2 }
-          },
-          {
-            id: '2',
-            firstName: 'Jane',
-            lastName: 'Smith',
-            email: 'jane.smith@startupxyz.com',
-            company: 'StartupXYZ',
-            position: 'CTO',
-            tier: 'TIER_1',
-            tags: ['imported', 'event'],
-            source: 'SFNT Event',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            _count: { outreach: 5, relationships: 1 }
-          },
-          {
-            id: '3',
-            firstName: 'Mike',
-            lastName: 'Johnson',
-            email: 'mike.j@consulting.com',
-            company: 'Consulting Group',
-            position: 'Partner',
-            tier: 'TIER_2',
-            tags: ['imported'],
-            source: 'CSV Import',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            _count: { outreach: 1, relationships: 0 }
-          }
-        ]
-        
-        setTotalPages(1)
-        return demoContacts
-      }
-
       setLoading(true)
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -158,12 +106,14 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
         ...(aiFilters.hasOpportunityFlags && { hasOpportunityFlags: 'true' })
       })
 
-      const response = await safeFetch(`${API_BASE_URL}/api/contacts?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+      const response = await api.get(`/api/contacts?${params}`)
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Your session has expired. Please log in again.')
         }
-      })
+        throw new Error('Failed to load contacts')
+      }
 
       const data = await response.json()
       setTotalPages(data.pagination?.totalPages || 1)
