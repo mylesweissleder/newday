@@ -850,10 +850,11 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
         }
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Bulk import failed with status:', response.status, 'Error:', errorData)
         result.failed = parsedContacts.length
-        result.errors.push(errorData.error || 'Bulk import failed')
+        result.errors.push(errorData.error || `Bulk import failed (${response.status})`)
         setSaveResult(result)
-        alert('Failed to save contacts. Please check the errors and try again.')
+        alert(`Failed to save contacts (${response.status}): ${errorData.error || 'Please check the errors and try again.'}`)
       }
 
     } catch (error) {
