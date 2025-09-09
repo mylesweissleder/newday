@@ -178,7 +178,7 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Start server with proper error handling
 const server = app.listen(PORT, () => {
-  logger.info(`🚀 Network CRM Server running on port ${PORT}`);
+  logger.info(`🚀 Network CRM Server running on port ${PORT} (optimized)`);
   logger.info(`📊 Environment: ${config.nodeEnv}`);
   logger.info(`🔒 Security features enabled: Rate limiting, Helmet, CORS`);
   logger.info(`📝 Structured logging active`);
