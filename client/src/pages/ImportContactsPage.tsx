@@ -638,23 +638,13 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
         const errors: string[] = []
 
         results.data.forEach((row: any, index: number) => {
-          // Handle LinkedIn connections without email addresses  
-          const isLinkedInFile = file.name.toLowerCase().includes('connection') || file.name.toLowerCase().includes('linkedin')
           const hasName = (row.firstName && row.lastName) || row.fullName
           
-          if (!row.email || !row.email.includes('@')) {
-            if (isLinkedInFile && hasName) {
-              // For LinkedIn files, create a placeholder email for contacts without public email
-              const firstName = row.firstName || (row.fullName ? row.fullName.split(' ')[0] : 'Unknown')
-              const lastName = row.lastName || (row.fullName ? row.fullName.split(' ').slice(1).join(' ') : 'Contact')
-              row.email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@linkedin-connection.placeholder`.replace(/[^a-zA-Z0-9@.-]/g, '')
-            } else {
-              // Only report as error if it looks like it should have data
-              if (row.firstName || row.lastName || row.company) {
-                errors.push(`Row ${index + 2}: Missing email address for ${row.firstName || ''} ${row.lastName || ''}`.trim())
-              }
-              return
-            }
+          // Generate a safe placeholder email if none exists (for all contacts with names)
+          if ((!row.email || !row.email.includes('@')) && hasName) {
+            const firstName = row.firstName || (row.fullName ? row.fullName.split(' ')[0] : 'Unknown')
+            const lastName = row.lastName || (row.fullName ? row.fullName.split(' ').slice(1).join(' ') : 'Contact')
+            row.email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@no-email.placeholder`.replace(/[^a-zA-Z0-9@.-]/g, '')
           }
 
           // Handle different name formats
@@ -670,7 +660,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
             firstName = row.firstName || ''
             lastName = row.lastName || ''
           } else {
-            errors.push(`Row ${index + 2}: Missing name (no fullName, firstName, or lastName)`)
+            // Skip rows with no name at all - these are truly unusable
             return
           }
 
@@ -943,22 +933,13 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
             }
           })
           
-          // Handle LinkedIn connections without email addresses  
-          const isLinkedInFile = preview.file.name.toLowerCase().includes('connection') || preview.file.name.toLowerCase().includes('linkedin')
           const hasName = (transformedRow.firstName && transformedRow.lastName) || transformedRow.fullName
           
-          if (!transformedRow.email || !transformedRow.email.includes('@')) {
-            if (isLinkedInFile && hasName) {
-              // For LinkedIn files, create a placeholder email for contacts without public email
-              const firstName = transformedRow.firstName || (transformedRow.fullName ? transformedRow.fullName.split(' ')[0] : 'Unknown')
-              const lastName = transformedRow.lastName || (transformedRow.fullName ? transformedRow.fullName.split(' ').slice(1).join(' ') : 'Contact')
-              transformedRow.email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@linkedin-connection.placeholder`.replace(/[^a-zA-Z0-9@.-]/g, '')
-            } else {
-              if (transformedRow.firstName || transformedRow.lastName || transformedRow.company) {
-                errors.push(`Row ${index + 2}: Missing email address for ${transformedRow.firstName || ''} ${transformedRow.lastName || ''}`.trim())
-              }
-              return
-            }
+          // Generate a safe placeholder email if none exists (for all contacts with names)
+          if ((!transformedRow.email || !transformedRow.email.includes('@')) && hasName) {
+            const firstName = transformedRow.firstName || (transformedRow.fullName ? transformedRow.fullName.split(' ')[0] : 'Unknown')
+            const lastName = transformedRow.lastName || (transformedRow.fullName ? transformedRow.fullName.split(' ').slice(1).join(' ') : 'Contact')
+            transformedRow.email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@no-email.placeholder`.replace(/[^a-zA-Z0-9@.-]/g, '')
           }
           
           // Handle different name formats
@@ -973,7 +954,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
             firstName = transformedRow.firstName || ''
             lastName = transformedRow.lastName || ''
           } else {
-            errors.push(`Row ${index + 2}: Missing name`)
+            // Skip rows with no name at all - these are truly unusable
             return
           }
           
