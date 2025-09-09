@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
 import Joi from 'joi';
-import { PrismaClient } from '@prisma/client';
+
 import { CampaignStatus, CampaignContactStatus } from '@prisma/client';
 import { aiScoringService } from '../services/aiScoring';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 const createCampaignSchema = Joi.object({
   name: Joi.string().min(1).max(100).required(),

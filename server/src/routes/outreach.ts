@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
 import Joi from 'joi';
-import { PrismaClient } from '@prisma/client';
+
 import { OutreachType, OutreachStatus } from '@prisma/client';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 const createOutreachSchema = Joi.object({
   contactId: Joi.string().required(),

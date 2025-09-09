@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
 import Joi from 'joi';
-import { PrismaClient } from '@prisma/client';
+
 import { RelationshipType, PotentialRelationshipStatus } from '@prisma/client';
 import { relationshipDiscovery } from '../services/relationshipDiscovery';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 // Validation schemas
 const createRelationshipSchema = Joi.object({
@@ -661,7 +661,7 @@ router.post('/discover/:contactId', async (req: Request, res: Response) => {
           },
           update: {
             confidence: potential.confidence,
-            evidence: potential.evidence,
+            evidence: potential.evidence as any,
             relationshipType: potential.relationshipType
           },
           create: {
@@ -669,7 +669,7 @@ router.post('/discover/:contactId', async (req: Request, res: Response) => {
             relatedContactId: potential.relatedContactId,
             relationshipType: potential.relationshipType,
             confidence: potential.confidence,
-            evidence: potential.evidence,
+            evidence: potential.evidence as any,
             source: potential.source
           }
         });

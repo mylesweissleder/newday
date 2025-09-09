@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
+import prisma from './utils/prisma';
 import logger from './utils/logger';
 import { validateEnvironment, getConfig } from './utils/validateEnv';
 
@@ -39,7 +39,7 @@ dotenv.config();
 const config = getConfig();
 
 const app = express();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 const PORT = config.port;
 
 // Middleware
@@ -126,15 +126,39 @@ app.use('/api/email', authenticateToken, emailRoutes);
 app.use(errorHandler);
 
 // Process monitoring and graceful shutdown
+let isShuttingDown = false;
 const gracefulShutdown = async (signal: string) => {
+  if (isShuttingDown) {
+    logger.warn('Shutdown already in progress, forcing exit...');
+    process.exit(1);
+  }
+  
+  isShuttingDown = true;
   logger.info(`Received ${signal}, shutting down gracefully...`);
   
+  // Set timeout for forced shutdown
+  const forceShutdownTimer = setTimeout(() => {
+    logger.error('Forced shutdown due to timeout');
+    process.exit(1);
+  }, 10000); // 10 seconds timeout
+  
   try {
+    // Close HTTP server
+    if (httpServer) {
+      httpServer.close(() => {
+        logger.info('HTTP server closed');
+      });
+    }
+    
+    // Close database connection
     await prisma.$disconnect();
     logger.info('Database connection closed');
+    
+    clearTimeout(forceShutdownTimer);
     process.exit(0);
   } catch (error) {
     logger.error('Error during shutdown', error as Error);
+    clearTimeout(forceShutdownTimer);
     process.exit(1);
   }
 };
@@ -153,9 +177,24 @@ process.on('unhandledRejection', (reason, promise) => {
   gracefulShutdown('unhandledRejection');
 });
 
-app.listen(PORT, () => {
+// Start server with proper error handling
+const server = app.listen(PORT, () => {
   logger.info(`🚀 Network CRM Server running on port ${PORT}`);
   logger.info(`📊 Environment: ${config.nodeEnv}`);
   logger.info(`🔒 Security features enabled: Rate limiting, Helmet, CORS`);
   logger.info(`📝 Structured logging active`);
 });
+
+// Handle server startup errors
+server.on('error', (error: any) => {
+  if (error.code === 'EADDRINUSE') {
+    logger.error(`Port ${PORT} is already in use. Please use a different port or stop the existing process.`);
+    process.exit(1);
+  } else {
+    logger.error('Server startup error:', error);
+    process.exit(1);
+  }
+});
+
+// Store server reference for graceful shutdown
+let httpServer = server;

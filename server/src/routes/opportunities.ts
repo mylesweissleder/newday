@@ -1,5 +1,5 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+
 import { 
   opportunitySuggestionService, 
   UnifiedOpportunitySuggestion,
@@ -12,7 +12,7 @@ import { networkGapAnalysis } from '../services/networkGapAnalysis';
 import { businessOpportunityMatcher } from '../services/businessOpportunityMatcher';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 /**
  * GET /opportunities

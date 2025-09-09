@@ -1,12 +1,12 @@
 import express, { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import Joi from 'joi';
-import { PrismaClient } from '@prisma/client';
+
 import crypto from 'crypto';
 import { emailService } from '../services/email';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 // Validation schemas
 const inviteUserSchema = Joi.object({

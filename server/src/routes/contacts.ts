@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
 import Joi from 'joi';
-import { PrismaClient } from '@prisma/client';
+
 import { ContactTier, ContactStatus, RelationshipType } from '@prisma/client';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 // Validation schemas
 const createContactSchema = Joi.object({
@@ -270,6 +270,17 @@ router.put('/:id', async (req: Request, res: Response) => {
 // Delete contact (soft delete)
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    // Check if user has permission for contact deletion
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user!.id }
+    });
+
+    if (!currentUser || !canPerformDestructiveOperations(currentUser.role)) {
+      return res.status(403).json({ 
+        error: 'Insufficient permissions. Only crew leaders and admins can delete contacts.' 
+      });
+    }
+
     const contact = await prisma.contact.update({
       where: { 
         id: req.params.id,
@@ -393,13 +404,36 @@ router.get('/:id/analytics', async (req: Request, res: Response) => {
   }
 });
 
+// Helper function to check if user can perform destructive operations
+const canPerformDestructiveOperations = (userRole: string): boolean => {
+  return ['CREW_LEADER', 'ADMIN'].includes(userRole);
+};
+
 // Bulk operations
 router.post('/bulk/delete', async (req: Request, res: Response) => {
   try {
+    // Check if user has permission for bulk delete
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user!.id }
+    });
+
+    if (!currentUser || !canPerformDestructiveOperations(currentUser.role)) {
+      return res.status(403).json({ 
+        error: 'Insufficient permissions. Only crew leaders and admins can delete contacts in bulk.' 
+      });
+    }
+
     const { contactIds } = req.body;
 
     if (!Array.isArray(contactIds) || contactIds.length === 0) {
       return res.status(400).json({ error: 'Contact IDs array required' });
+    }
+
+    // Additional protection: prevent bulk deletion of more than 100 contacts at once
+    if (contactIds.length > 100) {
+      return res.status(400).json({ 
+        error: 'Cannot delete more than 100 contacts at once. Please split into smaller batches.' 
+      });
     }
 
     const result = await prisma.contact.updateMany({

@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 // Get network graph data for visualization
 router.get('/graph', async (req: Request, res: Response) => {
@@ -68,7 +68,7 @@ router.get('/graph', async (req: Request, res: Response) => {
       where: {
         contactId: { in: contactIds_internal },
         relatedContactId: { in: contactIds_internal },
-        strength: { gte: Number(minStrength) }
+        strength: { gte: parseFloat(minStrength as string) || 0 }
       },
       select: {
         id: true,
@@ -194,8 +194,8 @@ router.get('/graph', async (req: Request, res: Response) => {
         generatedAt: new Date().toISOString(),
         filters: {
           includeInactive: includeInactive === 'true',
-          minStrength: Number(minStrength),
-          maxNodes: Number(maxNodes),
+          minStrength: parseFloat(minStrength as string) || 0,
+          maxNodes: parseInt(maxNodes as string) || 500,
           contactIds: contactIds ? contactIds.split(',').length : null
         }
       }
@@ -328,7 +328,7 @@ router.get('/paths/:fromId/:toId', async (req: Request, res: Response) => {
     const relationships = await prisma.contactRelationship.findMany({
       where: {
         contact: { accountId },
-        strength: { gte: Number(minStrength) },
+        strength: { gte: parseFloat(minStrength as string) || 0 },
         isVerified: true
       },
       select: {
@@ -451,8 +451,8 @@ router.get('/paths/:fromId/:toId', async (req: Request, res: Response) => {
       paths: foundPaths,
       pathsFound: foundPaths.length,
       searchParams: {
-        maxDegrees: Number(maxDegrees),
-        minStrength: Number(minStrength)
+        maxDegrees: parseInt(maxDegrees as string) || 3,
+        minStrength: parseFloat(minStrength as string) || 0
       }
     });
   } catch (error) {

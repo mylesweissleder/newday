@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useAuth } from './hooks/useAuth'
+import LandingPage from './components/LandingPage'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import ImportContactsPage from './pages/ImportContactsPage'
@@ -17,11 +18,13 @@ import LoadingSpinner from './components/LoadingSpinner'
 import NetworkChatbot from './components/NetworkChatbot'
 
 type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'opportunities' | 'contacts' | 'campaigns' | 'visualization' | 'about' | 'settings' | 'crew' | 'join-crew'
+type AppView = 'landing' | 'login' | 'app'
 
 function App() {
   const { user, loading, logout } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('dashboard')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [appView, setAppView] = useState<AppView>(!user ? 'landing' : 'app')
 
   console.log('App render - user:', user, 'loading:', loading)
   console.log('App render - user exists?', !!user, 'should show dashboard?', !!user && !loading)
@@ -34,11 +37,29 @@ function App() {
     )
   }
 
+  // Handle view changes based on user state
+  React.useEffect(() => {
+    if (user && appView === 'landing') {
+      setAppView('app')
+    } else if (!user && appView === 'app') {
+      setAppView('landing')
+    }
+  }, [user, appView])
+
   return (
     <div className="App">
-      {!user ? (
-        <LoginPage />
-      ) : (
+      {appView === 'landing' && (
+        <LandingPage 
+          onGetStarted={() => setAppView('login')}
+          onLogin={() => setAppView('login')}
+        />
+      )}
+      
+      {appView === 'login' && (
+        <LoginPage onBack={() => setAppView('landing')} />
+      )}
+      
+      {appView === 'app' && user && (
         <div className="min-h-screen bg-gray-50">
           {/* Header */}
           <header className="bg-white shadow-sm border-b">
@@ -336,6 +357,7 @@ function App() {
           // Navigate to contacts page and potentially highlight the selected contact
           setCurrentPage('contacts');
         }} />
+      </div>
       )}
     </div>
   )

@@ -1,9 +1,9 @@
 import express, { Request, Response } from 'express';
 import Joi from 'joi';
-import { PrismaClient } from '@prisma/client';
+
 import { aiScoringService } from '../services/aiScoring';
 
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 const router = express.Router();
 

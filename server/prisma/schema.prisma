@@ -657,3 +657,10 @@ enum NetworkGapType {
   COMPANY_SIZE_GAP
   DIVERSITY_GAP
 }
+
+enum NetworkGapStatus {
+  ACTIVE
+  ADDRESSING
+  ADDRESSED
+  DISMISSED
+}

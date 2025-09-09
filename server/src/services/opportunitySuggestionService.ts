@@ -1,11 +1,11 @@
-import { PrismaClient } from '@prisma/client';
+
 import { OpportunityCategory, OpportunityType, OpportunityPriority, OpportunityStatus } from '@prisma/client';
 import { introductionEngine, IntroductionOpportunity } from './introductionEngine';
 import { reconnectionEngine, ReconnectionOpportunity } from './reconnectionEngine';
 import { networkGapAnalysis, NetworkAnalysisResult } from './networkGapAnalysis';
 import { businessOpportunityMatcher, BusinessOpportunity } from './businessOpportunityMatcher';
 
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 export interface UnifiedOpportunitySuggestion {
   id?: string;

@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+
 import { RelationshipType } from '@prisma/client';
 
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 interface PotentialRelationshipEvidence {
   type: string;

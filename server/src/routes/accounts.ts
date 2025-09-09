@@ -1,9 +1,9 @@
 import express, { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+
 import { requireRole } from '../middleware/auth';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 // Get account details
 router.get('/', async (req: Request, res: Response) => {

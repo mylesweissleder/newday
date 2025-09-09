@@ -5,7 +5,11 @@ import AboutPage from './AboutPage'
 
 type ViewMode = 'login' | 'register' | 'about'
 
-const LoginPage: React.FC = () => {
+interface LoginPageProps {
+  onBack?: () => void;
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ onBack }) => {
   const [email, setEmail] = useState('demo@truecrew.com')
   const [password, setPassword] = useState('demo123456')
   const [error, setError] = useState('')
@@ -49,10 +53,22 @@ const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+      {/* Back Button */}
+      {onBack && (
+        <div className="absolute top-6 left-6 z-10">
+          <button
+            onClick={onBack}
+            className="flex items-center px-4 py-2 text-white/80 hover:text-white transition-colors duration-200"
+          >
+            ← Back to Home
+          </button>
+        </div>
+      )}
+      
       <div className="flex flex-col lg:flex-row">
         {/* Left side - Brief */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white">
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-900/50 via-purple-900/50 to-slate-900/50 backdrop-blur-sm text-white border-r border-white/10">
           <div className="flex flex-col justify-center px-12 py-16">
             <div className="mb-8">
               <div className="flex items-center space-x-3 mb-4">
@@ -134,43 +150,47 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Right side - Login */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 min-h-screen">
+        <div className="w-full lg:w-1/2 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 min-h-screen bg-white/5 backdrop-blur-sm">
           <div className="max-w-md w-full space-y-6">
-        <div>
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-2">
-              <span className="text-2xl">🤝</span>
-              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">TrueCrew</h2>
-            </div>
-            <p className="text-sm text-gray-600">
-              Where your crew's connections become career opportunities
-            </p>
-          </div>
+            <div>
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <span className="text-white text-lg">🤝</span>
+                  </div>
+                  <h2 className="text-2xl lg:text-3xl font-bold text-white">TrueCrew</h2>
+                </div>
+                <p className="text-lg text-white/80 mb-6">
+                  Welcome back to your network
+                </p>
+              </div>
         </div>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
                 Email Address
               </label>
               <input
                 id="email"
                 type="email"
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-white/80 mb-2">
                 Password
               </label>
               <input
                 id="password"
                 type="password"
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -178,7 +198,7 @@ const LoginPage: React.FC = () => {
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm text-center bg-red-50 py-2 px-3 rounded-lg">
+            <div className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 py-3 px-4 rounded-xl backdrop-blur-sm">
               {error}
             </div>
           )}
@@ -187,21 +207,21 @@ const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400"
+              className="group relative w-full flex justify-center py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-transparent"
             >
-              {loading ? 'Logging in...' : 'Sign In'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </div>
 
           <div className="text-center space-y-4">
-            <div className="border-t border-gray-200 pt-4">
-              <p className="text-sm text-gray-600 mb-2">
+            <div className="border-t border-white/10 pt-6">
+              <p className="text-sm text-white/70 mb-4">
                 Don't have an account?
               </p>
               <button
                 type="button"
                 onClick={() => setViewMode('register')}
-                className="w-full bg-white text-blue-600 border border-blue-600 py-2 px-4 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm font-medium"
+                className="w-full bg-white/10 text-white border border-white/20 py-3 px-4 rounded-xl hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm font-medium backdrop-blur-sm transition-all duration-200"
               >
                 Create New Account
               </button>

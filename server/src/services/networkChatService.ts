@@ -1,8 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+
 import OpenAI from 'openai';
 import { logError, logPerformance } from '../utils/logger';
 
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 }) : null;

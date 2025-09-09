@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import Joi from 'joi';
-import { PrismaClient } from '@prisma/client';
+
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 // Validation schemas
 const updateProfileSchema = Joi.object({
@@ -27,8 +27,7 @@ const changePasswordSchema = Joi.object({
 router.get('/profile', async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
-      include: { account: true },
+      where: { id: req.user!.id },
       select: {
         id: true,
         email: true,
@@ -77,13 +76,13 @@ router.put('/profile', async (req: Request, res: Response) => {
         where: { email }
       });
 
-      if (existingUser && existingUser.id !== req.user!.userId) {
+      if (existingUser && existingUser.id !== req.user!.id) {
         return res.status(409).json({ error: 'Email already in use' });
       }
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id: req.user!.userId },
+      where: { id: req.user!.id },
       data: {
         ...otherFields,
         ...(email && { email })
@@ -124,7 +123,7 @@ router.put('/password', async (req: Request, res: Response) => {
 
     // Get current user with password
     const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
+      where: { id: req.user!.id },
       select: { id: true, password: true }
     });
 
@@ -133,6 +132,9 @@ router.put('/password', async (req: Request, res: Response) => {
     }
 
     // Verify current password
+    if (!user.password) {
+      return res.status(400).json({ error: 'Account has no password set' });
+    }
     const isValidPassword = await bcrypt.compare(currentPassword, user.password);
     if (!isValidPassword) {
       return res.status(400).json({ error: 'Current password is incorrect' });
@@ -143,7 +145,7 @@ router.put('/password', async (req: Request, res: Response) => {
 
     // Update password
     await prisma.user.update({
-      where: { id: req.user!.userId },
+      where: { id: req.user!.id },
       data: { password: hashedPassword }
     });
 
@@ -164,7 +166,7 @@ router.post('/profile-picture', async (req: Request, res: Response) => {
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id: req.user!.userId },
+      where: { id: req.user!.id },
       data: { profilePic: imageUrl },
       select: {
         id: true,
@@ -186,7 +188,7 @@ router.post('/profile-picture', async (req: Request, res: Response) => {
 router.delete('/profile-picture', async (req: Request, res: Response) => {
   try {
     await prisma.user.update({
-      where: { id: req.user!.userId },
+      where: { id: req.user!.id },
       data: { profilePic: null }
     });
 
@@ -201,7 +203,7 @@ router.delete('/profile-picture', async (req: Request, res: Response) => {
 router.get('/account', async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
+      where: { id: req.user!.id },
       include: { account: true }
     });
 
@@ -243,7 +245,7 @@ router.get('/account', async (req: Request, res: Response) => {
 router.put('/account', async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: req.user!.userId }
+      where: { id: req.user!.id }
     });
 
     if (!user || user.role !== 'ADMIN') {

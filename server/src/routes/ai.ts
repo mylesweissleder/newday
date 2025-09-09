@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+
 import { aiService } from '../services/openai';
 import { networkChatService } from '../services/networkChatService';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 // Analyze single contact with AI
 router.post('/analyze-contact/:id', async (req: Request, res: Response) => {

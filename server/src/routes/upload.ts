@@ -3,12 +3,12 @@ import multer from 'multer';
 import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
-import { PrismaClient } from '@prisma/client';
+
 import { ContactTier } from '@prisma/client';
 import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -53,8 +53,8 @@ interface BulkImportResult {
   };
 }
 
-// Bulk upload CSV file (temporarily without auth for testing)
-router.post('/bulk-csv', upload.single('file'), async (req: Request, res: Response) => {
+// Bulk upload CSV file
+router.post('/bulk-csv', upload.single('file'), authenticateToken, async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -91,9 +91,13 @@ router.post('/bulk-csv', upload.single('file'), async (req: Request, res: Respon
       mapping = await detectColumnMapping(req.file.path);
     }
 
-    // Get user context with fallbacks
-    const accountId = req.user?.accountId || 'default-account';
-    const userId = req.user?.id || 'default-user';
+    // Get user context - MUST be authenticated
+    if (!req.user?.accountId || !req.user?.id) {
+      return res.status(401).json({ error: 'Authentication required - no fallback account allowed' });
+    }
+    
+    const accountId = req.user.accountId;
+    const userId = req.user.id;
 
     const result = await processBulkCSV(
       req.file.path, 
@@ -231,9 +235,13 @@ router.post('/bulk-predefined', authenticateToken, async (req: Request, res: Res
       }
 
       if (fs.existsSync(filePath)) {
-        // Get user context with fallbacks
-        const accountId = req.user?.accountId || 'default-account';
-        const userId = req.user?.id || 'default-user';
+        // Get user context - MUST be authenticated
+        if (!req.user?.accountId || !req.user?.id) {
+          return res.status(401).json({ error: 'Authentication required - no fallback account allowed' });
+        }
+        
+        const accountId = req.user.accountId;
+        const userId = req.user.id;
 
         const result = await processBulkCSV(
           filePath,

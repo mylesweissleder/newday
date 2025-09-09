@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+
 import { RelationshipType, OpportunityCategory, OpportunityType, OpportunityPriority } from '@prisma/client';
 
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 export interface IntroductionOpportunity {
   introducerContact: {

@@ -1,12 +1,12 @@
 import express, { Request, Response } from 'express';
 import csv from 'csv-parser';
 import fs from 'fs';
-import { PrismaClient } from '@prisma/client';
+
 import { ContactTier } from '@prisma/client';
 import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 interface ImportResult {
   total: number;

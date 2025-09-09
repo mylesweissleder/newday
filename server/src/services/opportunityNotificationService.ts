@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+
 import { opportunitySuggestionService } from './opportunitySuggestionService';
 
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 export interface NotificationSettings {
   enabledCategories: string[];

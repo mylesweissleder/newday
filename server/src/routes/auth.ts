@@ -2,12 +2,12 @@ import express, { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Joi from 'joi';
-import { PrismaClient } from '@prisma/client';
+
 import { emailService } from '../services/email';
 import crypto from 'crypto';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 // Validation schemas
 const registerSchema = Joi.object({
@@ -44,7 +44,7 @@ const generateToken = (userId: string, accountId: string, email: string): string
   return jwt.sign(
     { userId, accountId, email },
     process.env.JWT_SECRET as string,
-    { expiresIn: '365d' } // 1 year instead of 7 days
+    { expiresIn: '24h' } // 24 hours for security
   );
 };
 
@@ -194,6 +194,9 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // Verify password
+    if (!user.password) {
+      return res.status(401).json({ error: 'Account setup incomplete' });
+    }
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
