@@ -274,25 +274,6 @@ router.post('/bulk', async (req: Request, res: Response) => {
           continue;
         }
 
-        // Check for existing contact (by email if provided)
-        if (value.email) {
-          try {
-            const existing = await prisma.contact.findFirst({
-              where: {
-                email: value.email,
-                accountId: req.user!.accountId
-              }
-            });
-
-            if (existing) {
-              results.duplicates++;
-              continue;
-            }
-          } catch (err) {
-            console.warn('Error checking for duplicate:', err);
-          }
-        }
-
         contactsData.push({
           ...value,
           accountId: req.user!.accountId,
@@ -309,7 +290,8 @@ router.post('/bulk', async (req: Request, res: Response) => {
             skipDuplicates: true
           });
           results.success += created.count;
-          console.log(`Batch completed: ${created.count} contacts created`);
+          results.duplicates += (contactsData.length - created.count);
+          console.log(`Batch completed: ${created.count} contacts created, ${contactsData.length - created.count} duplicates skipped`);
         } catch (error) {
           console.error('Batch insert error:', error);
           results.failed += contactsData.length;
