@@ -19,24 +19,24 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('LoginPage: Form submitted with email:', email)
+    // Form submitted
     setError('')
     setLoading(true)
 
     try {
-      console.log('LoginPage: Calling login function...')
+      // Calling login function
       const result = await login(email, password)
-      console.log('LoginPage: Login result:', result)
+      // Login result received
       
       if (!result?.success) {
-        console.error('LoginPage: Login failed with error:', result?.error)
+        // Login failed
         setError(result?.error || 'Login failed')
       } else {
-        console.log('LoginPage: Login successful, should redirect to dashboard')
+        // Login successful
       }
       // If successful, the user state will update and component will re-render
     } catch (err) {
-      console.error('LoginPage: Login error caught:', err)
+      // Login error caught
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)

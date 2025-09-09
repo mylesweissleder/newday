@@ -60,7 +60,7 @@ export const useAuth = () => {
         return false
       }
     } catch (err) {
-      console.error('Error refreshing token:', err)
+      // Error refreshing token
       setUser(null)
       return false
     }
@@ -105,7 +105,7 @@ export const useAuth = () => {
         return { success: false, error: errorMessage }
       }
     } catch (err) {
-      console.error('useAuth: Login error caught:', err)
+      // Login error caught
       const errorMessage = 'Network error. Please try again.'
       setError(errorMessage)
       setLoading(false)
@@ -156,7 +156,7 @@ export const useAuth = () => {
         return { success: false, error: errorMessage }
       }
     } catch (err: any) {
-      console.error('useAuth: Registration error caught:', err)
+      // Registration error caught
       let errorMessage = 'Network error. Please try again.'
       
       if (err.name === 'AbortError') {
@@ -174,7 +174,7 @@ export const useAuth = () => {
       // Call logout endpoint to clear HTTP-only cookie
       await api.post('/api/auth/logout')
     } catch (err) {
-      console.warn('Error calling logout endpoint:', err)
+      // Error calling logout endpoint
     }
     
     // Clear user state regardless of API call success
