@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react'
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 import GoogleContactsImport from '../components/GoogleContactsImport'
+import { api } from '../utils/api'
 
 interface ContactHistory {
   email?: string
@@ -796,40 +797,20 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
       errors: [] as string[]
     }
 
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
-    const token = localStorage.getItem('auth-token')
-
-    // If demo token, simulate save
-    if (token === 'demo-token') {
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      result.success = parsedContacts.length
-      setSaveResult(result)
-      setSaving(false)
-      alert(`Demo Mode: Successfully "saved" ${parsedContacts.length} contacts to database!`)
-      return
-    }
-
     try {
       // Save contacts one by one (could be optimized with bulk endpoint later)
       for (const contact of parsedContacts) {
         try {
-          const response = await fetch(`${API_BASE_URL}/api/contacts`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              firstName: contact.firstName,
-              lastName: contact.lastName,
-              email: contact.email,
-              company: contact.company,
-              position: contact.position,
-              phone: contact.phone,
-              tier: contact.tier?.toUpperCase() || 'TIER_3',
-              source: contact.sources?.map(s => s.fileName).join(', ') || 'CSV Import',
-              tags: ['imported', ...uploadedFiles.map(f => f.name.replace(/\.[^/.]+$/, ''))]
-            })
+          const response = await api.post('/api/contacts', {
+            firstName: contact.firstName,
+            lastName: contact.lastName,
+            email: contact.email,
+            company: contact.company,
+            position: contact.position,
+            phone: contact.phone,
+            tier: contact.tier?.toUpperCase() || 'TIER_3',
+            source: contact.sources?.map(s => s.fileName).join(', ') || 'CSV Import',
+            tags: ['imported', ...uploadedFiles.map(f => f.name.replace(/\.[^/.]+$/, ''))]
           })
 
           if (response.ok) {
