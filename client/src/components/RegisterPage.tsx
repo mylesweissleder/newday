@@ -87,10 +87,9 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
       } else {
         console.log('RegisterPage: Registration successful!')
         setFormErrors({ submit: 'Account created successfully! Redirecting...' })
-        // Force a page reload to ensure App component re-renders with new user state
-        setTimeout(() => {
-          window.location.reload()
-        }, 500)
+        // Registration success also logs the user in (backend sets HTTP-only cookie)
+        // Navigate back immediately - the App component will detect the auth state change
+        onBack()
       }
     } catch (error) {
       console.error('RegisterPage: Registration error caught:', error)
