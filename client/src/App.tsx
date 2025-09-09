@@ -358,7 +358,6 @@ function App() {
           setCurrentPage('contacts');
         }} />
       </div>
-      )}
     </div>
   )
 }
