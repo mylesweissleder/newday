@@ -1,6 +1,7 @@
 // API utility functions for HTTP-only cookie authentication
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.DEV ? 'http://localhost:3002' : 'https://network-crm-api.onrender.com')
 console.log('API_BASE_URL:', API_BASE_URL)
 
 // Generic API call function with HTTP-only cookie authentication
