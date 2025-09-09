@@ -8,7 +8,7 @@ import prisma from "../utils/prisma";
 
 // Validation schemas
 const createContactSchema = Joi.object({
-  firstName: Joi.string().min(1).max(50).required(),
+  firstName: Joi.string().max(50).optional().allow(''),
   lastName: Joi.string().min(1).max(50).required(),
   email: Joi.string().email().optional().allow(''),
   phone: Joi.string().optional().allow(''),
