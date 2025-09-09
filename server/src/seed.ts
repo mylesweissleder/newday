@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+
 import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import csv from 'csv-parser';
 
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 async function seed() {
   console.log('🌱 Seeding database...');

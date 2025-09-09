@@ -184,7 +184,7 @@ const NetworkChatbot: React.FC<NetworkChatbotProps> = ({ onContactSelect }) => {
                 }} 
               />
             ) : (
-            {messages.map(message => (
+              messages.map(message => (
               <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`flex max-w-[85%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'} gap-2`}>
                   <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
@@ -240,7 +240,8 @@ const NetworkChatbot: React.FC<NetworkChatbotProps> = ({ onContactSelect }) => {
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+            )}
             
             {isLoading && (
               <div className="flex justify-start">
@@ -258,7 +259,6 @@ const NetworkChatbot: React.FC<NetworkChatbotProps> = ({ onContactSelect }) => {
               </div>
             )}
             <div ref={messagesEndRef} />
-            )}
           </div>
 
           {/* Input */}
