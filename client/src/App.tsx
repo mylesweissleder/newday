@@ -44,7 +44,7 @@ function App() {
     } else if (!user && appView === 'app') {
       setAppView('landing')
     }
-  }, [user, appView])
+  }, [!!user, appView])
 
   return (
     <div className="App">
