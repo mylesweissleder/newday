@@ -55,13 +55,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-100 to-yellow-50 text-gray-800">
       {/* Back Button */}
       {onBack && (
         <div className="absolute top-6 left-6 z-10">
           <button
             onClick={onBack}
-            className="flex items-center px-4 py-2 text-white/80 hover:text-white transition-colors duration-200"
+            className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
           >
             ← Back to Home
           </button>
@@ -70,80 +70,80 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
       
       <div className="flex flex-col lg:flex-row">
         {/* Left side - Brief */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-900/50 via-purple-900/50 to-slate-900/50 backdrop-blur-sm text-white border-r border-white/10">
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-orange-100/80 via-amber-100/80 to-yellow-100/80 backdrop-blur-sm text-gray-800 border-r border-orange-200">
           <div className="flex flex-col justify-center px-12 py-16">
             <div className="mb-8">
               <div className="flex items-center space-x-3 mb-4">
                 <span className="text-4xl">🤝</span>
                 <h1 className="text-4xl font-bold">TrueCrew</h1>
               </div>
-              <p className="text-xl text-blue-100">Your crew's connections unlock career opportunities.</p>
+              <p className="text-xl text-gray-700">Your crew's connections unlock career opportunities.</p>
             </div>
             
             {/* MVP Internal Tool Notice */}
-            <div className="mb-8 p-4 bg-yellow-400 bg-opacity-20 rounded-lg border border-yellow-400 border-opacity-30">
+            <div className="mb-8 p-4 bg-orange-200/40 rounded-lg border border-orange-300">
               <div className="flex items-center space-x-2 mb-2">
-                <span className="text-yellow-300 text-lg">🚧</span>
-                <h4 className="font-semibold text-yellow-100">MVP Internal Tool</h4>
+                <span className="text-orange-600 text-lg">🚧</span>
+                <h4 className="font-semibold text-gray-800">MVP Internal Tool</h4>
               </div>
-              <p className="text-yellow-100 text-sm leading-relaxed">
-                This is an internal sandbox tool for Myles and Chris. We're exploring the possibility of making this a real product — geared towards helping close networks grow, get hired, and find resources. Built in a weekend, it's showing promising potential for MRR.
+              <p className="text-gray-700 text-sm leading-relaxed">
+                This is an internal sandbox tool for Myles and Chris. We're exploring the possibility of making this a real product — geared towards helping close networks grow, get hired, and find resources.
               </p>
             </div>
 
             <div className="space-y-6">
               <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 h-6 w-6 bg-blue-400 rounded-full flex items-center justify-center mt-1 text-white text-xs font-bold">
+                <div className="flex-shrink-0 h-6 w-6 bg-orange-500 rounded-full flex items-center justify-center mt-1 text-white text-xs font-bold">
                   ✓
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Assemble Your Crew</h3>
-                  <p className="text-blue-100 text-sm">Invite 2–5 trusted colleagues, mentors, or peers who know different industries and companies. Share your combined networks securely within your crew.</p>
+                  <h3 className="font-semibold text-lg text-gray-800">Assemble Your Crew</h3>
+                  <p className="text-gray-600 text-sm">Invite 2–5 trusted colleagues, mentors, or peers who know different industries and companies. Share your combined networks securely within your crew.</p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 h-6 w-6 bg-green-400 rounded-full flex items-center justify-center mt-1 text-white text-xs font-bold">
+                <div className="flex-shrink-0 h-6 w-6 bg-amber-500 rounded-full flex items-center justify-center mt-1 text-white text-xs font-bold">
                   ✓
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">Connect Your Professional Life</h3>
-                  <p className="text-blue-100 text-sm">Upload your contacts and connect Gmail & LinkedIn. We'll map who knows whom—finding warm paths to decision makers through your crew's combined networks.</p>
+                  <p className="text-gray-600 text-sm">Upload your contacts and connect Gmail & LinkedIn. We'll map who knows whom—finding warm paths to decision makers through your crew's combined networks.</p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 h-6 w-6 bg-purple-400 rounded-full flex items-center justify-center mt-1 text-white text-xs font-bold">
+                <div className="flex-shrink-0 h-6 w-6 bg-yellow-500 rounded-full flex items-center justify-center mt-1 text-white text-xs font-bold">
                   ✓
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">Get Thoughtful Introductions</h3>
-                  <p className="text-blue-100 text-sm">When you find an opportunity, we help craft warm, personal introduction requests to your crew members who can make the connection happen.</p>
+                  <p className="text-gray-600 text-sm">When you find an opportunity, we help craft warm, personal introduction requests to your crew members who can make the connection happen.</p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 p-6 bg-white bg-opacity-10 rounded-lg backdrop-blur-sm">
+            <div className="mt-8 p-6 bg-white/60 rounded-lg border border-orange-200 shadow-sm">
               <div className="flex items-center space-x-2 mb-3">
-                <span className="text-yellow-400 text-lg">🎯</span>
-                <h4 className="font-semibold">Our Vision</h4>
+                <span className="text-orange-600 text-lg">🎯</span>
+                <h4 className="font-semibold text-gray-800">Our Vision</h4>
               </div>
-              <ul className="text-sm text-blue-100 space-y-2">
+              <ul className="text-sm text-gray-700 space-y-2">
                 <li>• Help those who need it most — beyond the Silicon Valley bubble</li>
                 <li>• Specially priced for wider adoption and accessibility</li>
                 <li>• Focus on people struggling to find connection in job searches</li>
                 <li>• Turn trusted relationships into career opportunities</li>
               </ul>
               
-              <div className="mt-4 pt-4 border-t border-white border-opacity-20">
+              <div className="mt-4 pt-4 border-t border-orange-200">
                 <button
                   onClick={() => setViewMode('about')}
-                  className="text-blue-100 hover:text-white text-sm underline mb-3 block"
+                  className="text-gray-700 hover:text-gray-900 text-sm underline mb-3 block"
                 >
                   About TrueCrew
                 </button>
                 
-                <p className="text-blue-100 text-xs leading-relaxed">
+                <p className="text-gray-600 text-xs leading-relaxed">
                   👉 Building something meaningful: helping people find work through genuine connections, not cold outreach.
                 </p>
               </div>
@@ -152,17 +152,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
         </div>
 
         {/* Right side - Login */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 min-h-screen bg-white/5 backdrop-blur-sm">
+        <div className="w-full lg:w-1/2 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 min-h-screen bg-white/40 backdrop-blur-sm">
           <div className="max-w-md w-full space-y-6">
             <div>
               <div className="text-center">
                 <div className="flex items-center justify-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl flex items-center justify-center">
                     <span className="text-white text-lg">🤝</span>
                   </div>
-                  <h2 className="text-2xl lg:text-3xl font-bold text-white">TrueCrew</h2>
+                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-800">TrueCrew</h2>
                 </div>
-                <p className="text-lg text-white/80 mb-6">
+                <p className="text-lg text-gray-700 mb-6">
                   Welcome back to your network
                 </p>
               </div>
@@ -170,28 +170,28 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
               </label>
               <input
                 id="email"
                 type="email"
                 required
-                className="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
+                className="block w-full px-4 py-3 bg-white/80 border border-orange-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent backdrop-blur-sm"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-white/80 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <input
                 id="password"
                 type="password"
                 required
-                className="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
+                className="block w-full px-4 py-3 bg-white/80 border border-orange-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent backdrop-blur-sm"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -200,7 +200,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
           </div>
 
           {error && (
-            <div className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 py-3 px-4 rounded-xl backdrop-blur-sm">
+            <div className="text-red-600 text-sm text-center bg-red-100/80 border border-red-300 py-3 px-4 rounded-xl backdrop-blur-sm">
               {error}
             </div>
           )}
@@ -209,21 +209,21 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-transparent"
+              className="group relative w-full flex justify-center py-3 px-4 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-transparent"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </div>
 
           <div className="text-center space-y-4">
-            <div className="border-t border-white/10 pt-6">
-              <p className="text-sm text-white/70 mb-4">
+            <div className="border-t border-orange-200 pt-6">
+              <p className="text-sm text-gray-600 mb-4">
                 Don't have an account?
               </p>
               <button
                 type="button"
                 onClick={() => setViewMode('register')}
-                className="w-full bg-white/10 text-white border border-white/20 py-3 px-4 rounded-xl hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm font-medium backdrop-blur-sm transition-all duration-200"
+                className="w-full bg-white/80 text-gray-800 border border-orange-200 py-3 px-4 rounded-xl hover:bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm font-medium backdrop-blur-sm transition-all duration-200"
               >
                 Create New Account
               </button>
