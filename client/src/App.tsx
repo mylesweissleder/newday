@@ -56,7 +56,10 @@ function App() {
       )}
       
       {appView === 'login' && (
-        <LoginPage onBack={() => setAppView('landing')} />
+        <LoginPage 
+          onBack={() => setAppView('landing')} 
+          onLoginSuccess={() => setAppView('app')}
+        />
       )}
       
       {appView === 'app' && user && (

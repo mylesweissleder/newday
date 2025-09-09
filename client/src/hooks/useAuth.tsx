@@ -71,35 +71,24 @@ export const useAuth = () => {
       setLoading(true)
       setError(null)
       
-      // Demo mode - keep existing demo functionality
-      if ((email === 'demo@truecrew.com' || email === 'demo@trustcircle.com' || email === 'demo@smartpack.com' || email === 'demo@networkcrm.com') && password === 'demo123456') {
-        const demoUser = {
-          id: 'demo-user-id',
-          email: 'demo@networkcrm.com',
-          firstName: 'Demo',
-          lastName: 'User',
-          role: 'ADMIN',
-          accountId: 'demo-account-id',
-          accountName: 'Demo Account'
-        }
-        
-        setUser(demoUser)
-        setLoading(false)
-        return { success: true }
-      }
-
+      console.log('useAuth: Login attempt with email:', email)
+      console.log('useAuth: Attempting real API authentication...')
       // Real authentication
       const response = await api.post('/api/auth/login', { email, password })
+      console.log('useAuth: API response received:', response.status, response.statusText)
 
       const data = await response.json()
+      console.log('useAuth: API response data:', data)
 
       if (response.ok) {
         // No need to store token in localStorage - it's now in HTTP-only cookie
         setUser(data.user)
         setLoading(false)
+        console.log('useAuth: Real login successful')
         return { success: true }
       } else {
         const errorMessage = data.message || 'Login failed'
+        console.log('useAuth: Login failed with error:', errorMessage)
         setError(errorMessage)
         setLoading(false)
         return { success: false, error: errorMessage }

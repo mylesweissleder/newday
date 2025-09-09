@@ -289,7 +289,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
       } else if (normalizedHeader === 'emailaddress' || normalizedHeader === 'email' || normalizedHeader === 'emailaddresses') {
         mappedTo = 'email'
         confidence = 'high'
-      } else if (normalizedHeader === 'company' || normalizedHeader === 'companyname' || normalizedHeader === 'organization') {
+      } else if (normalizedHeader === 'company' || normalizedHeader === 'companyname' || normalizedHeader === 'organization' || normalizedHeader === 'atcompany') {
         mappedTo = 'company'
         confidence = 'high'
       } else if (normalizedHeader === 'position' || normalizedHeader === 'jobtitle' || normalizedHeader === 'title') {
@@ -659,6 +659,17 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
           } else if (row.firstName || row.lastName) {
             firstName = row.firstName || ''
             lastName = row.lastName || ''
+            
+            // For LinkedIn connections: if only lastName exists, try to extract firstName from it
+            if (!firstName && lastName) {
+              const parts = lastName.trim().split(/\s+/)
+              if (parts.length > 1) {
+                // Multiple words in "Last Name" field - treat first as firstName
+                firstName = parts[0]
+                lastName = parts.slice(1).join(' ')
+              }
+              // If still no firstName, leave as empty - server now allows it
+            }
           } else {
             // Skip rows with no name at all - these are truly unusable
             return

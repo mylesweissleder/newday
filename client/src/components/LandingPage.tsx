@@ -39,7 +39,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
             🤝 TrueCrew
           </h1>
           <p className="text-2xl md:text-3xl text-white/90 font-light">
-            Small circles. Big opportunities.
+            Your circle of trust, powered for opportunity.
           </p>
         </section>
 
@@ -52,9 +52,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
         <section className="space-y-6">
           <h2 className="text-3xl font-bold text-center">Why TrueCrew</h2>
           <div className="text-xl text-white/90 leading-relaxed text-center max-w-3xl mx-auto">
-            <p className="mb-4">Job hunting and project chasing is hard — doing it alone is even harder.</p>
-            <p className="mb-4">TrueCrew helps you band together with a few trusted colleagues, mentors, or friends.</p>
-            <p>By sharing your networks, you unlock warm introductions and real opportunities that résumés and cold outreach can't touch.</p>
+            <p>Job hunting and project chasing is hard — but it's easier when you don't go it alone. With TrueCrew, you band together with a few trusted colleagues, mentors, or friends to share networks, make warm intros, and celebrate wins together.</p>
           </div>
         </section>
 
@@ -74,8 +72,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
                   1
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Assemble Your Crew</h3>
-                  <p className="text-white/80">Invite 2–5 people you trust — peers, colleagues, or mentors.</p>
+                  <h3 className="text-xl font-semibold mb-2">Gather Your People</h3>
+                  <p className="text-white/80">A few trusted peers. No giant networks.</p>
                 </div>
               </div>
               
@@ -84,8 +82,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
                   2
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Combine Connections</h3>
-                  <p className="text-white/80">Securely share your contacts (Gmail, LinkedIn, CSV). We map warm paths across your crew.</p>
+                  <h3 className="text-xl font-semibold mb-2">Share Your Reach</h3>
+                  <p className="text-white/80">Combine your contacts, securely.</p>
                 </div>
               </div>
             </div>
@@ -96,8 +94,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
                   3
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Request Thoughtful Intros</h3>
-                  <p className="text-white/80">When you see an opportunity, send a warm, personal intro request to the right crew member.</p>
+                  <h3 className="text-xl font-semibold mb-2">Help Each Other Out</h3>
+                  <p className="text-white/80">Send or receive thoughtful intro requests.</p>
                 </div>
               </div>
               
@@ -106,8 +104,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
                   4
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Celebrate Wins Together</h3>
-                  <p className="text-white/80">Every interview, contract, or new role is a shared success.</p>
+                  <h3 className="text-xl font-semibold mb-2">Win Together</h3>
+                  <p className="text-white/80">Every interview or signed contract is a group success.</p>
                 </div>
               </div>
             </div>
@@ -122,23 +120,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
         {/* Why It Works */}
         <section className="space-y-6">
           <h2 className="text-3xl font-bold text-center">Why It Works</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-              <span className="text-lg">Skip the résumé black hole</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-              <span className="text-lg">Leverage your crew's combined networks</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-              <span className="text-lg">Build trust-based opportunities, not cold leads</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-              <span className="text-lg">Stay motivated with shared progress and celebrations</span>
-            </div>
+          <div className="text-xl text-white/90 leading-relaxed text-center max-w-3xl mx-auto">
+            <p>Because opportunities flow through trust. Because résumés get ignored. Because we all do better when we help each other out.</p>
           </div>
         </section>
 
@@ -188,9 +171,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
           <h2 className="text-3xl font-bold text-center">A Note from the Founders</h2>
           <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
             <blockquote className="text-lg text-white/90 leading-relaxed italic text-center">
-              "We built TrueCrew because we were tired of the noise on LinkedIn and the grind of cold outreach.<br/>
-              We needed something small, private, and supportive.<br/>
-              Now we're sharing it with others who believe careers are built on trust and introductions."
+              "We built TrueCrew because we were tired of feeling alone in the grind. We wanted something small, supportive, and private — a way to give and get help from the people who matter most. If you believe careers are built on trust and introductions, welcome to the circle."
             </blockquote>
             <div className="text-center mt-6">
               <p className="font-semibold text-white">— Myles & Chris</p>

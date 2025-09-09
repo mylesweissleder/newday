@@ -7,9 +7,10 @@ type ViewMode = 'login' | 'register' | 'about'
 
 interface LoginPageProps {
   onBack?: () => void;
+  onLoginSuccess?: () => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onBack }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
   const [email, setEmail] = useState('demo@truecrew.com')
   const [password, setPassword] = useState('demo123456')
   const [error, setError] = useState('')
@@ -32,7 +33,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack }) => {
         console.error('LoginPage: Login failed with error:', result?.error)
         setError(result?.error || 'Login failed')
       } else {
-        console.log('LoginPage: Login successful, should redirect to dashboard')
+        console.log('LoginPage: Login successful, calling onLoginSuccess')
+        onLoginSuccess?.()
       }
       // If successful, the user state will update and component will re-render
     } catch (err) {
