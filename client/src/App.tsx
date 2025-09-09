@@ -29,14 +29,6 @@ function App() {
   console.log('App render - user:', user, 'loading:', loading)
   console.log('App render - user exists?', !!user, 'should show dashboard?', !!user && !loading)
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    )
-  }
-
   // Handle view changes based on user state
   React.useEffect(() => {
     if (user && appView === 'landing') {
@@ -45,6 +37,14 @@ function App() {
       setAppView('landing')
     }
   }, [!!user, appView])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
 
   return (
     <div className="App">
