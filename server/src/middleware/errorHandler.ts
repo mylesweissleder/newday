@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
+import { logError } from '../utils/logger';
 
 interface ErrorWithStatus extends Error {
   statusCode?: number;
@@ -11,7 +12,15 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  console.error('Error:', error);
+  // Log error with context using structured logging
+  logError(error, 'HTTP Request', {
+    method: req.method,
+    url: req.url,
+    userId: (req as any).user?.userId,
+    accountId: (req as any).user?.accountId,
+    ip: req.ip,
+    userAgent: req.get('User-Agent')
+  });
 
   // Prisma errors
   if (error instanceof Prisma.PrismaClientKnownRequestError) {

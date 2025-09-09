@@ -103,7 +103,7 @@ router.get('/members', async (req: Request, res: Response) => {
 router.post('/invite', async (req: Request, res: Response) => {
   try {
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId }
+      where: { id: req.user!.id }
     });
 
     if (!currentUser || !hasCrewPermissions(currentUser.role)) {
@@ -139,7 +139,7 @@ router.post('/invite', async (req: Request, res: Response) => {
         accountId: req.user!.accountId,
         invitationToken,
         invitedAt: new Date(),
-        invitedBy: req.user!.userId,
+        invitedBy: req.user!.id,
         isActive: true
       },
       select: {
@@ -157,7 +157,7 @@ router.post('/invite', async (req: Request, res: Response) => {
     
     try {
       const inviterUser = await prisma.user.findUnique({
-        where: { id: req.user!.userId },
+        where: { id: req.user!.id },
         include: { account: true }
       });
 
@@ -285,7 +285,7 @@ router.post('/accept-invitation', async (req: Request, res: Response) => {
 router.put('/members/:id/role', async (req: Request, res: Response) => {
   try {
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId }
+      where: { id: req.user!.id }
     });
 
     if (!currentUser || !hasCrewPermissions(currentUser.role)) {
@@ -301,7 +301,7 @@ router.put('/members/:id/role', async (req: Request, res: Response) => {
     const targetUserId = req.params.id;
 
     // Can't modify your own role
-    if (targetUserId === req.user!.userId) {
+    if (targetUserId === req.user!.id) {
       return res.status(400).json({ error: 'Cannot modify your own role' });
     }
 
@@ -348,7 +348,7 @@ router.put('/members/:id/role', async (req: Request, res: Response) => {
 router.put('/members/:id/deactivate', async (req: Request, res: Response) => {
   try {
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId }
+      where: { id: req.user!.id }
     });
 
     if (!currentUser || !hasCrewPermissions(currentUser.role)) {
@@ -358,7 +358,7 @@ router.put('/members/:id/deactivate', async (req: Request, res: Response) => {
     const targetUserId = req.params.id;
 
     // Can't deactivate yourself
-    if (targetUserId === req.user!.userId) {
+    if (targetUserId === req.user!.id) {
       return res.status(400).json({ error: 'Cannot deactivate your own account' });
     }
 
@@ -400,7 +400,7 @@ router.put('/members/:id/deactivate', async (req: Request, res: Response) => {
 router.put('/members/:id/reactivate', async (req: Request, res: Response) => {
   try {
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId }
+      where: { id: req.user!.id }
     });
 
     if (!currentUser || !hasCrewPermissions(currentUser.role)) {
@@ -438,7 +438,7 @@ router.put('/members/:id/reactivate', async (req: Request, res: Response) => {
 router.delete('/members/:id', async (req: Request, res: Response) => {
   try {
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId }
+      where: { id: req.user!.id }
     });
 
     if (!currentUser || currentUser.role !== 'CREW_LEADER') {
@@ -448,7 +448,7 @@ router.delete('/members/:id', async (req: Request, res: Response) => {
     const targetUserId = req.params.id;
 
     // Can't delete yourself
-    if (targetUserId === req.user!.userId) {
+    if (targetUserId === req.user!.id) {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
 
@@ -486,7 +486,7 @@ router.delete('/members/:id', async (req: Request, res: Response) => {
 router.post('/join-code/generate', async (req: Request, res: Response) => {
   try {
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
+      where: { id: req.user!.id },
       include: { account: true }
     });
 
@@ -526,7 +526,7 @@ router.post('/join-code/generate', async (req: Request, res: Response) => {
 router.get('/join-code', async (req: Request, res: Response) => {
   try {
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
+      where: { id: req.user!.id },
       include: { account: true }
     });
 
@@ -549,7 +549,7 @@ router.get('/join-code', async (req: Request, res: Response) => {
 router.put('/join-code/toggle', async (req: Request, res: Response) => {
   try {
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId },
+      where: { id: req.user!.id },
       include: { account: true }
     });
 
@@ -599,12 +599,12 @@ router.post('/join-request', async (req: Request, res: Response) => {
     }
 
     // Check if user is already authenticated
-    if (!req.user?.userId) {
+    if (!req.user?.id) {
       return res.status(401).json({ error: 'User must be logged in to join a crew' });
     }
 
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user.userId }
+      where: { id: req.user.id }
     });
 
     if (!currentUser) {
@@ -618,7 +618,7 @@ router.post('/join-request', async (req: Request, res: Response) => {
 
     // Update user's account to join the crew
     const updatedUser = await prisma.user.update({
-      where: { id: req.user.userId },
+      where: { id: req.user.id },
       data: {
         accountId: account.id,
         role: 'MEMBER', // Default role for join requests
@@ -697,7 +697,7 @@ router.get('/search/:joinCode', async (req: Request, res: Response) => {
 router.get('/analytics', async (req: Request, res: Response) => {
   try {
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId }
+      where: { id: req.user!.id }
     });
 
     if (!currentUser || !hasCrewPermissions(currentUser.role)) {
@@ -794,7 +794,7 @@ router.get('/analytics', async (req: Request, res: Response) => {
 router.get('/search', async (req: Request, res: Response) => {
   try {
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId }
+      where: { id: req.user!.id }
     });
 
     if (!currentUser || !hasCrewPermissions(currentUser.role)) {
@@ -846,7 +846,7 @@ router.get('/search', async (req: Request, res: Response) => {
 router.post('/add-member', async (req: Request, res: Response) => {
   try {
     const currentUser = await prisma.user.findUnique({
-      where: { id: req.user!.userId }
+      where: { id: req.user!.id }
     });
 
     if (!currentUser || !hasCrewPermissions(currentUser.role)) {
@@ -879,7 +879,7 @@ router.post('/add-member', async (req: Request, res: Response) => {
         accountId: req.user!.accountId,
         role: 'MEMBER', // Default role
         invitedAt: new Date(),
-        invitedBy: req.user!.userId,
+        invitedBy: req.user!.id,
         acceptedAt: new Date()
       },
       select: {

@@ -62,10 +62,18 @@ router.get('/', async (req: Request, res: Response) => {
 // Create new campaign
 router.post('/', async (req: Request, res: Response) => {
   try {
+    console.log('Campaign creation request:', {
+      body: req.body,
+      user: req.user ? { id: req.user.id, accountId: req.user.accountId } : 'No user'
+    });
+    
     const { error, value } = createCampaignSchema.validate(req.body);
     if (error) {
+      console.error('Campaign validation error:', error.details);
       return res.status(400).json({ error: error.details[0].message });
     }
+
+    console.log('Validated campaign data:', value);
 
     const campaign = await prisma.campaign.create({
       data: {
@@ -75,10 +83,11 @@ router.post('/', async (req: Request, res: Response) => {
       }
     });
 
+    console.log('Campaign created successfully:', campaign.id);
     res.status(201).json(campaign);
   } catch (error) {
     console.error('Create campaign error:', error);
-    res.status(500).json({ error: 'Failed to create campaign' });
+    res.status(500).json({ error: 'Failed to create campaign', details: error });
   }
 });
 

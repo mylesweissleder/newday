@@ -3,6 +3,7 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
 import { ContactTier } from '@prisma/client';
+import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -16,7 +17,7 @@ interface ImportResult {
 }
 
 // Import contacts from CSV
-router.post('/csv', async (req: Request, res: Response) => {
+router.post('/csv', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { filePath, mapping, source = 'CSV Import', owner = 'MW' } = req.body;
 
@@ -65,11 +66,18 @@ router.post('/csv', async (req: Request, res: Response) => {
       
       for (const contactData of batch) {
         try {
-          // Check for existing contact by email
-          const existing = await prisma.contact.findFirst({
+          // Check for existing contact by email (if email exists) or name+company
+          const existing = contactData.email ? await prisma.contact.findFirst({
             where: {
               accountId: req.user!.accountId,
               email: contactData.email
+            }
+          }) : await prisma.contact.findFirst({
+            where: {
+              accountId: req.user!.accountId,
+              firstName: contactData.firstName,
+              lastName: contactData.lastName,
+              company: contactData.company
             }
           });
 
@@ -112,7 +120,7 @@ router.post('/csv', async (req: Request, res: Response) => {
 });
 
 // Import from LinkedIn CSV format
-router.post('/linkedin', async (req: Request, res: Response) => {
+router.post('/linkedin', authenticateToken, async (req: Request, res: Response) => {
   try {
     const filePath = '/Users/myles/Lists/LinkedIn Connections 7.25 - Connections.csv';
     
@@ -143,7 +151,7 @@ router.post('/linkedin', async (req: Request, res: Response) => {
 });
 
 // Import from event attendee lists
-router.post('/event/:eventFile', async (req: Request, res: Response) => {
+router.post('/event/:eventFile', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { eventFile } = req.params;
     const { owner = 'MW' } = req.body;
@@ -198,7 +206,7 @@ router.post('/event/:eventFile', async (req: Request, res: Response) => {
 });
 
 // Import Higher Tide outreach list
-router.post('/higher-tide', async (req: Request, res: Response) => {
+router.post('/higher-tide', authenticateToken, async (req: Request, res: Response) => {
   try {
     const filePath = '/Users/myles/Lists/The_Higher_Tide_MASTER_Outreach_List.csv';
     
@@ -235,7 +243,7 @@ router.post('/higher-tide', async (req: Request, res: Response) => {
 });
 
 // Get import status and history
-router.get('/history', async (req: Request, res: Response) => {
+router.get('/history', authenticateToken, async (req: Request, res: Response) => {
   try {
     // Get recent imports by looking at contacts with different sources
     const sourceCounts = await prisma.contact.groupBy({
@@ -327,7 +335,7 @@ async function importContactsFromFile(
         where: {
           accountId,
           OR: [
-            { email: contactData.email },
+            ...(contactData.email ? [{ email: contactData.email }] : []),
             { 
               firstName: contactData.firstName,
               lastName: contactData.lastName,

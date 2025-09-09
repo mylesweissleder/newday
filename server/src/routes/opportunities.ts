@@ -18,11 +18,11 @@ const prisma = new PrismaClient();
  * GET /opportunities
  * Get opportunity suggestions with filters
  */
-router.get('/', async (req, res) => {
+router.get('/', async (req: any, res: any) => {
   try {
-    const accountId = req.query.accountId as string;
+    const accountId = req.user?.accountId;
     if (!accountId) {
-      return res.status(400).json({ error: 'Account ID is required' });
+      return res.status(401).json({ error: 'User not authenticated' });
     }
 
     // Parse filters from query parameters
@@ -47,7 +47,10 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting opportunities:', error);
-    res.status(500).json({ error: 'Failed to get opportunity suggestions' });
+    res.status(500).json({ 
+      error: 'Failed to get opportunity suggestions',
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 });
 

@@ -14,6 +14,7 @@ import JoinCrewPage from './pages/JoinCrewPage'
 import CampaignsPage from './pages/CampaignsPage'
 import NetworkVisualizationPage from './pages/NetworkVisualizationPage'
 import LoadingSpinner from './components/LoadingSpinner'
+import NetworkChatbot from './components/NetworkChatbot'
 
 type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'opportunities' | 'contacts' | 'campaigns' | 'visualization' | 'about' | 'settings' | 'crew' | 'join-crew'
 
@@ -329,6 +330,12 @@ function App() {
             )}
           </main>
         </div>
+        
+        {/* AI Network Chatbot - Available on all pages */}
+        <NetworkChatbot onContactSelect={(contact) => {
+          // Navigate to contacts page and potentially highlight the selected contact
+          setCurrentPage('contacts');
+        }} />
       )}
     </div>
   )

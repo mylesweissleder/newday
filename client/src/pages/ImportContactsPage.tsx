@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
 import Papa from 'papaparse'
+import * as XLSX from 'xlsx'
 import GoogleContactsImport from '../components/GoogleContactsImport'
 
 interface ContactHistory {
@@ -65,6 +66,20 @@ interface DuplicateGroup {
   mergedContact?: Contact
 }
 
+interface ColumnMapping {
+  originalColumn: string
+  mappedTo: string
+  confidence: 'high' | 'medium' | 'low' | 'manual'
+  sampleValues: string[]
+}
+
+interface FilePreview {
+  file: File
+  columns: string[]
+  sampleData: any[]
+  suggestedMappings: ColumnMapping[]
+}
+
 interface ImportContactsPageProps {
   onBack: () => void
 }
@@ -80,6 +95,10 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
   const [saving, setSaving] = useState(false)
   const [saveResult, setSaveResult] = useState<{success: number, failed: number, errors: string[]} | null>(null)
   const [showGoogleImport, setShowGoogleImport] = useState(false)
+  const [filePreviews, setFilePreviews] = useState<FilePreview[]>([])
+  const [showColumnMapping, setShowColumnMapping] = useState(false)
+  const [currentMappingFile, setCurrentMappingFile] = useState<FilePreview | null>(null)
+  const [fileErrors, setFileErrors] = useState<{[fileName: string]: string}>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Helper function to parse full name into first and last
@@ -188,6 +207,142 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
     }
     
     return columnMappings
+  }
+
+  // Helper function to read Excel files and convert to CSV data
+  const readExcelFile = async (file: File): Promise<{headers: string[], data: any[], sheetNames: string[]}> => {
+    // Check file size (limit to 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      throw new Error('File too large. Please use files smaller than 50MB.')
+    }
+    
+    const buffer = await file.arrayBuffer()
+    const workbook = XLSX.read(buffer, { type: 'array' })
+    
+    if (workbook.SheetNames.length === 0) {
+      throw new Error('Excel file contains no sheets')
+    }
+    
+    // Use the first sheet (could be enhanced to let user choose)
+    const sheetName = workbook.SheetNames[0]
+    const worksheet = workbook.Sheets[sheetName]
+    
+    // Convert to JSON with header row, handling empty cells
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+      header: 1,
+      defval: '', // Default value for empty cells
+      blankrows: false // Skip completely blank rows
+    })
+    
+    if (jsonData.length === 0) {
+      throw new Error(`Sheet "${sheetName}" is empty`)
+    }
+    
+    if (jsonData.length < 2) {
+      throw new Error(`Sheet "${sheetName}" must have at least a header row and one data row`)
+    }
+    
+    // First row as headers, rest as data
+    const headers = (jsonData[0] as any[]).map(h => String(h || '').trim()).filter(Boolean)
+    
+    if (headers.length === 0) {
+      throw new Error('No valid column headers found')
+    }
+    
+    const data = jsonData.slice(1).map(row => {
+      const rowObj: any = {}
+      headers.forEach((header, index) => {
+        const value = (row as any[])[index]
+        // Handle various data types from Excel
+        rowObj[header] = value !== null && value !== undefined ? String(value).trim() : ''
+      })
+      return rowObj
+    }).filter(row => {
+      // Filter out completely empty rows
+      return Object.values(row).some(val => val && String(val).trim())
+    })
+    
+    return { headers, data, sheetNames: workbook.SheetNames }
+  }
+
+  // Smart column mapping based on header names and data analysis
+  const generateSmartColumnMapping = (headers: string[], sampleData: any[]): ColumnMapping[] => {
+    const mappings: ColumnMapping[] = []
+    
+    headers.forEach((header, index) => {
+      const normalizedHeader = header.toLowerCase().trim().replace(/[_\s]+/g, '')
+      const sampleValues = sampleData.slice(0, 5).map(row => 
+        Array.isArray(row) ? row[index] : row[header]
+      ).filter(v => v && v.toString().trim()).slice(0, 3)
+      
+      let mappedTo = 'skip' // Default to skip unknown columns
+      let confidence: 'high' | 'medium' | 'low' | 'manual' = 'low'
+      
+      // High confidence mappings (exact or very close matches)
+      if (normalizedHeader === 'firstname' || normalizedHeader === 'givenname') {
+        mappedTo = 'firstName'
+        confidence = 'high'
+      } else if (normalizedHeader === 'lastname' || normalizedHeader === 'surname' || normalizedHeader === 'familyname') {
+        mappedTo = 'lastName'
+        confidence = 'high'
+      } else if (normalizedHeader === 'emailaddress' || normalizedHeader === 'email' || normalizedHeader === 'emailaddresses') {
+        mappedTo = 'email'
+        confidence = 'high'
+      } else if (normalizedHeader === 'company' || normalizedHeader === 'companyname' || normalizedHeader === 'organization') {
+        mappedTo = 'company'
+        confidence = 'high'
+      } else if (normalizedHeader === 'position' || normalizedHeader === 'jobtitle' || normalizedHeader === 'title') {
+        mappedTo = 'position'
+        confidence = 'high'
+      } else if (normalizedHeader === 'phone' || normalizedHeader === 'phonenumber' || normalizedHeader === 'mobile') {
+        mappedTo = 'phone'
+        confidence = 'high'
+      } else if (normalizedHeader === 'url' || normalizedHeader === 'linkedinurl' || normalizedHeader === 'profileurl') {
+        mappedTo = 'linkedinUrl'
+        confidence = 'high'
+      } else if (normalizedHeader === 'fullname' || normalizedHeader === 'name') {
+        mappedTo = 'fullName'
+        confidence = 'high'
+      } else if (normalizedHeader.includes('first') && normalizedHeader.includes('name')) {
+        mappedTo = 'firstName'
+        confidence = 'medium'
+      } else if (normalizedHeader.includes('last') && normalizedHeader.includes('name')) {
+        mappedTo = 'lastName'
+        confidence = 'medium'
+      } else if (normalizedHeader.includes('email')) {
+        mappedTo = 'email'
+        confidence = 'medium'
+      } else if (normalizedHeader.includes('phone')) {
+        mappedTo = 'phone'
+        confidence = 'medium'
+      } else if (normalizedHeader.includes('company') || normalizedHeader.includes('organization')) {
+        mappedTo = 'company'
+        confidence = 'medium'
+      } else if (normalizedHeader.includes('position') || normalizedHeader.includes('title') || normalizedHeader.includes('job')) {
+        mappedTo = 'position'
+        confidence = 'medium'
+      } else {
+        // Analyze sample data to make suggestions
+        const dataType = detectDataType(sampleValues.map(v => v.toString()))
+        if (dataType !== 'unknown') {
+          mappedTo = dataType
+          confidence = 'low'
+        } else {
+          // Keep as custom field instead of skipping
+          mappedTo = 'custom'
+          confidence = 'low'
+        }
+      }
+      
+      mappings.push({
+        originalColumn: header,
+        mappedTo,
+        confidence,
+        sampleValues: sampleValues.map(v => v.toString())
+      })
+    })
+    
+    return mappings
   }
 
   // Helper function to process LinkedIn message data with proper attribution
@@ -359,15 +514,94 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
               file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     if (files.length > 0) {
-      processFiles(files)
+      createFilePreviews(files)
     }
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (files.length > 0) {
-      processFiles(files)
+      createFilePreviews(files)
     }
+  }
+
+  const createFilePreviews = async (files: File[]) => {
+    setUploading(true)
+    const newUploadedFiles = [...uploadedFiles, ...files]
+    setUploadedFiles(newUploadedFiles)
+    
+    const previews: FilePreview[] = []
+    
+    for (const file of files) {
+      try {
+        let columns: string[] = []
+        let sampleData: any[] = []
+        
+        // Check if it's an Excel file
+        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+          const excelData = await readExcelFile(file)
+          columns = excelData.headers
+          sampleData = excelData.data.slice(0, 10) // Get first 10 rows for preview
+        } else {
+          // Handle CSV files
+          // Check CSV file size (limit to 25MB for CSV since it's text)
+          if (file.size > 25 * 1024 * 1024) {
+            throw new Error('CSV file too large. Please use files smaller than 25MB.')
+          }
+          
+          let text = await file.text()
+          
+          // Check for LinkedIn CSV format with 3-line header
+          const lines = text.split('\n')
+          if (lines.length > 3 && 
+              lines[0].toLowerCase().startsWith('notes:') &&
+              lines[1].toLowerCase().includes('missing email') &&
+              lines[2].trim() === '' &&
+              lines[3].toLowerCase().includes('first name')) {
+            console.log('Detected LinkedIn CSV format, skipping 3-line header')
+            text = lines.slice(3).join('\n')
+          }
+          
+          // Parse for preview (no transformations, keep original headers)
+          const results = Papa.parse<any>(text, {
+            header: true,
+            skipEmptyLines: true,
+            preview: 10, // Get 10 rows for preview
+            encoding: 'UTF-8' // Handle different encodings
+          })
+          
+          if (results.meta.fields && results.data.length > 0) {
+            columns = results.meta.fields
+            sampleData = results.data
+          } else if (results.meta.fields && results.data.length === 0) {
+            throw new Error('CSV file has headers but no data rows')
+          } else {
+            throw new Error('CSV file format is invalid or empty')
+          }
+        }
+        
+        if (columns.length > 0 && sampleData.length > 0) {
+          const suggestedMappings = generateSmartColumnMapping(columns, sampleData)
+          
+          previews.push({
+            file,
+            columns,
+            sampleData,
+            suggestedMappings
+          })
+        }
+      } catch (error) {
+        console.error(`Error processing file ${file.name}:`, error)
+        setFileErrors(prev => ({
+          ...prev,
+          [file.name]: error instanceof Error ? error.message : 'Failed to process file'
+        }))
+      }
+    }
+    
+    setFilePreviews(prev => [...prev, ...previews])
+    setShowColumnMapping(true)
+    setUploading(false)
   }
 
   const processFiles = async (files: File[]) => {
@@ -379,85 +613,25 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
     
     for (const file of files) {
       try {
-        const text = await file.text()
-        // Try to parse with headers first
-        let results = Papa.parse<any>(text, {
+        let text = await file.text()
+        
+        // Check for LinkedIn CSV format with 3-line header
+        const lines = text.split('\n')
+        if (lines.length > 3 && 
+            lines[0].toLowerCase().startsWith('notes:') &&
+            lines[1].toLowerCase().includes('missing email') &&
+            lines[2].trim() === '' &&
+            lines[3].toLowerCase().includes('first name')) {
+          console.log('Detected LinkedIn CSV format, skipping 3-line header')
+          text = lines.slice(3).join('\n')
+        }
+        
+        // Parse with proper transformations based on mapping
+        const results = Papa.parse<any>(text, {
           header: true,
           skipEmptyLines: true,
-          preview: 5 // Preview to check if headers exist
+          transformHeader: (header: string) => header // Keep original headers for now
         })
-        
-        let hasValidHeaders = false
-        if (results.meta.fields && results.meta.fields.length > 0) {
-          const fields = results.meta.fields
-          // Check if first row looks like headers (contains common field names or no @ symbols)
-          hasValidHeaders = fields.some(field => {
-            const normalized = field.toLowerCase()
-            return normalized.includes('name') || normalized.includes('email') || 
-                   normalized.includes('company') || normalized.includes('phone') ||
-                   normalized.includes('first') || normalized.includes('last') ||
-                   normalized.includes('position') || normalized.includes('title') ||
-                   (field && !field.includes('@'))
-          })
-        }
-        
-        if (!hasValidHeaders) {
-          // Parse as headerless data
-          results = Papa.parse<any>(text, {
-            header: false,
-            skipEmptyLines: true
-          })
-          
-          // Analyze column patterns
-          const columnMappings = analyzeHeaderlessData(results.data)
-          
-          // Transform data using detected patterns
-          const transformedData = results.data.map(row => {
-            const transformedRow: any = {}
-            
-            if (Array.isArray(row)) {
-              row.forEach((value, index) => {
-                const detectedType = columnMappings[index] || 'unknown'
-                if (detectedType !== 'unknown') {
-                  transformedRow[detectedType] = value
-                } else {
-                  transformedRow[`column_${index}`] = value
-                }
-              })
-            }
-            
-            return transformedRow
-          })
-          
-          results.data = transformedData
-        } else {
-          // Re-parse with proper header transformation
-          results = Papa.parse<any>(text, {
-            header: true,
-            skipEmptyLines: true,
-            transformHeader: (header: string) => {
-              const normalized = header.toLowerCase().trim().replace(/[_\s]+/g, '')
-              
-              // LinkedIn Connections CSV mappings
-              if (normalized === 'firstname' || normalized === 'givenname') return 'firstName'
-              if (normalized === 'lastname' || normalized === 'surname' || normalized === 'familyname') return 'lastName'
-              if (normalized === 'emailaddress' || normalized === 'emailaddresses') return 'email'
-              if (normalized === 'company' || normalized === 'companyname' || normalized === 'organization') return 'company'
-              if (normalized === 'position' || normalized === 'jobtitle' || normalized === 'title') return 'position'
-              
-              // Standard mappings
-              if (normalized === 'fullname' || normalized === 'name') return 'fullName'
-              if (normalized.includes('first') && normalized.includes('name')) return 'firstName'
-              if (normalized.includes('last') && normalized.includes('name')) return 'lastName'
-              if (normalized.includes('email')) return 'email'
-              if (normalized.includes('phone')) return 'phone'
-              if (normalized.includes('company')) return 'company'
-              if (normalized.includes('position') || normalized.includes('title')) return 'position'
-              
-              return header
-            }
-          })
-        }
 
         const contacts: Contact[] = []
         const errors: string[] = []
@@ -725,8 +899,257 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
     }
   }
 
+  const processFilesWithMapping = async () => {
+    setUploading(true)
+    const newResults = { ...parseResults }
+    
+    for (const preview of filePreviews) {
+      try {
+        let data: any[] = []
+        
+        // Check if it's an Excel file
+        if (preview.file.name.endsWith('.xlsx') || preview.file.name.endsWith('.xls')) {
+          const excelData = await readExcelFile(preview.file)
+          data = excelData.data
+        } else {
+          // Handle CSV files
+          let text = await preview.file.text()
+          
+          // Check for LinkedIn CSV format with 3-line header
+          const lines = text.split('\n')
+          if (lines.length > 3 && 
+              lines[0].toLowerCase().startsWith('notes:') &&
+              lines[1].toLowerCase().includes('missing email') &&
+              lines[2].trim() === '' &&
+              lines[3].toLowerCase().includes('first name')) {
+            text = lines.slice(3).join('\n')
+          }
+          
+          // Parse with original headers
+          const results = Papa.parse<any>(text, {
+            header: true,
+            skipEmptyLines: true,
+            encoding: 'UTF-8'
+          })
+          
+          data = results.data
+        }
+        
+        const contacts: Contact[] = []
+        const errors: string[] = []
+        
+        // Create mapping from original column to target field
+        const columnMap: {[key: string]: string} = {}
+        preview.suggestedMappings.forEach(mapping => {
+          if (mapping.mappedTo !== 'skip') {
+            columnMap[mapping.originalColumn] = mapping.mappedTo
+          }
+        })
+        
+        data.forEach((row: any, index: number) => {
+          // Transform row using column mappings
+          const transformedRow: any = {}
+          Object.entries(row).forEach(([originalColumn, value]) => {
+            const mappedField = columnMap[originalColumn]
+            if (mappedField) {
+              if (mappedField === 'custom') {
+                // Keep as custom field with original column name
+                if (!transformedRow.customFields) transformedRow.customFields = {}
+                transformedRow.customFields[originalColumn] = value
+              } else {
+                transformedRow[mappedField] = value
+              }
+            }
+          })
+          
+          // Handle LinkedIn connections without email addresses  
+          const isLinkedInFile = preview.file.name.toLowerCase().includes('connection') || preview.file.name.toLowerCase().includes('linkedin')
+          const hasName = (transformedRow.firstName && transformedRow.lastName) || transformedRow.fullName
+          
+          if (!transformedRow.email || !transformedRow.email.includes('@')) {
+            if (isLinkedInFile && hasName) {
+              // For LinkedIn files, create a placeholder email for contacts without public email
+              const firstName = transformedRow.firstName || (transformedRow.fullName ? transformedRow.fullName.split(' ')[0] : 'Unknown')
+              const lastName = transformedRow.lastName || (transformedRow.fullName ? transformedRow.fullName.split(' ').slice(1).join(' ') : 'Contact')
+              transformedRow.email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@linkedin-connection.placeholder`.replace(/[^a-zA-Z0-9@.-]/g, '')
+            } else {
+              if (transformedRow.firstName || transformedRow.lastName || transformedRow.company) {
+                errors.push(`Row ${index + 2}: Missing email address for ${transformedRow.firstName || ''} ${transformedRow.lastName || ''}`.trim())
+              }
+              return
+            }
+          }
+          
+          // Handle different name formats
+          let firstName = ''
+          let lastName = ''
+          
+          if (transformedRow.fullName) {
+            const parsed = parseFullName(transformedRow.fullName)
+            firstName = parsed.firstName
+            lastName = parsed.lastName
+          } else if (transformedRow.firstName || transformedRow.lastName) {
+            firstName = transformedRow.firstName || ''
+            lastName = transformedRow.lastName || ''
+          } else {
+            errors.push(`Row ${index + 2}: Missing name`)
+            return
+          }
+          
+          const contact: Contact = {
+            firstName,
+            lastName,
+            email: normalizeEmail(transformedRow.email),
+            company: transformedRow.company || '',
+            position: transformedRow.position || '',
+            phone: transformedRow.phone || '',
+            tier: 'TIER_3',
+            linkedinUrl: transformedRow.linkedinUrl || '',
+            relationshipNotes: '',
+            tags: [],
+            customFields: transformedRow.customFields,
+            sources: [{
+              fileName: preview.file.name,
+              uploadedAt: new Date(),
+              originalData: row
+            }]
+          }
+          
+          contacts.push(contact)
+        })
+        
+        newResults[preview.file.name] = { contacts, errors }
+      } catch (error) {
+        console.error(`Error processing file ${preview.file.name}:`, error)
+        newResults[preview.file.name] = { contacts: [], errors: [`Failed to process file: ${error}`] }
+      }
+    }
+    
+    setParseResults(newResults)
+    
+    // Combine all contacts
+    const allContacts = Object.values(newResults).flatMap(result => result.contacts)
+    setParsedContacts(allContacts)
+    
+    // Find duplicates
+    const duplicateGroups = findDuplicates(allContacts)
+    setDuplicates(duplicateGroups)
+    
+    if (duplicateGroups.length > 0) {
+      setShowDuplicates(true)
+    }
+    
+    // Clear previews
+    setFilePreviews([])
+    setUploading(false)
+  }
+
   return (
     <div className="space-y-6">
+      {/* Column Mapping Modal */}
+      {showColumnMapping && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-screen overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">Map Your Columns</h2>
+              <p className="text-gray-600 mt-1">Review and adjust how your CSV columns should be mapped to contact fields</p>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-96">
+              {/* Show file errors */}
+              {Object.keys(fileErrors).length > 0 && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <h4 className="font-medium text-red-900 mb-2">File Processing Errors:</h4>
+                  {Object.entries(fileErrors).map(([fileName, error]) => (
+                    <div key={fileName} className="text-sm text-red-700">
+                      <strong>{fileName}:</strong> {error}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {filePreviews.map((preview, fileIndex) => (
+                <div key={fileIndex} className="mb-8 last:mb-0">
+                  <h3 className="font-semibold text-lg mb-4">{preview.file.name}</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {preview.suggestedMappings.map((mapping, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <div className="mb-2">
+                          <label className="text-sm font-medium text-gray-900">{mapping.originalColumn}</label>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Sample: {mapping.sampleValues.slice(0, 2).join(', ')}
+                            {mapping.sampleValues.length > 2 && '...'}
+                          </div>
+                        </div>
+                        
+                        <select
+                          value={mapping.mappedTo}
+                          onChange={(e) => {
+                            const newPreviews = [...filePreviews]
+                            newPreviews[fileIndex].suggestedMappings[index].mappedTo = e.target.value
+                            newPreviews[fileIndex].suggestedMappings[index].confidence = 'manual'
+                            setFilePreviews(newPreviews)
+                          }}
+                          className="w-full mt-2 p-2 border border-gray-300 rounded-md text-sm"
+                        >
+                          <option value="skip">Skip this column</option>
+                          <option value="firstName">First Name</option>
+                          <option value="lastName">Last Name</option>
+                          <option value="fullName">Full Name</option>
+                          <option value="email">Email</option>
+                          <option value="phone">Phone</option>
+                          <option value="company">Company</option>
+                          <option value="position">Position/Title</option>
+                          <option value="linkedinUrl">LinkedIn URL</option>
+                          <option value="custom">Custom Field</option>
+                        </select>
+                        
+                        <div className={`mt-2 text-xs px-2 py-1 rounded inline-block ${
+                          mapping.confidence === 'high' ? 'bg-green-100 text-green-800' :
+                          mapping.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          mapping.confidence === 'manual' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {mapping.confidence === 'high' ? 'High confidence' :
+                           mapping.confidence === 'medium' ? 'Medium confidence' :
+                           mapping.confidence === 'manual' ? 'Manual mapping' :
+                           'Low confidence'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="p-6 border-t border-gray-200 flex justify-between">
+              <button
+                onClick={() => {
+                  setShowColumnMapping(false)
+                  setFilePreviews([])
+                  setFileErrors({})
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowColumnMapping(false)
+                  setFileErrors({})
+                  // Process files with the mappings
+                  processFilesWithMapping()
+                }}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Import with these mappings
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6">
         <button
@@ -739,7 +1162,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
           <span className="text-sm md:text-base">Back to Dashboard</span>
         </button>
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Import Contacts</h1>
-        <p className="text-sm md:text-base text-gray-600">Bulk import from CSV files, LinkedIn exports, or connect to CRM systems</p>
+        <p className="text-sm md:text-base text-gray-600">Bulk import from CSV/Excel files, LinkedIn exports, or connect to CRM systems</p>
       </div>
 
       {/* Upload Section */}

@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { aiService } from '../services/openai';
+import { networkChatService } from '../services/networkChatService';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -233,5 +234,44 @@ function inferIndustryFromCompany(company: string): string {
   return 'Other';
 }
 
+
+// Chat with your network using natural language
+router.post('/chat', async (req: Request, res: Response) => {
+  try {
+    const { question } = req.body;
+
+    if (!question || typeof question !== 'string') {
+      return res.status(400).json({ 
+        error: 'Question is required and must be a string' 
+      });
+    }
+
+    if (question.length > 500) {
+      return res.status(400).json({ 
+        error: 'Question must be less than 500 characters' 
+      });
+    }
+
+    const chatQuery = {
+      question: question.trim(),
+      accountId: req.user!.accountId,
+      userId: req.user!.id
+    };
+
+    const response = await networkChatService.processNetworkQuery(chatQuery);
+
+    res.json({
+      ...response,
+      timestamp: new Date().toISOString(),
+      query: question
+    });
+  } catch (error) {
+    console.error('AI chat error:', error);
+    res.status(500).json({ 
+      error: 'Failed to process your question. Please try again.',
+      query_understood: false
+    });
+  }
+});
 
 export default router;
