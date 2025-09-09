@@ -350,13 +350,13 @@ function App() {
               <JoinCrewPage />
             )}
           </main>
+          
+          {/* AI Network Chatbot - Available on all pages */}
+          <NetworkChatbot onContactSelect={(contact) => {
+            // Navigate to contacts page and potentially highlight the selected contact
+            setCurrentPage('contacts');
+          }} />
         </div>
-        
-        {/* AI Network Chatbot - Available on all pages */}
-        <NetworkChatbot onContactSelect={(contact) => {
-          // Navigate to contacts page and potentially highlight the selected contact
-          setCurrentPage('contacts');
-        }} />
       )}
     </div>
   )
