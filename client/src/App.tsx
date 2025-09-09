@@ -357,7 +357,6 @@ function App() {
           // Navigate to contacts page and potentially highlight the selected contact
           setCurrentPage('contacts');
         }} />
-        </div>
       )}
     </div>
   )
