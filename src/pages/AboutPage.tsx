@@ -1,0 +1,177 @@
+import React from 'react'
+
+interface AboutPageProps {
+  onBack: () => void
+}
+
+const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <span className="text-4xl">🤝</span>
+            <h1 className="text-4xl font-bold text-gray-900">TrueCrew</h1>
+          </div>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Where your crew's connections become career opportunities
+          </p>
+        </div>
+
+        {/* Founders Section */}
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-12">
+          <div className="p-8 sm:p-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Meet the Founders</h2>
+              <p className="text-lg text-gray-600">
+                Built by two entrepreneurs who believe referrals beat cold outreach
+              </p>
+            </div>
+
+            {/* Founders Photo */}
+            <div className="flex justify-center mb-8">
+              <div className="relative">
+                <img 
+                  src="/mylesandchris.png" 
+                  alt="Myles Weissleder and Chris Heuer - TrueCrew Founders"
+                  className="rounded-2xl shadow-lg max-w-md w-full"
+                />
+                <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-900/10"></div>
+              </div>
+            </div>
+
+            {/* Founder Profiles */}
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Myles */}
+              <div className="text-center">
+                <div className="mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Myles Weissleder</h3>
+                  <p className="text-gray-600 mb-4">Co-Founder & Product</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Serial entrepreneur and product builder who's experienced firsthand how warm introductions 
+                    accelerate career growth. Passionate about building tools that help people connect authentically.
+                  </p>
+                </div>
+                <a 
+                  href="https://mylesweissleder.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  mylesweissleder.com
+                  <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+
+              {/* Chris */}
+              <div className="text-center">
+                <div className="mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Chris Heuer</h3>
+                  <p className="text-gray-600 mb-4">Co-Founder & Strategy</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Veteran community builder and strategic advisor with decades of experience helping professionals 
+                    leverage their networks. Believes the future of career advancement is collaborative, not competitive.
+                  </p>
+                </div>
+                <a 
+                  href="https://chrisheuer.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  chrisheuer.com
+                  <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Origin Story */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-12 mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">The Story Behind TrueCrew</h2>
+          <div className="prose prose-lg max-w-none text-gray-600">
+            <p className="mb-6">
+              Like most professionals, Myles and Chris had built extensive networks over their careers. But when it came 
+              time to help each other—or friends looking for their next opportunity—they faced the same frustrating reality: 
+              <strong> their combined connections were trapped in separate contact lists, email threads, and LinkedIn profiles.</strong>
+            </p>
+            
+            <p className="mb-6">
+              The "aha moment" came during a conversation about job searching. They realized that while each of them knew 
+              hundreds of people individually, together they had warm paths to thousands of decision makers, hiring managers, 
+              and industry leaders. <strong>The problem wasn't a lack of connections—it was a lack of visibility into their 
+              collective network.</strong>
+            </p>
+
+            <p className="mb-6">
+              TrueCrew was born from this simple insight: <strong>small groups of trusted colleagues should be able to pool 
+              their professional networks effortlessly.</strong> No more asking "Do you know anyone at..." in group chats. 
+              No more missed opportunities because someone forgot about a perfect connection.
+            </p>
+
+            <p>
+              We built TrueCrew to turn your crew's collective contacts into a seamless opportunity engine—because we believe 
+              <strong> referrals beat cold outreach, every time.</strong>
+            </p>
+          </div>
+        </div>
+
+        {/* Mission */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-xl p-8 sm:p-12 text-white text-center">
+          <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
+          <p className="text-lg leading-relaxed max-w-3xl mx-auto mb-6">
+            To make professional networking collaborative instead of competitive. We're building a world where 
+            small crews of trusted colleagues can effortlessly leverage their combined connections to create 
+            opportunities for each other.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6 mt-8">
+            <div className="text-center">
+              <div className="text-3xl mb-2">🤝</div>
+              <h3 className="font-semibold mb-1">Trust First</h3>
+              <p className="text-sm text-blue-100">Small crews, big results</p>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl mb-2">🔗</div>
+              <h3 className="font-semibold mb-1">Collective Power</h3>
+              <p className="text-sm text-blue-100">Shared networks, shared success</p>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl mb-2">🚀</div>
+              <h3 className="font-semibold mb-1">Real Opportunities</h3>
+              <p className="text-sm text-blue-100">Warm paths to career growth</p>
+            </div>
+          </div>
+        </div>
+
+
+        {/* Back Button */}
+        <div className="text-center mt-8">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center text-gray-600 hover:text-gray-900 font-medium"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to TrueCrew
+          </button>
+        </div>
+
+        {/* Copyright Footer */}
+        <div className="text-center mt-12 pt-8 border-t border-gray-200">
+          <p className="text-sm text-gray-500">
+            © 2025 TrueCrew. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default AboutPage
