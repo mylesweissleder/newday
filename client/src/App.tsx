@@ -24,7 +24,7 @@ function App() {
   const { user, loading, logout } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('dashboard')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [appView, setAppView] = useState<AppView>(!user ? 'landing' : 'app')
+  const [appView, setAppView] = useState<AppView>('landing')
 
   console.log('App render - user:', user, 'loading:', loading)
   console.log('App render - user exists?', !!user, 'should show dashboard?', !!user && !loading)
@@ -33,7 +33,7 @@ function App() {
   React.useEffect(() => {
     console.log('App useEffect: user=', user, 'appView=', appView, 'loading=', loading)
     if (!loading) {
-      if (user && appView === 'landing') {
+      if (user && (appView === 'landing' || appView === 'login')) {
         console.log('App useEffect: Setting appView to app because user logged in')
         setAppView('app')
       } else if (!user && appView === 'app') {
