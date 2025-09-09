@@ -28,7 +28,7 @@ export const useAuth = () => {
         if (response.ok) {
           const data = await response.json()
           setUser(data.user)
-          console.log('useAuth: User authenticated via cookie:', data.user)
+          // User authenticated via cookie
         } else if (response.status === 401) {
           // No valid authentication cookie
           setUser(null)
@@ -53,7 +53,7 @@ export const useAuth = () => {
       const response = await api.post('/api/auth/refresh')
 
       if (response.ok) {
-        console.log('Token refreshed successfully')
+        // Token refreshed successfully
         return true
       } else {
         setUser(null)

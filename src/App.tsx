@@ -26,8 +26,7 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [appView, setAppView] = useState<AppView>(!user ? 'landing' : 'app')
 
-  console.log('App render - user:', user, 'loading:', loading)
-  console.log('App render - user exists?', !!user, 'should show dashboard?', !!user && !loading)
+  // Debug logging removed for production
 
   if (loading) {
     return (
@@ -125,7 +124,7 @@ function App() {
                     </button>
                   </nav>
                   <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-700 hidden xl:inline">{user.email}</span>
+                    <span className="text-sm text-gray-700 hidden xl:inline">{user?.email || ''}</span>
                     <button
                       onClick={() => setCurrentPage('settings')}
                       className={`px-3 py-2 rounded-md text-sm font-medium ${
@@ -167,7 +166,7 @@ function App() {
 
               {/* Welcome message - shown on larger screens */}
               <div className="hidden sm:block pb-4 lg:pb-2">
-                <p className="text-sm text-gray-600">Welcome back, {user.firstName} — let's find your next opportunity</p>
+                <p className="text-sm text-gray-600">Welcome back, {user?.firstName || 'there'} — let's find your next opportunity</p>
               </div>
 
               {/* Mobile menu */}
@@ -282,11 +281,11 @@ function App() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                          {user.firstName?.[0]}{user.lastName?.[0]}
+                          {(user?.firstName?.[0] || '')}{(user?.lastName?.[0] || '')}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{user.firstName} {user.lastName}</p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
+                          <p className="text-sm font-medium text-gray-900">{user?.firstName || ''} {user?.lastName || ''}</p>
+                          <p className="text-xs text-gray-500">{user?.email || ''}</p>
                         </div>
                       </div>
                       <button
