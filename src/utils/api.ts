@@ -1,6 +1,7 @@
 // API utility functions for HTTP-only cookie authentication
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002'
+// In production without VITE_API_URL set, just use a placeholder that will fail gracefully
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3002')
 
 // Generic API call function with HTTP-only cookie authentication
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {

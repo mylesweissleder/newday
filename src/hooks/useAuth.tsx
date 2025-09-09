@@ -33,11 +33,11 @@ export const useAuth = () => {
           // No valid authentication cookie
           setUser(null)
         } else {
-          console.warn('Profile endpoint returned unexpected status:', response.status)
+          // Profile endpoint returned unexpected status
           setUser(null)
         }
       } catch (err) {
-        console.warn('Error checking auth status:', err)
+        // Error checking auth status - API not available
         setUser(null)
       }
       
