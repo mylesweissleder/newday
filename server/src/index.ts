@@ -99,6 +99,15 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Version check - to verify deployment
+app.get('/version', (req, res) => {
+  res.json({ 
+    version: '2.0-optimized', 
+    features: ['bulk-import-optimized'],
+    timestamp: new Date().toISOString() 
+  });
+});
+
 // Apply global rate limiting
 app.use(limiter);
 
