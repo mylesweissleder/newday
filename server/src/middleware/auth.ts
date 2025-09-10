@@ -31,8 +31,16 @@ export const authenticateToken = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Read token from HTTP-only cookie instead of Authorization header
-    const token = req.cookies['auth-token'];
+    // Try to get token from HTTP-only cookie first, then fallback to Authorization header
+    let token = req.cookies['auth-token'];
+    
+    // Fallback for mobile incognito mode: check Authorization header
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
 
     if (!token) {
       res.status(401).json({ error: 'Access token required' });
@@ -52,7 +60,7 @@ export const authenticateToken = async (
       res.clearCookie('auth-token', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' needed for cross-origin in production
         path: '/'
       });
       res.status(401).json({ error: 'Invalid or inactive user' });

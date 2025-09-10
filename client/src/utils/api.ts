@@ -6,9 +6,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.on
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`
   
+  // Get token from localStorage as fallback for mobile incognito mode
+  const token = localStorage.getItem('auth-token')
+  
   const defaultOptions: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
+      // Include Authorization header if token exists (for mobile incognito fallback)
+      ...(token && { 'Authorization': `Bearer ${token}` })
     },
     credentials: 'include', // Always include HTTP-only cookies
   }

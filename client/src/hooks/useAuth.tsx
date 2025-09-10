@@ -72,6 +72,12 @@ export const useAuth = () => {
 
       if (response.ok) {
         console.log('✅ Login successful:', data.user)
+        
+        // Store token in localStorage as fallback for mobile incognito mode
+        if (data.token) {
+          localStorage.setItem('auth-token', data.token)
+        }
+        
         setAuthState({
           user: data.user,
           loading: false,
@@ -119,6 +125,12 @@ export const useAuth = () => {
 
       if (response.ok) {
         console.log('✅ Registration successful:', data.user)
+        
+        // Store token in localStorage as fallback for mobile incognito mode
+        if (data.token) {
+          localStorage.setItem('auth-token', data.token)
+        }
+        
         setAuthState({
           user: data.user,
           loading: false,
@@ -158,6 +170,8 @@ export const useAuth = () => {
       console.error('🚨 Logout API error:', error)
     } finally {
       console.log('✅ User logged out')
+      // Clear localStorage token
+      localStorage.removeItem('auth-token')
       setAuthState({
         user: null,
         loading: false,

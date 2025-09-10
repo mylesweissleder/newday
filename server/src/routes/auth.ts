@@ -56,7 +56,7 @@ const setCookies = (res: Response, token: string) => {
   res.cookie('auth-token', token, {
     httpOnly: true,
     secure: isProduction, // Use secure cookies in production
-    sameSite: isProduction ? 'none' : 'lax', // Allow cross-origin in production
+    sameSite: isProduction ? 'none' : 'lax', // 'none' needed for cross-origin in production
     maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year in milliseconds
     path: '/',
     domain: isProduction ? undefined : undefined // Let browser set domain for better mobile compatibility
@@ -68,7 +68,7 @@ const clearCookies = (res: Response) => {
   res.clearCookie('auth-token', {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
+    sameSite: isProduction ? 'none' : 'lax', // 'none' needed for cross-origin in production
     path: '/',
     domain: isProduction ? undefined : undefined
   });
@@ -147,6 +147,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
     const responseData = {
       message: 'Account created successfully',
+      token, // Include token for mobile incognito fallback
       user: {
         id: result.user.id,
         email: result.user.email,
@@ -219,6 +220,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     res.json({
       message: 'Login successful',
+      token, // Include token for mobile incognito fallback
       user: {
         id: user.id,
         email: user.email,
