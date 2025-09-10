@@ -155,7 +155,7 @@ router.post('/invite', async (req: Request, res: Response) => {
     });
 
     // Send invitation email with token
-    const invitationLink = `${process.env.CLIENT_URL || 'https://api.whatintheworldwasthat.com'}/accept-invitation?token=${invitationToken}`;
+    const invitationLink = `${process.env.CLIENT_URL || 'https://truecrew.vercel.app'}/accept-invitation?token=${invitationToken}`;
     
     try {
       const inviterUser = await prisma.user.findUnique({
@@ -281,6 +281,84 @@ router.post('/accept-invitation', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Accept invitation error:', error);
     res.status(500).json({ error: 'Failed to accept invitation' });
+  }
+});
+
+// Resend invitation
+router.post('/resend-invitation/:id', async (req: Request, res: Response) => {
+  try {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user!.id }
+    });
+
+    if (!currentUser || !hasCrewPermissions(currentUser.role)) {
+      return res.status(403).json({ error: 'Crew leadership access required' });
+    }
+
+    const { id: memberId } = req.params;
+
+    // Find the invited member
+    const member = await prisma.user.findUnique({
+      where: { 
+        id: memberId,
+        accountId: req.user!.accountId
+      }
+    });
+
+    if (!member) {
+      return res.status(404).json({ error: 'Member not found' });
+    }
+
+    if (!member.invitedAt || member.acceptedAt) {
+      return res.status(400).json({ error: 'Member is not in invited state' });
+    }
+
+    // Generate new invitation token
+    const invitationToken = crypto.randomBytes(32).toString('hex');
+
+    // Update the user with new token and invitation date
+    await prisma.user.update({
+      where: { id: memberId },
+      data: {
+        invitationToken,
+        invitedAt: new Date(),
+      }
+    });
+
+    // Send invitation email with new token
+    const invitationLink = `${process.env.CLIENT_URL || 'https://truecrew.vercel.app'}/accept-invitation?token=${invitationToken}`;
+    
+    try {
+      const inviterUser = await prisma.user.findUnique({
+        where: { id: req.user!.id },
+        include: { account: true }
+      });
+
+      if (inviterUser) {
+        const invitationEmail = emailService.generateCrewInvitationEmail({
+          inviteeName: member.firstName,
+          inviterName: `${inviterUser.firstName} ${inviterUser.lastName}`,
+          accountName: inviterUser.account.name,
+          role: member.role,
+          invitationLink: invitationLink
+        });
+        
+        invitationEmail.to = [member.email];
+        console.log('📧 Attempting to resend invitation email to:', member.email);
+        await emailService.sendEmail(invitationEmail);
+        console.log('✅ Invitation email resent successfully to:', member.email);
+      }
+    } catch (emailError) {
+      console.error('Failed to resend invitation email:', emailError);
+      // Don't fail the whole operation if email fails
+    }
+
+    res.json({
+      message: `Invitation resent successfully to ${member.email}`,
+    });
+  } catch (error) {
+    console.error('Resend invitation error:', error);
+    res.status(500).json({ error: 'Failed to resend invitation' });
   }
 });
 

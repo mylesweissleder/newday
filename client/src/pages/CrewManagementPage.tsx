@@ -43,7 +43,7 @@ interface CrewAnalytics {
 }
 
 const CrewManagementPage: React.FC = () => {
-  const { user } = useAuth()
+  const { user, resendInvitation } = useAuth()
   const [activeTab, setActiveTab] = useState<'members' | 'analytics' | 'invite' | 'join-codes'>('members')
   const [crewMembers, setCrewMembers] = useState<CrewMember[]>([])
   const [analytics, setAnalytics] = useState<CrewAnalytics | null>(null)
@@ -59,6 +59,7 @@ const CrewManagementPage: React.FC = () => {
   })
   const [inviteLoading, setInviteLoading] = useState(false)
   const [inviteSuccess, setInviteSuccess] = useState('')
+  const [resendingMemberId, setResendingMemberId] = useState<string | null>(null)
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
 
@@ -124,6 +125,12 @@ const CrewManagementPage: React.FC = () => {
     setError('')
     setInviteSuccess('')
 
+    console.log('🚀 CLIENT: Starting invitation request', { 
+      url: `${API_BASE_URL}/api/crew/invite`,
+      inviteForm,
+      headers: getApiHeaders()
+    });
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/crew/invite`, {
         method: 'POST',
@@ -131,6 +138,12 @@ const CrewManagementPage: React.FC = () => {
         credentials: 'include',
         body: JSON.stringify(inviteForm)
       })
+
+      console.log('📡 CLIENT: Received response', {
+        status: response.status,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
 
       const data = await response.json()
 
@@ -188,6 +201,26 @@ const CrewManagementPage: React.FC = () => {
       }
     } catch (err) {
       setError(`Network error while ${isActive ? 'reactivating' : 'deactivating'} member`)
+    }
+  }
+
+  const handleResendInvitation = async (memberId: string) => {
+    setResendingMemberId(memberId)
+    setError('')
+    
+    try {
+      const result = await resendInvitation(memberId)
+      
+      if (result.success) {
+        setInviteSuccess(result.message || 'Invitation resent successfully')
+        fetchCrewMembers() // Refresh the list
+      } else {
+        setError(result.error || 'Failed to resend invitation')
+      }
+    } catch (err) {
+      setError('Network error while resending invitation')
+    } finally {
+      setResendingMemberId(null)
     }
   }
 
@@ -331,7 +364,16 @@ const CrewManagementPage: React.FC = () => {
                     </div>
                     
                     {member.id !== user?.id && (
-                      <div className="pt-2 border-t border-gray-100">
+                      <div className="pt-2 border-t border-gray-100 space-y-2">
+                        {member.isInvited && (
+                          <button
+                            onClick={() => handleResendInvitation(member.id)}
+                            disabled={resendingMemberId === member.id}
+                            className="w-full py-2 px-4 text-sm font-medium rounded-lg border text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {resendingMemberId === member.id ? 'Resending...' : 'Resend Invitation'}
+                          </button>
+                        )}
                         <button
                           onClick={() => handleToggleActive(member.id, !member.isActive)}
                           className={`w-full py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${
@@ -420,16 +462,27 @@ const CrewManagementPage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           {member.id !== user?.id && (
-                            <button
-                              onClick={() => handleToggleActive(member.id, !member.isActive)}
-                              className={`${
-                                member.isActive 
-                                  ? 'text-red-600 hover:text-red-900' 
-                                  : 'text-green-600 hover:text-green-900'
-                              }`}
-                            >
-                              {member.isActive ? 'Deactivate' : 'Activate'}
-                            </button>
+                            <div className="flex space-x-2">
+                              {member.isInvited && (
+                                <button
+                                  onClick={() => handleResendInvitation(member.id)}
+                                  disabled={resendingMemberId === member.id}
+                                  className="text-blue-600 hover:text-blue-900 disabled:text-gray-400 disabled:cursor-not-allowed"
+                                >
+                                  {resendingMemberId === member.id ? 'Resending...' : 'Resend'}
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleToggleActive(member.id, !member.isActive)}
+                                className={`${
+                                  member.isActive 
+                                    ? 'text-red-600 hover:text-red-900' 
+                                    : 'text-green-600 hover:text-green-900'
+                                }`}
+                              >
+                                {member.isActive ? 'Deactivate' : 'Activate'}
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>

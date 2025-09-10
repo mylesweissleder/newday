@@ -16,34 +16,24 @@ import CampaignsPage from './pages/CampaignsPage'
 import NetworkVisualizationPage from './pages/NetworkVisualizationPage'
 import LoadingSpinner from './components/LoadingSpinner'
 import NetworkChatbot from './components/NetworkChatbot'
+import AcceptInvitationPage from './components/AcceptInvitationPage'
 
 type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'opportunities' | 'contacts' | 'campaigns' | 'visualization' | 'about' | 'settings' | 'crew' | 'join-crew'
 type AppView = 'landing' | 'login' | 'app'
 
 function App() {
-  const { user, loading, logout } = useAuth()
+  const { user, loading, logout, isAuthenticated } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('dashboard')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [appView, setAppView] = useState<AppView>('landing')
 
-  console.log('App render - user:', user, 'loading:', loading)
-  console.log('App render - user exists?', !!user, 'should show dashboard?', !!user && !loading)
+  // Check for invitation token in URL
+  const urlParams = new URLSearchParams(window.location.search)
+  const invitationToken = urlParams.get('token')
 
-  // Handle view changes based on user state
-  React.useEffect(() => {
-    console.log('App useEffect: user=', user, 'appView=', appView, 'loading=', loading)
-    if (!loading) {
-      if (user && (appView === 'landing' || appView === 'login')) {
-        console.log('App useEffect: Setting appView to app because user logged in')
-        setAppView('app')
-      } else if (!user && appView === 'app') {
-        console.log('App useEffect: Setting appView to landing because user logged out')
-        setAppView('landing')
-      }
-    }
-  }, [user, appView, loading])
-
+  // Show loading while checking authentication
   if (loading) {
+    console.log('🔄 App: Still loading authentication state...')
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -51,23 +41,25 @@ function App() {
     )
   }
 
-  return (
-    <div className="App">
-      {appView === 'landing' && (
-        <LandingPage 
-          onGetStarted={() => setAppView('login')}
-          onLogin={() => setAppView('login')}
-        />
-      )}
-      
-      {appView === 'login' && (
-        <LoginPage 
-          onBack={() => setAppView('landing')} 
-          onLoginSuccess={() => setAppView('app')}
-        />
-      )}
-      
-      {appView === 'app' && user && (
+  // Handle invitation acceptance
+  if (invitationToken) {
+    return (
+      <AcceptInvitationPage 
+        token={invitationToken} 
+        onComplete={() => {
+          // Clear the URL parameters and redirect to login
+          window.history.replaceState({}, '', '/')
+          window.location.reload()
+        }} 
+      />
+    )
+  }
+
+  // User is authenticated - show the app
+  if (isAuthenticated && user) {
+    console.log('✅ App: User is authenticated, showing app')
+    return (
+      <div className="App">
         <div className="min-h-screen bg-gray-50">
           {/* Header */}
           <header className="bg-white shadow-sm border-b">
@@ -173,7 +165,7 @@ function App() {
                 </div>
               </div>
 
-              {/* Welcome message - shown on larger screens */}
+              {/* Welcome message */}
               <div className="hidden sm:block pb-4 lg:pb-2">
                 <p className="text-sm text-gray-600">Welcome back, {user.firstName} — let's find your next opportunity</p>
               </div>
@@ -188,10 +180,6 @@ function App() {
                         currentPage === 'dashboard' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
                       }`}
                     >
-                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" />
-                      </svg>
                       Dashboard
                     </button>
                     <button
@@ -200,9 +188,6 @@ function App() {
                         currentPage === 'contacts' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
                       }`}
                     >
-                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
                       Network
                     </button>
                     <button
@@ -211,9 +196,6 @@ function App() {
                         currentPage === 'campaigns' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
                       }`}
                     >
-                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zM8 15v4M16 15v4" />
-                      </svg>
                       Campaigns
                     </button>
                     <button
@@ -222,9 +204,6 @@ function App() {
                         currentPage === 'opportunities' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
                       }`}
                     >
-                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
                       Opportunities
                     </button>
                     <button
@@ -233,9 +212,6 @@ function App() {
                         currentPage === 'visualization' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
                       }`}
                     >
-                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
                       Visualization
                     </button>
                     {(user?.role === 'CREW_LEADER' || user?.role === 'ADMIN') && (
@@ -245,9 +221,6 @@ function App() {
                           currentPage === 'crew' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
                         }`}
                       >
-                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                        </svg>
                         Crew
                       </button>
                     )}
@@ -257,9 +230,6 @@ function App() {
                         currentPage === 'join-crew' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
                       }`}
                     >
-                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                      </svg>
                       Join Crew
                     </button>
                     <button
@@ -268,9 +238,6 @@ function App() {
                         currentPage === 'about' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
                       }`}
                     >
-                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
                       About
                     </button>
                     <button
@@ -279,10 +246,6 @@ function App() {
                         currentPage === 'settings' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
                       }`}
                     >
-                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
                       Settings
                     </button>
                   </div>
@@ -359,14 +322,27 @@ function App() {
             )}
           </main>
           
-          {/* AI Network Chatbot - Available on all pages */}
+          {/* AI Network Chatbot */}
           <NetworkChatbot onContactSelect={(contact) => {
-            // Navigate to contacts page and potentially highlight the selected contact
             setCurrentPage('contacts');
           }} />
         </div>
-      )}
-    </div>
+      </div>
+    )
+  }
+
+  // User is not authenticated - show landing or login
+  console.log('❌ App: User not authenticated, showing public views')
+  
+  if (appView === 'login') {
+    return <LoginPage onBack={() => setAppView('landing')} />
+  }
+
+  return (
+    <LandingPage 
+      onGetStarted={() => setAppView('login')}
+      onLogin={() => setAppView('login')}
+    />
   )
 }
 
