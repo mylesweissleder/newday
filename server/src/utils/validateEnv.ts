@@ -30,8 +30,8 @@ export const validateEnvironment = (): RequiredEnvVars => {
     warnings.push('OPENAI_API_KEY - AI features will be disabled');
   }
   
-  if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER) {
-    warnings.push('Email configuration incomplete - email features may not work');
+  if (!process.env.RESEND_API_KEY) {
+    warnings.push('RESEND_API_KEY - Email features will be disabled');
   }
   
   if (!process.env.NODE_ENV) {

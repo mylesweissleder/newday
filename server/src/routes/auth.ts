@@ -58,32 +58,32 @@ const setCookies = (res: Response, token: string) => {
     secure: isProduction, // Use secure cookies in production
     sameSite: isProduction ? 'none' : 'lax', // Allow cross-origin in production
     maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year in milliseconds
-    path: '/'
+    path: '/',
+    domain: isProduction ? undefined : undefined // Let browser set domain for better mobile compatibility
   });
 };
 
 const clearCookies = (res: Response) => {
+  const isProduction = process.env.NODE_ENV === 'production';
   res.clearCookie('auth-token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    path: '/'
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    path: '/',
+    domain: isProduction ? undefined : undefined
   });
 };
 
 // Register new account and admin user
 router.post('/register', async (req: Request, res: Response) => {
-  console.log('Server: Registration request received for:', req.body.email);
   
   try {
     const { error, value } = registerSchema.validate(req.body);
     if (error) {
-      console.error('Server: Registration validation error:', error.details[0].message);
       return res.status(400).json({ error: error.details[0].message });
     }
 
     const { accountName, email, password, firstName, lastName } = value;
-    console.log('Server: Registration validated, creating account and user...');
 
     // Check if email already exists
     const existingUser = await prisma.user.findUnique({
@@ -127,7 +127,6 @@ router.post('/register', async (req: Request, res: Response) => {
 
     // Generate token
     const token = generateToken(result.user.id, result.account.id, result.user.email);
-    console.log('Server: Token generated, sending response...');
 
     // Send welcome email
     try {
@@ -138,7 +137,6 @@ router.post('/register', async (req: Request, res: Response) => {
       });
       
       await emailService.sendEmail(welcomeEmail);
-      console.log('Welcome email sent successfully to:', result.user.email);
     } catch (emailError) {
       console.error('Failed to send welcome email:', emailError);
       // Don't fail the registration if email fails
@@ -160,7 +158,6 @@ router.post('/register', async (req: Request, res: Response) => {
       }
     };
     
-    console.log('Server: Sending registration success response with HTTP-only cookie set');
 
     res.status(201).json(responseData);
   } catch (error) {
@@ -171,17 +168,14 @@ router.post('/register', async (req: Request, res: Response) => {
 
 // Login
 router.post('/login', async (req: Request, res: Response) => {
-  console.log('Server: Login request received for:', req.body.email);
   
   try {
     const { error, value } = loginSchema.validate(req.body);
     if (error) {
-      console.error('Server: Login validation error:', error.details[0].message);
       return res.status(400).json({ error: error.details[0].message });
     }
 
     const { email, password } = value;
-    console.log('Server: Login validated, checking user...');
 
     // Find user with account
     const user = await prisma.user.findUnique({
@@ -214,6 +208,14 @@ router.post('/login', async (req: Request, res: Response) => {
     // Generate token and set HTTP-only cookie
     const token = generateToken(user.id, user.accountId, user.email);
     setCookies(res, token);
+    
+    // Mobile debugging
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    console.log('📱 Login successful:', {
+      email: user.email,
+      userAgent: userAgent.substring(0, 100),
+      isMobile: /Mobile|Android|iPhone|iPad/.test(userAgent)
+    });
 
     res.json({
       message: 'Login successful',
@@ -402,7 +404,6 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
       
       resetEmail.to = [user.email];
       await emailService.sendEmail(resetEmail);
-      console.log('Password reset email sent successfully to:', user.email);
     } catch (emailError) {
       console.error('Failed to send password reset email:', emailError);
       // Still return success to user but log the error

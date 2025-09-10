@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import RegisterPage from '../components/RegisterPage'
 import AboutPage from './AboutPage'
@@ -7,16 +7,33 @@ type ViewMode = 'login' | 'register' | 'about'
 
 interface LoginPageProps {
   onBack?: () => void;
-  onLoginSuccess?: () => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
-  const [email, setEmail] = useState('demo@truecrew.com')
-  const [password, setPassword] = useState('demo123456')
+const LoginPage: React.FC<LoginPageProps> = ({ onBack }) => {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('login')
   const { login } = useAuth()
+
+  // Force clear any demo credentials or browser autofill
+  useEffect(() => {
+    // Clear any potential demo credentials on mount
+    setEmail('')
+    setPassword('')
+    
+    // Also clear the actual form fields to prevent browser autofill
+    const emailInput = document.getElementById('email') as HTMLInputElement
+    const passwordInput = document.getElementById('password') as HTMLInputElement
+    
+    if (emailInput) {
+      emailInput.value = ''
+    }
+    if (passwordInput) {
+      passwordInput.value = ''
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,10 +50,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
         console.error('LoginPage: Login failed with error:', result?.error)
         setError(result?.error || 'Login failed')
       } else {
-        console.log('LoginPage: Login successful, calling onLoginSuccess')
-        onLoginSuccess?.()
+        console.log('LoginPage: Login successful - App.tsx useEffect will handle navigation')
       }
-      // If successful, the user state will update and component will re-render
+      // If successful, the user state will update and App.tsx useEffect will handle navigation
     } catch (err) {
       console.error('LoginPage: Login error caught:', err)
       setError('An unexpected error occurred')
@@ -175,8 +191,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
                 required
+                autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
                 className="block w-full px-4 py-3 bg-white/80 border border-orange-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent backdrop-blur-sm"
                 placeholder="Enter your email"
                 value={email}
@@ -189,8 +210,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack, onLoginSuccess }) => {
               </label>
               <input
                 id="password"
+                name="password"
                 type="password"
                 required
+                autoComplete="current-password"
                 className="block w-full px-4 py-3 bg-white/80 border border-orange-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent backdrop-blur-sm"
                 placeholder="Enter your password"
                 value={password}

@@ -82,7 +82,10 @@ app.use(cors({
       'http://localhost:5173'
     ] : 
     ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  exposedHeaders: ['Set-Cookie']
 }));
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
@@ -107,6 +110,7 @@ app.get('/version', (req, res) => {
     timestamp: new Date().toISOString() 
   });
 });
+
 
 // Apply global rate limiting
 app.use(limiter);

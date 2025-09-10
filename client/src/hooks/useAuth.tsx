@@ -28,16 +28,13 @@ export const useAuth = () => {
         if (response.ok) {
           const data = await response.json()
           setUser(data.user)
-          console.log('useAuth: User authenticated via cookie:', data.user)
         } else if (response.status === 401) {
           // No valid authentication cookie
           setUser(null)
         } else {
-          console.warn('Profile endpoint returned unexpected status:', response.status)
           setUser(null)
         }
       } catch (err) {
-        console.warn('Error checking auth status:', err)
         setUser(null)
       }
       
@@ -53,7 +50,6 @@ export const useAuth = () => {
       const response = await api.post('/api/auth/refresh')
 
       if (response.ok) {
-        console.log('Token refreshed successfully')
         return true
       } else {
         setUser(null)
@@ -71,24 +67,18 @@ export const useAuth = () => {
       setLoading(true)
       setError(null)
       
-      console.log('useAuth: Login attempt with email:', email)
-      console.log('useAuth: Attempting real API authentication...')
       // Real authentication
       const response = await api.post('/api/auth/login', { email, password })
-      console.log('useAuth: API response received:', response.status, response.statusText)
 
       const data = await response.json()
-      console.log('useAuth: API response data:', data)
 
       if (response.ok) {
         // No need to store token in localStorage - it's now in HTTP-only cookie
         setUser(data.user)
         setLoading(false)
-        console.log('useAuth: Real login successful')
         return { success: true }
       } else {
         const errorMessage = data.message || 'Login failed'
-        console.log('useAuth: Login failed with error:', errorMessage)
         setError(errorMessage)
         setLoading(false)
         return { success: false, error: errorMessage }
@@ -163,11 +153,41 @@ export const useAuth = () => {
       // Call logout endpoint to clear HTTP-only cookie
       await api.post('/api/auth/logout')
     } catch (err) {
-      console.warn('Error calling logout endpoint:', err)
+      // Silently handle logout endpoint errors
     }
     
     // Clear user state regardless of API call success
     setUser(null)
+  }
+
+  const inviteUser = async (email: string, role: 'USER' | 'ADMIN') => {
+    try {
+      const response = await api.post('/api/crew/invite', {
+        email,
+        role
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        return { 
+          success: true, 
+          invitationUrl: data.invitationUrl || '',
+          message: data.message || 'Invitation sent successfully'
+        }
+      } else {
+        return { 
+          success: false, 
+          error: data.error || 'Failed to send invitation' 
+        }
+      }
+    } catch (err) {
+      console.error('Error inviting user:', err)
+      return { 
+        success: false, 
+        error: 'Network error. Please try again.' 
+      }
+    }
   }
 
   // Automatic token refresh disabled since tokens now last 1 year
@@ -179,6 +199,7 @@ export const useAuth = () => {
     login,
     register,
     logout,
-    refreshToken
+    refreshToken,
+    inviteUser
   }
 }

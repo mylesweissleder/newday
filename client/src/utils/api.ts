@@ -1,8 +1,6 @@
 // API utility functions for HTTP-only cookie authentication
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  (import.meta.env.DEV ? 'http://localhost:3002' : 'https://network-crm-api.onrender.com')
-console.log('API_BASE_URL:', API_BASE_URL)
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
 
 // Generic API call function with HTTP-only cookie authentication
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
@@ -24,8 +22,15 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     },
   }
 
-  const response = await fetch(url, mergedOptions)
-  return response
+  try {
+    console.log('🌐 API Call:', { url, method: mergedOptions.method || 'GET' });
+    const response = await fetch(url, mergedOptions)
+    console.log('📡 API Response:', { status: response.status, ok: response.ok });
+    return response
+  } catch (error) {
+    console.error('❌ API Call Failed:', { url, error });
+    throw error;
+  }
 }
 
 // Convenience methods for common HTTP verbs

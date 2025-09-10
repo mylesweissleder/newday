@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import Joi from 'joi';
 
@@ -28,7 +28,6 @@ const hasCrewPermissions = (userRole: string): boolean => {
 // Get all crew members (crew leaders and admins only)
 router.get('/members', async (req: Request, res: Response) => {
   try {
-    console.log('Crew members request - user:', req.user);
     
     if (!req.user?.id) {
       return res.status(401).json({ error: 'User not authenticated' });
@@ -38,7 +37,6 @@ router.get('/members', async (req: Request, res: Response) => {
       where: { id: req.user.id }
     });
 
-    console.log('Current user found:', currentUser?.email, currentUser?.role);
 
     if (!currentUser || !hasCrewPermissions(currentUser.role)) {
       return res.status(403).json({ error: 'Crew leadership access required' });
@@ -99,12 +97,16 @@ router.get('/members', async (req: Request, res: Response) => {
   }
 });
 
+
 // Invite new crew member
 router.post('/invite', async (req: Request, res: Response) => {
   try {
+    console.log('🚀 Crew invitation endpoint hit:', { body: req.body, userId: req.user?.id });
+    
     const currentUser = await prisma.user.findUnique({
       where: { id: req.user!.id }
     });
+
 
     if (!currentUser || !hasCrewPermissions(currentUser.role)) {
       return res.status(403).json({ error: 'Crew leadership access required' });
@@ -171,8 +173,9 @@ router.post('/invite', async (req: Request, res: Response) => {
         });
         
         invitationEmail.to = [email];
+        console.log('📧 Attempting to send invitation email to:', email);
         await emailService.sendEmail(invitationEmail);
-        console.log('Invitation email sent successfully to:', email);
+        console.log('✅ Invitation email sent successfully to:', email);
       }
     } catch (emailError) {
       console.error('Failed to send invitation email:', emailError);
