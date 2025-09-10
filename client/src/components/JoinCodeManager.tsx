@@ -18,8 +18,7 @@ const JoinCodeManager: React.FC = () => {
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
 
   const getApiHeaders = () => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
+    'Content-Type': 'application/json'
   })
 
   useEffect(() => {
@@ -30,7 +29,8 @@ const JoinCodeManager: React.FC = () => {
     try {
       setLoading(true)
       const response = await fetch(`${API_BASE_URL}/api/crew/join-code`, {
-        headers: getApiHeaders()
+        headers: getApiHeaders(),
+        credentials: 'include'
       })
 
       if (response.ok) {
@@ -54,7 +54,8 @@ const JoinCodeManager: React.FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/crew/join-code/generate`, {
         method: 'POST',
-        headers: getApiHeaders()
+        headers: getApiHeaders(),
+        credentials: 'include'
       })
 
       if (response.ok) {
@@ -85,6 +86,7 @@ const JoinCodeManager: React.FC = () => {
       const response = await fetch(`${API_BASE_URL}/api/crew/join-code/toggle`, {
         method: 'PUT',
         headers: getApiHeaders(),
+        credentials: 'include',
         body: JSON.stringify({ enabled })
       })
 

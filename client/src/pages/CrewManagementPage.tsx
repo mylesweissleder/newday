@@ -63,10 +63,8 @@ const CrewManagementPage: React.FC = () => {
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
 
   const getApiHeaders = () => {
-    const token = localStorage.getItem('auth-token')
     return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      'Content-Type': 'application/json'
     }
   }
 
@@ -82,7 +80,8 @@ const CrewManagementPage: React.FC = () => {
     try {
       setLoading(true)
       const response = await fetch(`${API_BASE_URL}/api/crew/members`, {
-        headers: getApiHeaders()
+        headers: getApiHeaders(),
+        credentials: 'include'
       })
 
       if (response.ok) {
@@ -102,7 +101,8 @@ const CrewManagementPage: React.FC = () => {
     try {
       setLoading(true)
       const response = await fetch(`${API_BASE_URL}/api/crew/analytics`, {
-        headers: getApiHeaders()
+        headers: getApiHeaders(),
+        credentials: 'include'
       })
 
       if (response.ok) {
@@ -128,6 +128,7 @@ const CrewManagementPage: React.FC = () => {
       const response = await fetch(`${API_BASE_URL}/api/crew/invite`, {
         method: 'POST',
         headers: getApiHeaders(),
+        credentials: 'include',
         body: JSON.stringify(inviteForm)
       })
 
@@ -155,6 +156,7 @@ const CrewManagementPage: React.FC = () => {
       const response = await fetch(`${API_BASE_URL}/api/crew/members/${memberId}/role`, {
         method: 'PUT',
         headers: getApiHeaders(),
+        credentials: 'include',
         body: JSON.stringify({ role: newRole })
       })
 
@@ -174,7 +176,8 @@ const CrewManagementPage: React.FC = () => {
       const endpoint = isActive ? 'reactivate' : 'deactivate'
       const response = await fetch(`${API_BASE_URL}/api/crew/members/${memberId}/${endpoint}`, {
         method: 'PUT',
-        headers: getApiHeaders()
+        headers: getApiHeaders(),
+        credentials: 'include'
       })
 
       if (response.ok) {

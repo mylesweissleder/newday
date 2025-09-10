@@ -123,6 +123,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
 
   // Helper function to normalize email for deduplication
   const normalizeEmail = (email: string): string => {
+    if (!email || typeof email !== 'string') return ''
     return email.toLowerCase().trim().replace(/\+.*@/, '@') // Remove + aliases
   }
 
@@ -138,7 +139,10 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
     let urlCount = 0
 
     nonEmptyValues.forEach(value => {
-      const val = value.trim().toLowerCase()
+      // Add null/undefined check
+      if (value == null) return
+      
+      const val = String(value).trim().toLowerCase()
       
       // Email detection
       if (val.includes('@') && val.includes('.')) emailCount++
@@ -274,7 +278,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
       const normalizedHeader = header.toLowerCase().trim().replace(/[_\s]+/g, '')
       const sampleValues = sampleData.slice(0, 5).map(row => 
         Array.isArray(row) ? row[index] : row[header]
-      ).filter(v => v && v.toString().trim()).slice(0, 3)
+      ).filter(v => v != null && v.toString().trim()).slice(0, 3)
       
       let mappedTo = 'skip' // Default to skip unknown columns
       let confidence: 'high' | 'medium' | 'low' | 'manual' = 'low'
@@ -640,11 +644,9 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
         results.data.forEach((row: any, index: number) => {
           const hasName = (row.firstName && row.lastName) || row.fullName
           
-          // Generate a safe placeholder email if none exists (for all contacts with names)
-          if ((!row.email || !row.email.includes('@')) && hasName) {
-            const firstName = row.firstName || (row.fullName ? row.fullName.split(' ')[0] : 'Unknown')
-            const lastName = row.lastName || (row.fullName ? row.fullName.split(' ').slice(1).join(' ') : 'Contact')
-            row.email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@no-email.placeholder`.replace(/[^a-zA-Z0-9@.-]/g, '')
+          // Don't generate placeholder emails - leave email empty if no valid email exists
+          if (row.email && !row.email.includes('@')) {
+            row.email = '' // Clear invalid email format
           }
 
           // Handle different name formats
@@ -803,7 +805,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
       const contactsForImport = parsedContacts.map(contact => ({
         firstName: contact.firstName,
         lastName: contact.lastName,
-        email: contact.email,
+        email: contact.email && contact.email.includes('@') && !contact.email.includes('@no-email.placeholder') ? contact.email : '', // Remove placeholder emails
         company: contact.company,
         position: contact.position,
         phone: contact.phone,
@@ -969,11 +971,9 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
           
           const hasName = (transformedRow.firstName && transformedRow.lastName) || transformedRow.fullName
           
-          // Generate a safe placeholder email if none exists (for all contacts with names)
-          if ((!transformedRow.email || !transformedRow.email.includes('@')) && hasName) {
-            const firstName = transformedRow.firstName || (transformedRow.fullName ? transformedRow.fullName.split(' ')[0] : 'Unknown')
-            const lastName = transformedRow.lastName || (transformedRow.fullName ? transformedRow.fullName.split(' ').slice(1).join(' ') : 'Contact')
-            transformedRow.email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@no-email.placeholder`.replace(/[^a-zA-Z0-9@.-]/g, '')
+          // Don't generate placeholder emails - leave email empty if no valid email exists  
+          if (transformedRow.email && !transformedRow.email.includes('@')) {
+            transformedRow.email = '' // Clear invalid email format
           }
           
           // Handle different name formats

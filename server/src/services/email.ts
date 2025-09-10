@@ -19,7 +19,7 @@ interface EmailTemplate {
 
 export class EmailService {
   private static instance: EmailService;
-  private fromAddress = 'TrueCrew <onboarding@resend.dev>';
+  private fromAddress = 'TrueCrew <noreply@startuplive.com>';
 
   static getInstance() {
     if (!EmailService.instance) {
