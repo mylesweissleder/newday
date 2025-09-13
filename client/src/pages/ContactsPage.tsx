@@ -48,6 +48,17 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalContacts, setTotalContacts] = useState(0)
+  const [contactStats, setContactStats] = useState({
+    withEmail: 0,
+    withPhone: 0,
+    withCompany: 0,
+    withLinkedIn: 0,
+    tier1: 0,
+    tier2: 0,
+    tier3: 0,
+    recentlyActive: 0
+  })
   const [sortBy, setSortBy] = useState('updatedAt')
   const [sortOrder, setSortOrder] = useState('desc')
   const [showAIDashboard, setShowAIDashboard] = useState(false)
@@ -65,11 +76,32 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
   const [systemError, setSystemError] = useState<string | null>(null)
   const [dataIntegrityStatus, setDataIntegrityStatus] = useState<any>(null)
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
+  const API_BASE_URL = 'https://network-crm-api.onrender.com'
 
   useEffect(() => {
     fetchContacts()
   }, [currentPage, searchTerm, selectedTier, sortBy, sortOrder, aiFilters])
+
+  // Calculate contact statistics
+  useEffect(() => {
+    if (contacts.length > 0) {
+      const stats = {
+        withEmail: contacts.filter(c => c.email && c.email.includes('@')).length,
+        withPhone: contacts.filter(c => c.phone && c.phone.trim()).length,
+        withCompany: contacts.filter(c => c.company && c.company.trim()).length,
+        withLinkedIn: contacts.filter(c => c.linkedinUrl && c.linkedinUrl.trim()).length,
+        tier1: contacts.filter(c => c.tier === 'TIER_1').length,
+        tier2: contacts.filter(c => c.tier === 'TIER_2').length,
+        tier3: contacts.filter(c => c.tier === 'TIER_3').length,
+        recentlyActive: contacts.filter(c => {
+          const lastContact = c.lastContactDate ? new Date(c.lastContactDate) : null
+          return lastContact && (Date.now() - lastContact.getTime()) < (7 * 24 * 60 * 60 * 1000)
+        }).length
+      }
+      setContactStats(stats)
+      setTotalContacts(contacts.length)
+    }
+  }, [contacts])
 
   // Auto-backup when contacts change
   useEffect(() => {
@@ -172,23 +204,13 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
   }
 
   const handleSaveContact = async (updatedContact: Contact) => {
-    const token = localStorage.getItem('auth-token')
-    
-    if (token === 'demo-token') {
-      // Update in demo data
-      setContacts(prev => prev.map(c => 
-        c.id === updatedContact.id ? { ...updatedContact, updatedAt: new Date().toISOString() } : c
-      ))
-      return
-    }
-
     try {
       const response = await fetch(`${API_BASE_URL}/api/contacts/${updatedContact.id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           firstName: updatedContact.firstName,
           lastName: updatedContact.lastName,
@@ -218,13 +240,6 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
   }
 
   const handleBulkDelete = async (contactIds: string[]) => {
-    const token = localStorage.getItem('auth-token')
-    
-    if (token === 'demo-token') {
-      setContacts(prev => prev.filter(c => !contactIds.includes(c.id)))
-      return
-    }
-
     try {
       const response = await fetch(`${API_BASE_URL}/api/contacts/bulk/delete`, {
         method: 'POST',
@@ -248,22 +263,13 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
   }
 
   const handleBulkUpdateTier = async (contactIds: string[], tier: string) => {
-    const token = localStorage.getItem('auth-token')
-    
-    if (token === 'demo-token') {
-      setContacts(prev => prev.map(c => 
-        contactIds.includes(c.id) ? { ...c, tier, updatedAt: new Date().toISOString() } : c
-      ))
-      return
-    }
-
     try {
       const response = await fetch(`${API_BASE_URL}/api/contacts/bulk/update-tier`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ contactIds, tier })
       })
 
@@ -284,26 +290,13 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
   }
 
   const handleBulkAddTags = async (contactIds: string[], tags: string[]) => {
-    const token = localStorage.getItem('auth-token')
-    
-    if (token === 'demo-token') {
-      setContacts(prev => prev.map(c => 
-        contactIds.includes(c.id) ? {
-          ...c, 
-          tags: [...(c.tags || []), ...tags].filter((tag, index, arr) => arr.indexOf(tag) === index),
-          updatedAt: new Date().toISOString()
-        } : c
-      ))
-      return
-    }
-
     try {
       const response = await fetch(`${API_BASE_URL}/api/contacts/bulk/add-tags`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ contactIds, tags })
       })
 
@@ -390,7 +383,45 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
             <span className="text-sm md:text-base">Back to Dashboard</span>
           </button>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">Contacts</h1>
-          <p className="text-sm md:text-base text-gray-600">Manage your network and relationships</p>
+          <div className="mt-2 space-y-2">
+            <p className="text-sm text-gray-600">
+              {totalContacts} contacts total
+            </p>
+            <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+              <span className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                {contactStats.withEmail} with email
+              </span>
+              <span className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                {contactStats.withPhone} with phone
+              </span>
+              <span className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                {contactStats.withCompany} with company
+              </span>
+              <span className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                {contactStats.withLinkedIn} with LinkedIn
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+              <span className="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-full font-medium">
+                Tier 1: {contactStats.tier1}
+              </span>
+              <span className="px-2 py-1 bg-amber-50 text-amber-700 rounded-full font-medium">
+                Tier 2: {contactStats.tier2}
+              </span>
+              <span className="px-2 py-1 bg-gray-50 text-gray-700 rounded-full font-medium">
+                Tier 3: {contactStats.tier3}
+              </span>
+              {contactStats.recentlyActive > 0 && (
+                <span className="px-2 py-1 bg-green-50 text-green-700 rounded-full font-medium">
+                  Recently Active: {contactStats.recentlyActive}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 md:gap-4">
           <span className="text-xs md:text-sm text-gray-500 px-2 py-1 bg-gray-100 rounded-full">{contacts.length} contacts</span>

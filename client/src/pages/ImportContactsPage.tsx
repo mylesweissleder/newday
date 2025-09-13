@@ -88,6 +88,8 @@ interface ImportContactsPageProps {
 const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
   const [dragOver, setDragOver] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<{[fileName: string]: number}>({})
+  const [processingStatus, setProcessingStatus] = useState<{[fileName: string]: 'pending' | 'processing' | 'completed' | 'error'}>({})
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [parsedContacts, setParsedContacts] = useState<Contact[]>([])
   const [parseResults, setParseResults] = useState<{[key: string]: {contacts: Contact[], errors: string[]}}>({})
@@ -100,7 +102,63 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
   const [showColumnMapping, setShowColumnMapping] = useState(false)
   const [currentMappingFile, setCurrentMappingFile] = useState<FilePreview | null>(null)
   const [fileErrors, setFileErrors] = useState<{[fileName: string]: string}>({})
+  const [totalContacts, setTotalContacts] = useState(0)
+  const [contactCounts, setContactCounts] = useState({
+    total: 0,
+    unique: 0,
+    duplicates: 0,
+    withEmail: 0,
+    withPhone: 0,
+    withCompany: 0
+  })
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Helper function to calculate detailed contact statistics
+  const calculateContactStats = (contacts: Contact[], duplicateGroups: DuplicateGroup[]) => {
+    const stats = {
+      total: contacts.length,
+      unique: contacts.length,
+      duplicates: duplicateGroups.length,
+      withEmail: contacts.filter(c => c.email && c.email.includes('@')).length,
+      withPhone: contacts.filter(c => c.phone && c.phone.trim()).length,
+      withCompany: contacts.filter(c => c.company && c.company.trim()).length,
+      withLinkedIn: contacts.filter(c => c.linkedinUrl && c.linkedinUrl.trim()).length,
+      bySource: {} as {[key: string]: number},
+      byTier: {} as {[key: string]: number},
+      dataCompleteness: 0
+    }
+    
+    // Calculate by source
+    contacts.forEach(contact => {
+      const source = contact.sources?.[0]?.fileName || 'Unknown'
+      stats.bySource[source] = (stats.bySource[source] || 0) + 1
+    })
+    
+    // Calculate by tier
+    contacts.forEach(contact => {
+      const tier = contact.tier || 'TIER_3'
+      stats.byTier[tier] = (stats.byTier[tier] || 0) + 1
+    })
+    
+    // Calculate average data completeness (0-100%)
+    if (contacts.length > 0) {
+      const totalFields = contacts.length * 6 // firstName, lastName, email, phone, company, position
+      const filledFields = contacts.reduce((acc, contact) => {
+        let filled = 0
+        if (contact.firstName?.trim()) filled++
+        if (contact.lastName?.trim()) filled++
+        if (contact.email?.trim()) filled++
+        if (contact.phone?.trim()) filled++
+        if (contact.company?.trim()) filled++
+        if (contact.position?.trim()) filled++
+        return acc + filled
+      }, 0)
+      
+      stats.dataCompleteness = Math.round((filledFields / totalFields) * 100)
+    }
+    
+    return stats
+  }
 
   // Helper function to parse full name into first and last
   const parseFullName = (fullName: string): { firstName: string, lastName: string } => {
@@ -535,18 +593,34 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
     const newUploadedFiles = [...uploadedFiles, ...files]
     setUploadedFiles(newUploadedFiles)
     
+    // Initialize processing status for each file
+    const newProcessingStatus: {[fileName: string]: 'pending' | 'processing' | 'completed' | 'error'} = {}
+    const newUploadProgress: {[fileName: string]: number} = {}
+    
+    files.forEach(file => {
+      newProcessingStatus[file.name] = 'processing'
+      newUploadProgress[file.name] = 0
+    })
+    
+    setProcessingStatus(prev => ({ ...prev, ...newProcessingStatus }))
+    setUploadProgress(prev => ({ ...prev, ...newUploadProgress }))
+    
     const previews: FilePreview[] = []
     
     for (const file of files) {
       try {
+        // Update progress to 25%
+        setUploadProgress(prev => ({ ...prev, [file.name]: 25 }))
         let columns: string[] = []
         let sampleData: any[] = []
         
         // Check if it's an Excel file
         if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+          setUploadProgress(prev => ({ ...prev, [file.name]: 50 }))
           const excelData = await readExcelFile(file)
           columns = excelData.headers
           sampleData = excelData.data.slice(0, 10) // Get first 10 rows for preview
+          setUploadProgress(prev => ({ ...prev, [file.name]: 75 }))
         } else {
           // Handle CSV files
           // Check CSV file size (limit to 25MB for CSV since it's text)
@@ -554,6 +628,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
             throw new Error('CSV file too large. Please use files smaller than 25MB.')
           }
           
+          setUploadProgress(prev => ({ ...prev, [file.name]: 50 }))
           let text = await file.text()
           
           // Check for LinkedIn CSV format with 3-line header
@@ -567,6 +642,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
             text = lines.slice(3).join('\n')
           }
           
+          setUploadProgress(prev => ({ ...prev, [file.name]: 70 }))
           // Parse for preview (no transformations, keep original headers)
           const results = Papa.parse<any>(text, {
             header: true,
@@ -575,6 +651,7 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
             encoding: 'UTF-8' // Handle different encodings
           })
           
+          setUploadProgress(prev => ({ ...prev, [file.name]: 90 }))
           if (results.meta.fields && results.data.length > 0) {
             columns = results.meta.fields
             sampleData = results.data
@@ -594,9 +671,14 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
             sampleData,
             suggestedMappings
           })
+          
+          // Complete processing for this file
+          setUploadProgress(prev => ({ ...prev, [file.name]: 100 }))
+          setProcessingStatus(prev => ({ ...prev, [file.name]: 'completed' }))
         }
       } catch (error) {
         console.error(`Error processing file ${file.name}:`, error)
+        setProcessingStatus(prev => ({ ...prev, [file.name]: 'error' }))
         setFileErrors(prev => ({
           ...prev,
           [file.name]: error instanceof Error ? error.message : 'Failed to process file'
@@ -1031,6 +1113,17 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
     const duplicateGroups = findDuplicates(allContacts)
     setDuplicates(duplicateGroups)
     
+    // Update contact statistics
+    const stats = calculateContactStats(allContacts, duplicateGroups)
+    setContactCounts({
+      total: stats.total,
+      unique: stats.unique,
+      duplicates: stats.duplicates,
+      withEmail: stats.withEmail,
+      withPhone: stats.withPhone,
+      withCompany: stats.withCompany
+    })
+    
     if (duplicateGroups.length > 0) {
       setShowDuplicates(true)
     }
@@ -1279,32 +1372,91 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
       {/* Parse Results */}
       {uploadedFiles.length > 0 && (
         <div className="space-y-6">
-          {/* Summary */}
+          {/* Enhanced Summary */}
           <div className="bg-white rounded-lg shadow border">
             <div className="px-4 py-4 md:px-6 border-b border-gray-200">
-              <h2 className="text-base md:text-lg font-medium text-gray-900">Import Summary</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-base md:text-lg font-medium text-gray-900">Import Summary</h2>
+                {contactCounts.total > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <div className="h-3 w-20 bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
+                        style={{ width: `${Math.min(100, (contactCounts.withEmail / contactCounts.total) * 100)}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {Math.round((contactCounts.withEmail / contactCounts.total) * 100)}% complete data
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="p-4 md:p-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
+              {/* Primary Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <div className="text-xl md:text-2xl font-bold text-blue-600">{uploadedFiles.length}</div>
-                  <div className="text-xs md:text-sm text-gray-600">Files Processed</div>
+                  <div className="text-xs md:text-sm text-blue-700">Files Processed</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl md:text-2xl font-bold text-green-600">{parsedContacts.length}</div>
-                  <div className="text-xs md:text-sm text-gray-600">Unique Contacts</div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-xl md:text-2xl font-bold text-green-600">{contactCounts.total}</div>
+                  <div className="text-xs md:text-sm text-green-700">Total Contacts</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl md:text-2xl font-bold text-yellow-600">{duplicates.length}</div>
-                  <div className="text-xs md:text-sm text-gray-600">Duplicates Found</div>
+                <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                  <div className="text-xl md:text-2xl font-bold text-yellow-600">{contactCounts.duplicates}</div>
+                  <div className="text-xs md:text-sm text-yellow-700">Duplicates Merged</div>
                 </div>
-                <div className="text-center">
+                <div className="text-center p-4 bg-red-50 rounded-lg">
                   <div className="text-xl md:text-2xl font-bold text-red-600">
                     {Object.values(parseResults).flatMap(r => r.errors).length}
                   </div>
-                  <div className="text-xs md:text-sm text-gray-600">Errors Found</div>
+                  <div className="text-xs md:text-sm text-red-700">Processing Errors</div>
                 </div>
               </div>
+
+              {/* Data Quality Stats */}
+              {contactCounts.total > 0 && (
+                <div className="border-t border-gray-200 pt-4">
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">Data Quality Analysis</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{contactCounts.withEmail}</div>
+                        <div className="text-xs text-gray-500">With Email</div>
+                      </div>
+                      <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg className="h-4 w-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{contactCounts.withPhone}</div>
+                        <div className="text-xs text-gray-500">With Phone</div>
+                      </div>
+                      <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{contactCounts.withCompany}</div>
+                        <div className="text-xs text-gray-500">With Company</div>
+                      </div>
+                      <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <svg className="h-4 w-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1376,35 +1528,75 @@ const ImportContactsPage: React.FC<ImportContactsPageProps> = ({ onBack }) => {
             <div className="divide-y divide-gray-100">
               {uploadedFiles.map((file, index) => {
                 const result = parseResults[file.name]
+                const status = processingStatus[file.name] || 'completed'
+                const progress = uploadProgress[file.name] || 0
+                
                 return (
                   <div key={index} className="px-6 py-4">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center">
+                      <div className="flex items-center flex-1">
                         <div className={`h-8 w-8 rounded-lg flex items-center justify-center mr-3 ${
+                          status === 'error' ? 'bg-red-100' :
+                          status === 'processing' ? 'bg-blue-100' :
                           result?.errors.length > 0 ? 'bg-yellow-100' : 'bg-green-100'
                         }`}>
-                          <svg style={{width: '16px', height: '16px'}} className={`${
-                            result?.errors.length > 0 ? 'text-yellow-600' : 'text-green-600'
-                          }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={
-                              result?.errors.length > 0 ? 
-                              "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.348 16.5c-.77.833.192 2.5 1.732 2.5z" :
-                              "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            } />
-                          </svg>
+                          {status === 'processing' ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                          ) : (
+                            <svg style={{width: '16px', height: '16px'}} className={`${
+                              status === 'error' ? 'text-red-600' :
+                              result?.errors.length > 0 ? 'text-yellow-600' : 'text-green-600'
+                            }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={
+                                status === 'error' || result?.errors.length > 0 ? 
+                                "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.348 16.5c-.77.833.192 2.5 1.732 2.5z" :
+                                "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              } />
+                            </svg>
+                          )}
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{file.name}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="font-medium text-gray-900">{file.name}</p>
+                            <div className="flex items-center space-x-2">
+                              {status === 'processing' && (
+                                <span className="text-xs text-blue-600 font-medium">
+                                  {progress}%
+                                </span>
+                              )}
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                status === 'error' ? 'bg-red-100 text-red-700' :
+                                status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                                status === 'completed' ? 'bg-green-100 text-green-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {status === 'processing' ? 'Processing' :
+                                 status === 'error' ? 'Error' :
+                                 status === 'completed' ? 'Complete' : 'Pending'}
+                              </span>
+                            </div>
+                          </div>
                           <p className="text-sm text-gray-500">
                             {(file.size / 1024).toFixed(1)} KB • 
                             {result ? ` ${result.contacts.length} contacts` : ' Processing...'}
                             {result?.errors.length > 0 && ` • ${result.errors.length} errors`}
                           </p>
+                          {status === 'processing' && (
+                            <div className="mt-2">
+                              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-blue-500 transition-all duration-500"
+                                  style={{ width: `${progress}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <button
                         onClick={() => removeFile(index)}
-                        className="text-gray-400 hover:text-red-500"
+                        className="ml-4 text-gray-400 hover:text-red-500"
+                        disabled={status === 'processing'}
                       >
                         <svg style={{width: '16px', height: '16px'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
