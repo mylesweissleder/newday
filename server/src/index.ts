@@ -26,6 +26,8 @@ import relationshipRoutes from './routes/relationships';
 import aiScoringRoutes from './routes/aiScoring';
 import opportunityRoutes from './routes/opportunities';
 import networkVisualizationRoutes from './routes/networkVisualization';
+import crewContactsRoutes from './routes/crew-contacts';
+import skillsRoutes from './routes/skills';
 
 // Middleware imports
 import { authenticateToken } from './middleware/auth';
@@ -133,6 +135,8 @@ app.use('/api/ai-scoring', authenticateToken, aiScoringRoutes);
 app.use('/api/opportunities', authenticateToken, opportunityRoutes);
 app.use('/api/network', authenticateToken, networkVisualizationRoutes);
 app.use('/api/email', authenticateToken, emailRoutes);
+app.use('/api/crew-contacts', authenticateToken, crewContactsRoutes);
+app.use('/api/skills', authenticateToken, skillsRoutes);
 
 // Error handling
 app.use(errorHandler);

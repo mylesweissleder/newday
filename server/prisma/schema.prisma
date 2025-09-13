@@ -28,6 +28,7 @@ model Account {
   campaigns   Campaign[]
   opportunities OpportunitySuggestion[]
   networkGaps NetworkGap[]
+  skillRecommendations SkillRecommendation[]
   
   @@map("accounts")
 }
@@ -70,6 +71,12 @@ model User {
   contactsUpdated Contact[] @relation("UpdatedBy")
   outreachSent    Outreach[]
   campaignsCreated Campaign[] @relation("CampaignCreatedBy")
+  contactContributions ContactContribution[] @relation("ContactContributions")
+  
+  // Skills system
+  skills               UserSkill[] @relation("UserSkills")
+  skillRequests        SkillRecommendation[] @relation("SkillRequests")
+  skillProvisions      SkillRecommendation[] @relation("SkillProvisions")
   
   @@map("users")
 }
@@ -91,6 +98,11 @@ model Contact {
   tags        String[]
   source      String?
   status      ContactStatus @default(ACTIVE)
+  
+  // Crew-wide sharing
+  isSharedWithCrew Boolean @default(false)
+  originalOwnerId  String? // Who first added this contact
+  contributorIds   String[] // All crew members who contributed data
   
   // AI Insights and Scoring
   aiInsights          Json?
@@ -150,6 +162,10 @@ model Contact {
   primaryOpportunities   OpportunitySuggestion[] @relation("PrimaryOpportunityContact")
   secondaryOpportunities OpportunitySuggestion[] @relation("SecondaryOpportunityContact")
   opportunityContacts    OpportunityContact[]
+  
+  // Crew sharing system
+  contributions          ContactContribution[]
+  mutualRecommendations  SkillRecommendation[] @relation("RecommendationMutualContacts")
   
   @@unique([email, accountId])
   @@map("contacts")
@@ -254,6 +270,29 @@ model NetworkAnalytics {
   updatedAt DateTime @updatedAt
   
   @@map("network_analytics")
+}
+
+// Track individual contributions to shared contacts
+model ContactContribution {
+  id String @id @default(cuid())
+  
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contactId String
+  
+  contributor   User @relation("ContactContributions", fields: [contributorId], references: [id])
+  contributorId String
+  
+  // What data was contributed
+  fieldsContributed String[] // e.g., ["email", "phone", "company"]
+  sourceInfo        String?  // Original source of this data
+  importSource      String?  // How it was imported (CSV, LinkedIn, etc.)
+  confidence        Float @default(1.0) // Confidence in this data
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([contactId, contributorId])
+  @@map("contact_contributions")
 }
 
 model Campaign {
@@ -663,4 +702,107 @@ enum NetworkGapStatus {
   ADDRESSING
   ADDRESSED
   DISMISSED
+}
+
+// Skills and offerings system for crew members
+model UserSkill {
+  id String @id @default(cuid())
+  
+  user   User @relation("UserSkills", fields: [userId], references: [id])
+  userId String
+  
+  skill   Skill @relation(fields: [skillId], references: [id])
+  skillId String
+  
+  type        SkillType // ASK (need) or HAVE (offer)
+  proficiency SkillLevel? // Only for HAVE skills
+  isActive    Boolean @default(true)
+  notes       String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([userId, skillId, type])
+  @@map("user_skills")
+}
+
+model Skill {
+  id String @id @default(cuid())
+  
+  name        String @unique
+  category    String?
+  description String?
+  tags        String[]
+  
+  // Relations
+  userSkills    UserSkill[]
+  recommendations SkillRecommendation[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("skills")
+}
+
+// AI-generated recommendations based on skills matching
+model SkillRecommendation {
+  id String @id @default(cuid())
+  
+  account   Account @relation(fields: [accountId], references: [id])
+  accountId String
+  
+  // Who is asking/needing
+  requester   User @relation("SkillRequests", fields: [requesterId], references: [id])
+  requesterId String
+  
+  // What skill they need
+  skill   Skill @relation(fields: [skillId], references: [id])
+  skillId String
+  
+  // Who can provide it
+  provider   User? @relation("SkillProvisions", fields: [providerId], references: [id])
+  providerId String?
+  
+  // How they're connected
+  connectionPath Json? // AI-generated relationship path
+  mutualContacts Contact[] @relation("RecommendationMutualContacts")
+  
+  // AI reasoning
+  matchScore     Float    // 0-100 how good this match is
+  aiReasoning    Json     // Detailed explanation
+  icebreaker     String?  // AI-generated introduction
+  
+  // Status tracking
+  status         RecommendationStatus @default(PENDING)
+  viewedBy       String?
+  viewedAt       DateTime?
+  actedBy        String?
+  actedAt        DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("skill_recommendations")
+}
+
+// Enums for skills system
+enum SkillType {
+  ASK  // What they need/want
+  HAVE // What they can offer/provide
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum RecommendationStatus {
+  PENDING
+  VIEWED
+  CONTACTED
+  CONNECTED
+  DISMISSED
+  EXPIRED
 }

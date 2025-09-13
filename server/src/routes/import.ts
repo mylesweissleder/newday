@@ -281,7 +281,7 @@ router.get('/history', authenticateToken, async (req: Request, res: Response) =>
   }
 });
 
-// Helper function to import contacts from file
+// Helper function to import contacts from file with crew-wide deduplication
 async function importContactsFromFile(
   filePath: string,
   mapping: any,
@@ -328,52 +328,47 @@ async function importContactsFromFile(
       .on('error', reject);
   });
 
-  // Process contacts
+  // Process contacts with crew-wide deduplication
   for (const contactData of contacts) {
     try {
-      const existing = await prisma.contact.findFirst({
-        where: {
-          accountId,
-          OR: [
-            ...(contactData.email ? [{ email: contactData.email }] : []),
-            { 
-              firstName: contactData.firstName,
-              lastName: contactData.lastName,
-              company: contactData.company
-            }
-          ]
-        }
-      });
+      // Enhanced deduplication: check across crew (account) for matches
+      const existing = await findExistingContact(contactData, accountId);
 
       if (existing) {
         result.duplicates++;
-        // Mark as shared if different owner
-        const isShared = existing.tags?.includes('shared') || owner !== 'MW';
-        const updatedTags = [...new Set([
-          ...(existing.tags || []),
-          ...(contactData.tags || []),
-          ...(isShared ? ['shared'] : [])
-        ])];
-
-        await prisma.contact.update({
-          where: { id: existing.id },
-          data: {
-            ...contactData,
-            tags: updatedTags,
-            updatedById: userId,
-            source: `${existing.source}; ${source}`
-          }
-        });
+        
+        // Track what fields this user is contributing
+        const fieldsContributed = identifyContributedFields(contactData, existing);
+        
+        // Merge data and track contribution
+        await mergeContactData(existing, contactData, userId, source, fieldsContributed);
       } else {
-        await prisma.contact.create({
+        // Create new contact with crew sharing enabled by default
+        const newContact = await prisma.contact.create({
           data: {
             ...contactData,
             accountId,
             createdById: userId,
             updatedById: userId,
+            originalOwnerId: userId,
+            contributorIds: [userId],
+            isSharedWithCrew: true,
             tags: [...(contactData.tags || []), ...(owner !== 'MW' ? ['shared'] : [])]
           }
         });
+        
+        // Create initial contribution record
+        await prisma.contactContribution.create({
+          data: {
+            contactId: newContact.id,
+            contributorId: userId,
+            fieldsContributed: Object.keys(contactData).filter(field => contactData[field]),
+            sourceInfo: source,
+            importSource: `${source} (${owner})`,
+            confidence: 1.0
+          }
+        });
+        
         result.successful++;
       }
     } catch (error) {
@@ -383,6 +378,161 @@ async function importContactsFromFile(
   }
 
   return result;
+}
+
+// Enhanced contact matching with multiple criteria
+async function findExistingContact(contactData: any, accountId: string) {
+  // Priority order: email > LinkedIn > name+company > name+domain
+  
+  if (contactData.email) {
+    const emailMatch = await prisma.contact.findFirst({
+      where: { accountId, email: contactData.email },
+      include: { contributions: true }
+    });
+    if (emailMatch) return emailMatch;
+  }
+  
+  if (contactData.linkedinUrl) {
+    const linkedinMatch = await prisma.contact.findFirst({
+      where: { accountId, linkedinUrl: contactData.linkedinUrl },
+      include: { contributions: true }
+    });
+    if (linkedinMatch) return linkedinMatch;
+  }
+  
+  if (contactData.company) {
+    const nameCompanyMatch = await prisma.contact.findFirst({
+      where: {
+        accountId,
+        firstName: contactData.firstName,
+        lastName: contactData.lastName,
+        company: contactData.company
+      },
+      include: { contributions: true }
+    });
+    if (nameCompanyMatch) return nameCompanyMatch;
+  }
+  
+  // Check for same domain matches if email provided
+  if (contactData.email && contactData.email.includes('@')) {
+    const domain = contactData.email.split('@')[1];
+    const domainMatch = await prisma.contact.findFirst({
+      where: {
+        accountId,
+        firstName: contactData.firstName,
+        lastName: contactData.lastName,
+        email: { endsWith: `@${domain}` }
+      },
+      include: { contributions: true }
+    });
+    if (domainMatch) return domainMatch;
+  }
+  
+  return null;
+}
+
+// Identify what new fields are being contributed
+function identifyContributedFields(newData: any, existingContact: any): string[] {
+  const contributed: string[] = [];
+  
+  for (const [field, value] of Object.entries(newData)) {
+    if (value && (!existingContact[field] || existingContact[field] !== value)) {
+      contributed.push(field);
+    }
+  }
+  
+  return contributed;
+}
+
+// Merge contact data and track contributions
+async function mergeContactData(
+  existing: any, 
+  newData: any, 
+  contributorId: string, 
+  source: string,
+  fieldsContributed: string[]
+) {
+  // Merge strategy: keep existing data, add new non-empty fields
+  const mergedData: any = {};
+  let hasChanges = false;
+  
+  for (const field of fieldsContributed) {
+    if (newData[field] && !existing[field]) {
+      mergedData[field] = newData[field];
+      hasChanges = true;
+    }
+  }
+  
+  // Merge tags
+  if (newData.tags && newData.tags.length > 0) {
+    const mergedTags = [...new Set([
+      ...(existing.tags || []),
+      ...newData.tags
+    ])];
+    if (mergedTags.length !== existing.tags?.length) {
+      mergedData.tags = mergedTags;
+      hasChanges = true;
+    }
+  }
+  
+  // Update source attribution
+  const updatedSource = existing.source.includes(source) 
+    ? existing.source 
+    : `${existing.source}; ${source}`;
+    
+  const updatedContributors = existing.contributorIds?.includes(contributorId)
+    ? existing.contributorIds
+    : [...(existing.contributorIds || []), contributorId];
+  
+  if (hasChanges || updatedSource !== existing.source) {
+    await prisma.contact.update({
+      where: { id: existing.id },
+      data: {
+        ...mergedData,
+        source: updatedSource,
+        contributorIds: updatedContributors,
+        updatedById: contributorId,
+        isSharedWithCrew: true
+      }
+    });
+  }
+  
+  // Create or update contribution record
+  const existingContribution = await prisma.contactContribution.findUnique({
+    where: {
+      contactId_contributorId: {
+        contactId: existing.id,
+        contributorId: contributorId
+      }
+    }
+  });
+  
+  if (existingContribution) {
+    const updatedFields = [...new Set([
+      ...existingContribution.fieldsContributed,
+      ...fieldsContributed
+    ])];
+    
+    await prisma.contactContribution.update({
+      where: { id: existingContribution.id },
+      data: {
+        fieldsContributed: updatedFields,
+        sourceInfo: `${existingContribution.sourceInfo}; ${source}`,
+        confidence: Math.max(existingContribution.confidence, 0.9)
+      }
+    });
+  } else {
+    await prisma.contactContribution.create({
+      data: {
+        contactId: existing.id,
+        contributorId: contributorId,
+        fieldsContributed,
+        sourceInfo: source,
+        importSource: source,
+        confidence: 1.0
+      }
+    });
+  }
 }
 
 // Map CSV row to contact object
