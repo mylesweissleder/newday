@@ -87,20 +87,23 @@ export const xssProtection = (req: Request, res: Response, next: NextFunction) =
 
 // SQL injection detection middleware  
 export const sqlInjectionProtection = (req: Request, res: Response, next: NextFunction) => {
-  // Skip security checks for contact-related endpoints that handle legitimate business data
-  const isContactDataEndpoint = (req.url.includes('/api/contacts') && req.method === 'POST') ||
-                               (req.url.includes('/api/import') && req.method === 'POST');
+  // Define legitimate contact management endpoints that should be exempt from strict SQL injection checks
+  const contactManagementEndpoints = [
+    '/api/contacts',
+    '/api/contacts/bulk',
+    '/api/contacts/bulk/delete',
+    '/api/contacts/bulk/update-tier', 
+    '/api/contacts/bulk/add-tags',
+    '/api/import'
+  ];
   
-  // Only exclude safe endpoints - still protect against actual destructive operations
-  const isSafeContactEndpoint = isContactDataEndpoint && 
-                               !req.url.includes('/delete') &&
-                               !req.url.includes('/drop') &&
-                               !req.url.includes('/truncate') &&
-                               !req.url.includes('/exec');
+  // Check if this is a safe contact management POST endpoint
+  const isLegitimateContactEndpoint = req.method === 'POST' && 
+    contactManagementEndpoints.some(endpoint => req.url.startsWith(endpoint));
   
-  if (isSafeContactEndpoint) {
-    // Still do basic validation but skip the aggressive pattern matching for business data
-    console.log('Skipping SQL injection checks for contact data endpoint:', req.url);
+  if (isLegitimateContactEndpoint) {
+    // Skip SQL injection checks for legitimate contact management operations
+    console.log('Skipping SQL injection checks for legitimate contact endpoint:', req.url);
     return next();
   }
 
