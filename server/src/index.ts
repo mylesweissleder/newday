@@ -8,6 +8,8 @@ import prisma from './utils/prisma';
 import logger from './utils/logger';
 import { validateEnvironment, getConfig } from './utils/validateEnv';
 
+// Force deployment with contact import security fix
+
 // Route imports
 import authRoutes from './routes/auth';
 import accountRoutes from './routes/accounts';
