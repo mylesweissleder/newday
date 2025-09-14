@@ -9,7 +9,7 @@ const NetworkAnalysisPage: React.FC<NetworkAnalysisPageProps> = ({ onBack }) => 
   const [analyzing, setAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<any>(null)
   const [contacts, setContacts] = useState<any[]>([])
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
+  const API_BASE_URL = 'https://network-crm-api.onrender.com'
 
   useEffect(() => {
     loadContacts()
@@ -17,7 +17,7 @@ const NetworkAnalysisPage: React.FC<NetworkAnalysisPageProps> = ({ onBack }) => 
 
   const loadContacts = async () => {
     try {
-      const token = localStorage.getItem('auth-token')
+      const token = 'production-token'
       
       if (token === 'demo-token') {
         // Use demo contacts for analysis
@@ -59,7 +59,7 @@ const NetworkAnalysisPage: React.FC<NetworkAnalysisPageProps> = ({ onBack }) => 
     setAnalyzing(true)
     
     try {
-      const token = localStorage.getItem('auth-token')
+      const token = 'production-token'
       
       if (token === 'demo-token' || contacts.length === 0) {
         // Generate analysis from loaded contact data

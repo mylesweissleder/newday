@@ -7,6 +7,7 @@ interface DashboardPageProps {
   onSmartOutreach: () => void
   onCampaigns: () => void
   onVisualization?: () => void
+  onGetStarted?: () => void
 }
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ 
@@ -14,7 +15,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
   onNetworkAnalysis, 
   onSmartOutreach,
   onCampaigns,
-  onVisualization
+  onVisualization,
+  onGetStarted
 }) => {
   const [stats, setStats] = useState({
     totalContacts: 0,
@@ -93,6 +95,43 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-sm md:text-base text-gray-600">Overview of your network and activities</p>
       </div>
+
+      {/* Onboarding Card - Show if user has no or very few contacts */}
+      {stats.totalContacts < 5 && onGetStarted && (
+        <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-6 shadow-sm">
+          <div className="flex items-start space-x-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl flex items-center justify-center">
+                <span className="text-white text-xl">🚀</span>
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Maximize Your TrueCrew Experience
+              </h3>
+              <p className="text-gray-700 mb-4">
+                Get the most out of TrueCrew by importing your LinkedIn connections, Google contacts, 
+                and uploading your professional documents. Our guided setup takes just a few minutes.
+              </p>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={onGetStarted}
+                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-lg hover:from-orange-600 hover:to-amber-700 transition-colors font-medium"
+                >
+                  <span className="mr-2">✨</span> Get Started Guide
+                </button>
+                <span className="text-sm text-gray-500">~5 minutes</span>
+              </div>
+            </div>
+            <button 
+              className="text-gray-400 hover:text-gray-600 p-1"
+              onClick={() => {/* Could add dismiss functionality later */}}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { api } from '../utils/api'
 
 interface Interaction {
   id: string
@@ -25,55 +26,13 @@ const InteractionHistory: React.FC<InteractionHistoryProps> = ({ contactId, cont
     date: new Date().toISOString().split('T')[0]
   })
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
-
   useEffect(() => {
     loadInteractions()
   }, [contactId])
 
   const loadInteractions = async () => {
     try {
-      const token = localStorage.getItem('auth-token')
-      
-      if (token === 'demo-token') {
-        // Demo interactions
-        const demoInteractions = [
-          {
-            id: '1',
-            type: 'email' as const,
-            subject: 'Introduction and coffee chat',
-            notes: 'Reached out for an introduction call. Discussed their current projects and potential collaboration opportunities.',
-            date: '2024-03-15',
-            createdAt: '2024-03-15T10:00:00Z'
-          },
-          {
-            id: '2', 
-            type: 'meeting' as const,
-            subject: 'Coffee meeting downtown',
-            notes: 'Great conversation about industry trends. They mentioned looking for new partnership opportunities in Q2.',
-            date: '2024-03-20',
-            createdAt: '2024-03-20T14:30:00Z'
-          },
-          {
-            id: '3',
-            type: 'linkedin' as const,
-            subject: 'LinkedIn message about conference',
-            notes: 'Connected on LinkedIn after the tech conference. They were interested in our upcoming product launch.',
-            date: '2024-03-25',
-            createdAt: '2024-03-25T16:45:00Z'
-          }
-        ]
-        setInteractions(demoInteractions)
-        setLoading(false)
-        return
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/contacts/${contactId}/interactions`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
+      const response = await api.get(`/api/contacts/${contactId}/interactions`)
 
       if (response.ok) {
         const data = await response.json()
@@ -94,34 +53,13 @@ const InteractionHistory: React.FC<InteractionHistoryProps> = ({ contactId, cont
     if (!newInteraction.notes.trim()) return
 
     try {
-      const token = localStorage.getItem('auth-token')
       const interaction = {
         ...newInteraction,
         id: Date.now().toString(),
         createdAt: new Date().toISOString()
       }
 
-      if (token === 'demo-token') {
-        // Add to local state for demo
-        setInteractions(prev => [interaction, ...prev])
-        setShowAddForm(false)
-        setNewInteraction({
-          type: 'email',
-          subject: '',
-          notes: '',
-          date: new Date().toISOString().split('T')[0]
-        })
-        return
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/contacts/${contactId}/interactions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(interaction)
-      })
+      const response = await api.post(`/api/contacts/${contactId}/interactions`, interaction)
 
       if (response.ok) {
         const savedInteraction = await response.json()

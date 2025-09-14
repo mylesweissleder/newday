@@ -270,7 +270,13 @@ router.post('/bulk', async (req: Request, res: Response) => {
         const { error, value } = createContactSchema.validate(contactData);
         if (error) {
           results.failed++;
-          results.errors.push(`Validation error: ${error.details[0].message}`);
+          const errorMsg = `Validation error: ${error.details[0].message}`;
+          results.errors.push(errorMsg);
+          // Log first few validation errors for debugging
+          if (results.failed <= 5) {
+            console.log(`Validation failed for contact:`, JSON.stringify(contactData, null, 2));
+            console.log(`Error: ${errorMsg}`);
+          }
           continue;
         }
 

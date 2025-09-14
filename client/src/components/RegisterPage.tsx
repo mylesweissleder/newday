@@ -6,7 +6,8 @@ interface RegisterPageProps {
 }
 
 const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
-  const { register, loading, error } = useAuth()
+  const { register } = useAuth()
+  const [loading, setLoading] = useState(false)
   const invitationToken = null // For now, no invitation system
   const [formData, setFormData] = useState({
     email: '',
@@ -64,10 +65,10 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
       return
     }
 
-    console.log('RegisterPage: Starting registration for:', formData.email)
+    console.log('📝 RegisterPage: Starting registration for:', formData.email)
     
-    // Show immediate visual feedback
-    setFormErrors({ submit: 'Creating your account...' })
+    setLoading(true)
+    setFormErrors({})
 
     try {
       const result = await register({
@@ -78,22 +79,21 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
         accountName: formData.accountName
       })
 
-      console.log('RegisterPage: Registration result:', result)
+      console.log('📝 RegisterPage: Registration result:', result)
 
-      if (!result || !result.success) {
-        const errorMessage = result?.error || 'Registration failed. Please try again.'
-        console.error('RegisterPage: Registration failed:', errorMessage)
-        setFormErrors({ submit: errorMessage })
+      if (result.success) {
+        console.log('✅ RegisterPage: Registration successful! App.tsx will handle automatic redirect')
+        // No manual navigation needed - App.tsx will automatically show the app
       } else {
-        console.log('RegisterPage: Registration successful!')
-        setFormErrors({ submit: 'Account created successfully! Redirecting...' })
-        // Registration success also logs the user in (backend sets HTTP-only cookie)
-        // Navigate back immediately - the App component will detect the auth state change
-        onBack()
+        const errorMessage = result?.error || 'Registration failed. Please try again.'
+        console.error('❌ RegisterPage: Registration failed:', errorMessage)
+        setFormErrors({ submit: errorMessage })
       }
     } catch (error) {
-      console.error('RegisterPage: Registration error caught:', error)
+      console.error('🚨 RegisterPage: Registration error caught:', error)
       setFormErrors({ submit: 'Network error. Please check your connection and try again.' })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -251,7 +251,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
               )}
             </div>
 
-            {(error || formErrors.submit) && (
+            {formErrors.submit && (
               <div className={`border rounded-lg p-4 ${
                 formErrors.submit === 'Creating your account...' || formErrors.submit === 'Account created successfully! Redirecting...'
                   ? 'bg-blue-50 border-blue-200' 
@@ -262,7 +262,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBack }) => {
                     ? 'text-blue-600' 
                     : 'text-red-600'
                 }`}>
-                  {error || formErrors.submit}
+                  {formErrors.submit}
                 </p>
               </div>
             )}

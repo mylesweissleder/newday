@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import DocumentsTab from '../components/DocumentsTab';
 
 interface UserProfile {
   id: string;
@@ -11,11 +12,34 @@ interface UserProfile {
   phone?: string;
   timezone?: string;
   role: string;
+  skills?: UserSkill[];
   account: {
     id: string;
     name: string;
     email: string;
   };
+}
+
+interface UserSkill {
+  id: string;
+  skillId: string;
+  type: 'ASK' | 'HAVE';
+  proficiency?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
+  isActive: boolean;
+  notes?: string;
+  skill: {
+    id: string;
+    name: string;
+    category?: string;
+    description?: string;
+  };
+}
+
+interface Skill {
+  id: string;
+  name: string;
+  category?: string;
+  description?: string;
 }
 
 interface AccountInfo {
@@ -38,7 +62,7 @@ interface AccountInfo {
 
 const SettingsPage: React.FC = () => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'skills' | 'documents' | 'account' | 'security'>('profile');
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,6 +75,17 @@ const SettingsPage: React.FC = () => {
     phone: '',
     timezone: ''
   });
+
+  // Skills state
+  const [skills, setSkills] = useState<UserSkill[]>([]);
+  const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
+  const [newSkill, setNewSkill] = useState({
+    skillName: '',
+    type: 'ASK' as 'ASK' | 'HAVE',
+    proficiency: undefined as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT' | undefined,
+    notes: ''
+  });
+  const [showAddSkill, setShowAddSkill] = useState(false);
 
   // Password form state
   const [passwordForm, setPasswordForm] = useState({
@@ -68,16 +103,90 @@ const SettingsPage: React.FC = () => {
 
   useEffect(() => {
     fetchProfile();
+    fetchAvailableSkills();
     if (user?.role === 'ADMIN') {
       fetchAccountInfo();
     }
   }, [user]);
 
+  const fetchAvailableSkills = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/user/skills/available`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const skillsData = await response.json();
+        setAvailableSkills(skillsData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch skills:', error);
+    }
+  };
+
+  const addUserSkill = async () => {
+    if (!newSkill.skillName.trim()) return;
+    
+    setSaving(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/user/skills`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          skillName: newSkill.skillName,
+          type: newSkill.type,
+          proficiency: newSkill.type === 'HAVE' ? newSkill.proficiency : undefined,
+          notes: newSkill.notes || undefined
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setSkills(prev => [...prev, result.userSkill]);
+        setNewSkill({ skillName: '', type: 'ASK', proficiency: undefined, notes: '' });
+        setShowAddSkill(false);
+        setMessage({ type: 'success', text: 'Skill added successfully!' });
+        setTimeout(() => setMessage(null), 3000);
+      } else {
+        const data = await response.json();
+        setMessage({ type: 'error', text: data.error || 'Failed to add skill' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Network error. Please try again.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeUserSkill = async (skillId: string) => {
+    setSaving(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/user/skills/${skillId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        setSkills(prev => prev.filter(s => s.id !== skillId));
+        setMessage({ type: 'success', text: 'Skill removed successfully!' });
+        setTimeout(() => setMessage(null), 3000);
+      } else {
+        const data = await response.json();
+        setMessage({ type: 'error', text: data.error || 'Failed to remove skill' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Network error. Please try again.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
 
       if (response.ok) {
@@ -88,6 +197,7 @@ const SettingsPage: React.FC = () => {
           phone: profileData.phone || '',
           timezone: profileData.timezone || ''
         });
+        setSkills(profileData.skills || []);
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -98,9 +208,8 @@ const SettingsPage: React.FC = () => {
 
   const fetchAccountInfo = async () => {
     try {
-      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/account`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
 
       if (response.ok) {
@@ -116,13 +225,12 @@ const SettingsPage: React.FC = () => {
   const updateProfile = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(profileForm)
       });
 
@@ -150,13 +258,12 @@ const SettingsPage: React.FC = () => {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/password`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(passwordForm)
       });
 
@@ -179,13 +286,12 @@ const SettingsPage: React.FC = () => {
   const updateAccount = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/account`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(accountForm)
       });
 
@@ -213,13 +319,12 @@ const SettingsPage: React.FC = () => {
     const imageUrl = `https://via.placeholder.com/150?text=${encodeURIComponent(profile?.firstName?.[0] || 'U')}`;
 
     try {
-      const token = localStorage.getItem('auth-token');
       const response = await fetch(`${API_BASE_URL}/api/user/profile-picture`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ imageUrl })
       });
 
@@ -269,6 +374,7 @@ const SettingsPage: React.FC = () => {
             <nav className="flex space-x-8 px-6">
               {[
                 { key: 'profile' as const, label: 'Profile', icon: '👤' },
+                { key: 'skills' as const, label: 'Skills & Resources', icon: '🎯' },
                 { key: 'security' as const, label: 'Security', icon: '🔒' },
                 ...(user?.role === 'ADMIN' ? [{ key: 'account' as const, label: 'Account', icon: '🏢' }] : [])
               ].map((tab) => (
@@ -455,6 +561,202 @@ const SettingsPage: React.FC = () => {
                     Sign Out
                   </button>
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'skills' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium text-gray-900">Skills & Resources</h3>
+                  <button
+                    onClick={() => setShowAddSkill(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm font-medium"
+                  >
+                    Add Skill
+                  </button>
+                </div>
+
+                <div className="text-sm text-gray-600 mb-4">
+                  <p>Manage what you <span className="font-medium text-green-600">offer</span> and what you <span className="font-medium text-blue-600">need</span> to connect with the right people in your network.</p>
+                </div>
+
+                {/* Skills Lists */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* What I Offer (HAVE) */}
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="text-md font-medium text-green-800 mb-3 flex items-center">
+                      <span className="mr-2">🤝</span> What I Offer
+                    </h4>
+                    <div className="space-y-2">
+                      {skills.filter(skill => skill.type === 'HAVE').length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">No skills added yet</p>
+                      ) : (
+                        skills.filter(skill => skill.type === 'HAVE').map((skill) => (
+                          <div key={skill.id} className="flex items-center justify-between bg-white border border-green-200 rounded-md p-3">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium text-gray-900">{skill.skill.name}</span>
+                                {skill.proficiency && (
+                                  <span className={`px-2 py-1 text-xs rounded-full ${
+                                    skill.proficiency === 'EXPERT' ? 'bg-purple-100 text-purple-700' :
+                                    skill.proficiency === 'ADVANCED' ? 'bg-blue-100 text-blue-700' :
+                                    skill.proficiency === 'INTERMEDIATE' ? 'bg-green-100 text-green-700' :
+                                    'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {skill.proficiency}
+                                  </span>
+                                )}
+                              </div>
+                              {skill.notes && (
+                                <p className="text-sm text-gray-600 mt-1">{skill.notes}</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => removeUserSkill(skill.id)}
+                              className="text-red-500 hover:text-red-700 p-1"
+                              title="Remove skill"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* What I Need (ASK) */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-md font-medium text-blue-800 mb-3 flex items-center">
+                      <span className="mr-2">🎯</span> What I Need
+                    </h4>
+                    <div className="space-y-2">
+                      {skills.filter(skill => skill.type === 'ASK').length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">No needs added yet</p>
+                      ) : (
+                        skills.filter(skill => skill.type === 'ASK').map((skill) => (
+                          <div key={skill.id} className="flex items-center justify-between bg-white border border-blue-200 rounded-md p-3">
+                            <div className="flex-1">
+                              <span className="font-medium text-gray-900">{skill.skill.name}</span>
+                              {skill.notes && (
+                                <p className="text-sm text-gray-600 mt-1">{skill.notes}</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => removeUserSkill(skill.id)}
+                              className="text-red-500 hover:text-red-700 p-1"
+                              title="Remove need"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Add Skill Modal */}
+                {showAddSkill && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg max-w-md w-full p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-medium text-gray-900">Add Skill or Need</h4>
+                        <button
+                          onClick={() => setShowAddSkill(false)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Type
+                          </label>
+                          <select
+                            value={newSkill.type}
+                            onChange={(e) => setNewSkill(prev => ({ ...prev, type: e.target.value as 'ASK' | 'HAVE' }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="ASK">🎯 What I Need</option>
+                            <option value="HAVE">🤝 What I Offer</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Skill Name
+                          </label>
+                          <input
+                            type="text"
+                            value={newSkill.skillName}
+                            onChange={(e) => setNewSkill(prev => ({ ...prev, skillName: e.target.value }))}
+                            placeholder="e.g., React Development, Marketing Strategy..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+
+                        {newSkill.type === 'HAVE' && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Proficiency Level
+                            </label>
+                            <select
+                              value={newSkill.proficiency || ''}
+                              onChange={(e) => setNewSkill(prev => ({ 
+                                ...prev, 
+                                proficiency: e.target.value as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT' | undefined 
+                              }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                              <option value="">Select level...</option>
+                              <option value="BEGINNER">Beginner</option>
+                              <option value="INTERMEDIATE">Intermediate</option>
+                              <option value="ADVANCED">Advanced</option>
+                              <option value="EXPERT">Expert</option>
+                            </select>
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Notes (Optional)
+                          </label>
+                          <textarea
+                            value={newSkill.notes}
+                            onChange={(e) => setNewSkill(prev => ({ ...prev, notes: e.target.value }))}
+                            placeholder="Additional details or context..."
+                            rows={3}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+
+                        <div className="flex space-x-3 pt-4">
+                          <button
+                            onClick={addUserSkill}
+                            disabled={saving || !newSkill.skillName.trim()}
+                            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                          >
+                            {saving ? 'Adding...' : 'Add Skill'}
+                          </button>
+                          <button
+                            onClick={() => setShowAddSkill(false)}
+                            className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

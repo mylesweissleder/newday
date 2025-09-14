@@ -153,9 +153,10 @@ const OpportunityDashboard: React.FC = () => {
   const fetchDashboard = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/opportunities/dashboard?accountId=user-account-id', {
+      const response = await fetch('https://network-crm-api.onrender.com/api/opportunities/dashboard?accountId=user-account-id', {
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         }
       });
       
@@ -176,10 +177,10 @@ const OpportunityDashboard: React.FC = () => {
     notes?: string
   ) => {
     try {
-      await fetch(`/api/opportunities/${opportunityId}/${action}`, {
+      await fetch(`https://network-crm-api.onrender.com/api/opportunities/${opportunityId}/${action}`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

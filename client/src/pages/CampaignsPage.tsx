@@ -50,12 +50,11 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ onBack }) => {
         params.append('status', selectedStatus)
       }
       
-      const response = await fetch(`/api/campaigns?${params}`, {
+      const response = await fetch(`https://network-crm-api.onrender.com/api/campaigns?${params}`, {
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
-        },
-        credentials: 'include'
+        }
       })
 
       if (response.ok) {

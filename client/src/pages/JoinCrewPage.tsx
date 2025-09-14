@@ -16,11 +16,10 @@ const JoinCrewPage: React.FC = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
+  const API_BASE_URL = 'https://network-crm-api.onrender.com'
 
   const getApiHeaders = () => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
+    'Content-Type': 'application/json'
   })
 
   const searchCrew = async () => {
@@ -35,6 +34,7 @@ const JoinCrewPage: React.FC = () => {
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/crew/search/${joinCode.trim().toUpperCase()}`, {
+        credentials: 'include',
         headers: getApiHeaders()
       })
 
@@ -60,6 +60,7 @@ const JoinCrewPage: React.FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/crew/join-request`, {
         method: 'POST',
+        credentials: 'include',
         headers: getApiHeaders(),
         body: JSON.stringify({ joinCode: joinCode.trim().toUpperCase() })
       })
@@ -77,7 +78,7 @@ const JoinCrewPage: React.FC = () => {
             role: data.user.role
           }
           setUser(updatedUser)
-          localStorage.setItem('user-data', JSON.stringify(updatedUser))
+          // User data now managed via session cookies
         }
 
         // Clear form

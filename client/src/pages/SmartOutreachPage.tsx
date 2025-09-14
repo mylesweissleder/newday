@@ -48,7 +48,7 @@ const SmartOutreachPage: React.FC<SmartOutreachPageProps> = ({ onBack }) => {
   const [generatingMessages, setGeneratingMessages] = useState(false)
   const [generatedMessages, setGeneratedMessages] = useState<GeneratedMessage[]>([])
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
+  const API_BASE_URL = 'https://network-crm-api.onrender.com'
 
   useEffect(() => {
     loadContacts()
@@ -57,7 +57,7 @@ const SmartOutreachPage: React.FC<SmartOutreachPageProps> = ({ onBack }) => {
 
   const loadContacts = async () => {
     try {
-      const token = localStorage.getItem('auth-token')
+      const token = 'production-token'
       
       if (token === 'demo-token') {
         // Demo contacts
@@ -108,8 +108,8 @@ const SmartOutreachPage: React.FC<SmartOutreachPageProps> = ({ onBack }) => {
       }
 
       const response = await fetch(`${API_BASE_URL}/api/contacts`, {
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
@@ -128,7 +128,7 @@ const SmartOutreachPage: React.FC<SmartOutreachPageProps> = ({ onBack }) => {
 
   const loadCampaigns = async () => {
     try {
-      const token = localStorage.getItem('auth-token')
+      const token = 'production-token'
       
       if (token === 'demo-token') {
         // Demo campaigns
@@ -172,7 +172,7 @@ const SmartOutreachPage: React.FC<SmartOutreachPageProps> = ({ onBack }) => {
     setGeneratingMessages(true)
     
     try {
-      const token = localStorage.getItem('auth-token')
+      const token = 'production-token'
       
       if (token === 'demo-token') {
         // Demo fallback with rule-based generation
@@ -197,8 +197,8 @@ const SmartOutreachPage: React.FC<SmartOutreachPageProps> = ({ onBack }) => {
       // Real OpenAI API integration
       const response = await fetch(`${API_BASE_URL}/api/ai/generate-outreach`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

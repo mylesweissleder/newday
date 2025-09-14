@@ -6,6 +6,7 @@ let resend: Resend | null = null;
 
 if (resendApiKey) {
   resend = new Resend(resendApiKey);
+  console.log('✅ Resend initialized with API key:', resendApiKey.substring(0, 10) + '...');
 } else {
   console.warn('⚠️ RESEND_API_KEY not found in environment variables - email functionality disabled');
 }
@@ -29,7 +30,11 @@ export class EmailService {
   }
 
   async sendEmail(template: EmailTemplate) {
+    console.log('📧 Attempting to send email to:', template.to);
+    console.log('📧 From address:', this.fromAddress);
+    
     if (!resend) {
+      console.error('❌ Resend client is null - checking env:', process.env.RESEND_API_KEY ? 'API key exists' : 'NO API KEY');
       throw new Error('Email service not initialized - RESEND_API_KEY missing');
     }
 
@@ -43,14 +48,14 @@ export class EmailService {
       });
 
       if (error) {
-        console.error('Email sending error:', error);
-        throw new Error(`Failed to send email: ${error.message}`);
+        console.error('❌ Resend API error:', JSON.stringify(error, null, 2));
+        throw new Error(`Failed to send email: ${error.message || JSON.stringify(error)}`);
       }
 
-      console.log('Email sent successfully:', data);
+      console.log('✅ Email sent successfully:', data);
       return data;
     } catch (error) {
-      console.error('Email service error:', error);
+      console.error('❌ Email service error:', error);
       throw error;
     }
   }

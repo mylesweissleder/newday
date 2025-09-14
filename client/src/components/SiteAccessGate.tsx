@@ -12,26 +12,46 @@ const SiteAccessGate: React.FC<SiteAccessGateProps> = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if already authenticated
-    const savedToken = localStorage.getItem('site-access-token')
-    if (savedToken) {
-      setIsAuthenticated(true)
+    // Check authentication via API session
+    checkAuthStatus()
+  }, [])
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch('https://network-crm-api.onrender.com/api/auth/check', {
+        credentials: 'include'
+      })
+      if (response.ok) {
+        setIsAuthenticated(true)
+      }
+    } catch (error) {
+      console.log('Not authenticated')
     }
     setLoading(false)
-  }, [])
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    // Simple password check - in production this would validate with backend
-    if (password === 'NetworkCRM2025!') {
-      localStorage.setItem('site-access-token', 'authenticated')
-      localStorage.setItem('site-password', password)
-      setIsAuthenticated(true)
-    } else {
-      setError('Invalid password')
+    try {
+      const response = await fetch('https://network-crm-api.onrender.com/api/auth/site-access', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password })
+      })
+
+      if (response.ok) {
+        setIsAuthenticated(true)
+      } else {
+        setError('Invalid password')
+      }
+    } catch (error) {
+      setError('Authentication failed')
     }
     
     setLoading(false)

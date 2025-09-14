@@ -14,11 +14,12 @@ import CrewManagementPage from './pages/CrewManagementPage'
 import JoinCrewPage from './pages/JoinCrewPage'
 import CampaignsPage from './pages/CampaignsPage'
 import NetworkVisualizationPage from './pages/NetworkVisualizationPage'
+import OnboardingPage from './pages/OnboardingPage'
 import LoadingSpinner from './components/LoadingSpinner'
 import NetworkChatbot from './components/NetworkChatbot'
 import AcceptInvitationPage from './components/AcceptInvitationPage'
 
-type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'opportunities' | 'contacts' | 'campaigns' | 'visualization' | 'about' | 'settings' | 'crew' | 'join-crew'
+type Page = 'dashboard' | 'import' | 'analysis' | 'outreach' | 'opportunities' | 'contacts' | 'campaigns' | 'visualization' | 'about' | 'settings' | 'crew' | 'join-crew' | 'onboarding'
 type AppView = 'landing' | 'login' | 'app'
 
 function App() {
@@ -116,6 +117,12 @@ function App() {
                       className={`text-sm font-medium ${currentPage === 'join-crew' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                       Join Crew
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage('onboarding')}
+                      className={`text-sm font-medium ${currentPage === 'onboarding' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                      Get Started
                     </button>
                     <button
                       onClick={() => setCurrentPage('about')}
@@ -233,6 +240,14 @@ function App() {
                       Join Crew
                     </button>
                     <button
+                      onClick={() => {setCurrentPage('onboarding'); setMobileMenuOpen(false)}}
+                      className={`flex items-center w-full text-left px-4 py-3 rounded-lg text-base font-medium transition-colors ${
+                        currentPage === 'onboarding' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
+                      }`}
+                    >
+                      Get Started
+                    </button>
+                    <button
                       onClick={() => {setCurrentPage('about'); setMobileMenuOpen(false)}}
                       className={`flex items-center w-full text-left px-4 py-3 rounded-lg text-base font-medium transition-colors ${
                         currentPage === 'about' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
@@ -285,6 +300,7 @@ function App() {
                 onSmartOutreach={() => setCurrentPage('outreach')}
                 onCampaigns={() => setCurrentPage('campaigns')}
                 onVisualization={() => setCurrentPage('visualization')}
+                onGetStarted={() => setCurrentPage('onboarding')}
               />
             )}
             {currentPage === 'import' && (
@@ -319,6 +335,12 @@ function App() {
             )}
             {currentPage === 'join-crew' && (
               <JoinCrewPage />
+            )}
+            {currentPage === 'onboarding' && (
+              <OnboardingPage 
+                onComplete={() => setCurrentPage('dashboard')}
+                onBack={() => setCurrentPage('dashboard')}
+              />
             )}
           </main>
           

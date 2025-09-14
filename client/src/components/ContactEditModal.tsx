@@ -89,8 +89,9 @@ const ContactEditModal: React.FC<ContactEditModalProps> = ({
       onClose()
     } catch (error) {
       console.error('Failed to save contact:', error)
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   if (!isOpen || !contact) return null

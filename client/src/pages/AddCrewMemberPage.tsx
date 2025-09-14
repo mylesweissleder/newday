@@ -8,11 +8,10 @@ const AddCrewMemberPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://network-crm-api.onrender.com'
+  const API_BASE_URL = 'https://network-crm-api.onrender.com'
   
   const getApiHeaders = () => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
+    'Content-Type': 'application/json'
   })
   
   const handleSearch = async () => {
@@ -23,6 +22,7 @@ const AddCrewMemberPage: React.FC = () => {
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/crew/search?email=${encodeURIComponent(searchEmail)}`, {
+        credentials: 'include',
         headers: getApiHeaders()
       })
       
@@ -49,6 +49,7 @@ const AddCrewMemberPage: React.FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/crew/add-member`, {
         method: 'POST',
+        credentials: 'include',
         headers: getApiHeaders(),
         body: JSON.stringify({ userId })
       })

@@ -44,13 +44,12 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({ onClose, onCa
     setError('')
 
     try {
-      const response = await fetch('/api/campaigns', {
+      const response = await fetch('https://network-crm-api.onrender.com/api/campaigns', {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
-        credentials: 'include',
         body: JSON.stringify({
           ...formData,
           startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,

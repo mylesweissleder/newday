@@ -1,0 +1,316 @@
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:00:00.316Z"}
+info: HTTP server closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:00:00.321Z"}
+info: Database connection closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:00:00.328Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:00:01.166Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:00:01.167Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:00:01.175Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:00:01.175Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:00:01.175Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:00:01.175Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:03:22.567Z"}
+info: HTTP server closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:03:22.568Z"}
+info: Database connection closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:03:22.576Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:03:23.211Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:03:23.215Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:03:23.227Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:03:23.227Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:03:23.227Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-09T23:03:23.227Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:20:17.944Z"}
+info: HTTP server closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:20:17.986Z"}
+info: Database connection closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:20:18.025Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:20:19.312Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:20:19.321Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:20:19.353Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:20:19.353Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:20:19.354Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:20:19.354Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:30:06.274Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:30:06.275Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:30:06.294Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:30:06.294Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:30:06.294Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:30:06.294Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:35:50.790Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:35:52.253Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:35:52.258Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:35:52.302Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:35:52.302Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:35:52.303Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:35:52.303Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:36:07.190Z"}
+info: HTTP server closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:36:07.191Z"}
+info: Database connection closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:36:07.198Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:36:07.784Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:36:07.786Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:36:07.794Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:36:07.794Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:36:07.794Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:36:07.794Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:44:57.407Z"}
+info: HTTP server closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:44:57.408Z"}
+info: Database connection closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:44:57.414Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:44:57.949Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:44:57.950Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:44:57.959Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:44:57.959Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:44:57.959Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:44:57.959Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:45:14.536Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:45:15.060Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:45:15.061Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:45:15.069Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:45:15.069Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:45:15.069Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T00:45:15.069Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:19.050Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:24.502Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:24.504Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:24.520Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:24.520Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:24.520Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:24.520Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:44.684Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:45.193Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:45.194Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:45.202Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:45.202Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:45.202Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T17:55:45.202Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:07.580Z"}
+info: HTTP server closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:07.598Z"}
+info: Database connection closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:07.618Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:08.250Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:08.257Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:08.283Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:08.284Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:08.284Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:08.284Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:16.547Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:17.188Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:17.189Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:17.197Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:17.197Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:17.197Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:35:17.197Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:13.995Z"}
+info: HTTP server closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:13.997Z"}
+info: Database connection closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:14.004Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:14.594Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:14.597Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:14.604Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:14.605Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:14.605Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:14.605Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:41.151Z"}
+warn: Environment configuration warnings: {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:41.757Z","warnings":["Email configuration incomplete - email features may not work"]}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:41.760Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:41.769Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:41.770Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:41.770Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T18:37:41.771Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:02:49.615Z"}
+info: HTTP server closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:02:49.626Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:02:55.217Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:02:55.324Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:02:55.324Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:02:55.324Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:02:55.324Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:14.116Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:14.880Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:14.889Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:14.889Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:14.889Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:14.889Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:20.091Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:21.230Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:21.241Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:21.241Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:21.241Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:21.241Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:39.530Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:41.008Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:41.016Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:41.016Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:41.017Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:04:41.017Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:08:44.385Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:08:45.251Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:08:45.262Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:08:45.262Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:08:45.262Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:08:45.262Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:09:14.330Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:09:14.854Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:09:14.864Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:09:14.864Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:09:14.865Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:09:14.865Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:10:20.746Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:10:21.594Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:10:21.607Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:10:21.607Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:10:21.607Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:10:21.608Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:12:56.853Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:12:58.289Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:12:58.299Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:12:58.299Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:12:58.299Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:12:58.299Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:13:14.232Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:13:14.763Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:13:14.772Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:13:14.772Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:13:14.772Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:13:14.772Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:50.274Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:51.108Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:51.117Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:51.117Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:51.117Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:51.118Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:57.381Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:57.684Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:57.693Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:57.693Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:57.693Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:16:57.693Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:04.867Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:05.266Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:05.287Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:05.287Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:05.287Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:05.287Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:28.511Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:29.129Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:29.138Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:29.138Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:29.138Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:17:29.138Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:36:02.863Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:36:37.926Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:36:37.946Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:36:37.946Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:36:37.947Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:36:37.947Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:56:09.211Z"}
+info: HTTP server closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:56:09.217Z"}
+info: Database connection closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:56:09.224Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:56:10.331Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:56:10.353Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:56:10.353Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:56:10.353Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T22:56:10.353Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:01:09.299Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:01:09.886Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:01:09.902Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:01:09.902Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:01:09.902Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:01:09.903Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:08:56.050Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:09:16.606Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:09:16.626Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:09:16.626Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:09:16.626Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:09:16.626Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:14:55.446Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:14:56.079Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:14:56.088Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:14:56.088Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:14:56.088Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:14:56.088Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:16.778Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:17.290Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:17.299Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:17.299Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:17.300Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:17.300Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:40.331Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:40.852Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:40.862Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:40.862Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:40.863Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:40.863Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:49.354Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:50.540Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:50.575Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:50.575Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:50.575Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:50.576Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:58.761Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:59.750Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:59.760Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:59.760Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:59.760Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:15:59.760Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:16:30.032Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:16:30.535Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:16:30.545Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:16:30.545Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:16:30.545Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:16:30.545Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:19.553Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:20.131Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:20.141Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:20.141Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:20.141Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:20.141Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:36.420Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:36.916Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:36.926Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:36.926Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:36.926Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-10T23:17:36.926Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-12T21:06:48.195Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T18:43:00.500Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T18:43:00.733Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T18:43:00.733Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T18:43:00.733Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T18:43:00.734Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:14:56.456Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:14:57.629Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:14:57.652Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:14:57.652Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:14:57.652Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:14:57.652Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:15:12.915Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:15:13.482Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:15:13.491Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:15:13.491Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:15:13.492Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-13T20:15:13.492Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T01:55:22.309Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T01:55:23.343Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T01:55:23.378Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T01:55:23.378Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T01:55:23.379Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T01:55:23.379Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:48:33.123Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:48:33.787Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:48:33.816Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:48:33.816Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:48:33.816Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:48:33.816Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:49:03.094Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:49:03.701Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:49:03.713Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:49:03.713Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:49:03.714Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T02:49:03.714Z"}
+warn: Security event {"category":"security","environment":"development","event":"SQL injection attempt detected","ip":"::1","method":"POST","service":"network-crm-server","suspiciousData":{"email":"test@example.com","name":"John OR 1=1; DROP TABLE users;--"},"timestamp":"2025-09-14T02:54:10.248Z","url":"/api/users"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:34:54.636Z"}
+info: HTTP server closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:34:54.640Z"}
+info: Database connection closed {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:34:54.648Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:34:55.622Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:34:55.637Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:34:55.637Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:34:55.637Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:34:55.637Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:47:18.306Z"}
+info: Environment validation successful {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:47:18.852Z"}
+info: 🚀 Network CRM Server running on port 3002 (optimized) {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:47:18.861Z"}
+info: 📊 Environment: development {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:47:18.861Z"}
+info: 🔒 Security features enabled: Rate limiting, Helmet, CORS {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:47:18.861Z"}
+info: 📝 Structured logging active {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:47:18.861Z"}
+info: Received SIGTERM, shutting down gracefully... {"environment":"development","service":"network-crm-server","timestamp":"2025-09-14T03:51:09.622Z"}

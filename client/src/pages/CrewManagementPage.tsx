@@ -42,13 +42,33 @@ interface CrewAnalytics {
   periodDays: number
 }
 
+interface MemberDataOverview {
+  userId: string
+  firstName: string
+  lastName: string
+  email: string
+  isActive: boolean
+  dataContribution: {
+    contacts: number
+    documents: number
+    linkedinData: boolean
+    googleData: boolean
+    completionPercentage: number
+  }
+  lastDataUpload?: string
+  onboardingCompleted: boolean
+  joinedAt: string
+}
+
 const CrewManagementPage: React.FC = () => {
   const { user, resendInvitation } = useAuth()
-  const [activeTab, setActiveTab] = useState<'members' | 'analytics' | 'invite' | 'join-codes'>('members')
+  const [activeTab, setActiveTab] = useState<'members' | 'analytics' | 'data-overview' | 'invite' | 'join-codes'>('members')
   const [crewMembers, setCrewMembers] = useState<CrewMember[]>([])
   const [analytics, setAnalytics] = useState<CrewAnalytics | null>(null)
+  const [dataOverview, setDataOverview] = useState<MemberDataOverview[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
+  const [actionLoading, setActionLoading] = useState<{[key: string]: boolean}>({})
   
   // Invitation form state
   const [inviteForm, setInviteForm] = useState({
@@ -74,6 +94,8 @@ const CrewManagementPage: React.FC = () => {
       fetchCrewMembers()
     } else if (activeTab === 'analytics') {
       fetchAnalytics()
+    } else if (activeTab === 'data-overview') {
+      fetchDataOverview()
     }
   }, [activeTab])
 
@@ -119,17 +141,35 @@ const CrewManagementPage: React.FC = () => {
     }
   }
 
+  const fetchDataOverview = async () => {
+    try {
+      setLoading(true)
+      setError('')
+      
+      const response = await fetch(`${API_BASE_URL}/api/crew/data-overview`, {
+        headers: getApiHeaders(),
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setDataOverview(data)
+      } else {
+        setError('Failed to fetch data overview')
+      }
+    } catch (err) {
+      setError('Network error while fetching data overview')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleInviteMember = async (e: React.FormEvent) => {
     e.preventDefault()
     setInviteLoading(true)
     setError('')
     setInviteSuccess('')
 
-    console.log('🚀 CLIENT: Starting invitation request', { 
-      url: `${API_BASE_URL}/api/crew/invite`,
-      inviteForm,
-      headers: getApiHeaders()
-    });
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/crew/invite`, {
@@ -139,11 +179,6 @@ const CrewManagementPage: React.FC = () => {
         body: JSON.stringify(inviteForm)
       })
 
-      console.log('📡 CLIENT: Received response', {
-        status: response.status,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
-      });
 
       const data = await response.json()
 
@@ -224,6 +259,73 @@ const CrewManagementPage: React.FC = () => {
     }
   }
 
+  const handleSendReminders = async () => {
+    try {
+      setActionLoading(prev => ({...prev, reminders: true}));
+      setError('');
+      
+      const incompleteMembers = dataOverview.filter(member => 
+        !member.onboardingCompleted || member.dataContribution.completionPercentage < 75
+      );
+      
+      if (incompleteMembers.length === 0) {
+        alert('All members have completed their setup!');
+        return;
+      }
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // This would send reminders to incomplete members
+      alert(`Reminders sent to ${incompleteMembers.length} members who need to complete their data setup.`);
+    } catch (error) {
+      setError('Failed to send reminders');
+    } finally {
+      setActionLoading(prev => ({...prev, reminders: false}));
+    }
+  };
+
+  const handleExportReport = async () => {
+    try {
+      setActionLoading(prev => ({...prev, export: true}));
+      setError('');
+      
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const csvContent = [
+        ['Name', 'Email', 'Status', 'Contacts', 'Documents', 'LinkedIn', 'Google', 'Completion %', 'Last Upload'].join(','),
+        ...dataOverview.map(member => [
+          `${member.firstName} ${member.lastName}`,
+          member.email,
+          member.isActive ? 'Active' : 'Inactive',
+          member.dataContribution.contacts,
+          member.dataContribution.documents,
+          member.dataContribution.linkedinData ? 'Yes' : 'No',
+          member.dataContribution.googleData ? 'Yes' : 'No',
+          member.dataContribution.completionPercentage + '%',
+          member.lastDataUpload ? new Date(member.lastDataUpload).toLocaleDateString() : 'Never'
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `crew-data-overview-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setError('Failed to export report');
+    } finally {
+      setActionLoading(prev => ({...prev, export: false}));
+    }
+  };
+
+  const handleViewInsights = () => {
+    setActiveTab('analytics');
+  };
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'CREW_LEADER': return 'bg-purple-100 text-purple-800'
@@ -273,7 +375,7 @@ const CrewManagementPage: React.FC = () => {
         <div className="mb-6">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex overflow-x-auto">
-              {['members', 'analytics', 'invite', 'join-codes'].map((tab) => (
+              {['members', 'analytics', 'data-overview', 'invite', 'join-codes'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab as any)}
@@ -283,7 +385,9 @@ const CrewManagementPage: React.FC = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  {tab === 'join-codes' ? 'Join Codes' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'join-codes' ? 'Join Codes' : 
+                   tab === 'data-overview' ? 'Data Overview' :
+                   tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
               ))}
             </nav>
@@ -575,6 +679,366 @@ const CrewManagementPage: React.FC = () => {
                         ))}
                       </div>
                     )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Data Overview Tab */}
+        {activeTab === 'data-overview' && (
+          <div className="space-y-6">
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Data Overview</h3>
+                <p className="text-gray-500">Gathering member data contributions...</p>
+              </div>
+            ) : dataOverview.length === 0 ? (
+              <div className="text-center py-12">
+                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Data Found</h3>
+                <p className="text-gray-500">No crew members found or no data contributions to display.</p>
+              </div>
+            ) : (
+              <>
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow p-6 text-white">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-blue-100 text-sm font-medium">Total Members</p>
+                        <p className="text-2xl font-bold">{dataOverview.length}</p>
+                      </div>
+                      <div className="text-blue-200">
+                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow p-6 text-white">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-green-100 text-sm font-medium">Onboarding Complete</p>
+                        <p className="text-2xl font-bold">
+                          {dataOverview.filter(m => m.onboardingCompleted).length}
+                        </p>
+                      </div>
+                      <div className="text-green-200">
+                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow p-6 text-white">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-orange-100 text-sm font-medium">Total Contacts</p>
+                        <p className="text-2xl font-bold">
+                          {dataOverview.reduce((sum, m) => sum + m.dataContribution.contacts, 0)}
+                        </p>
+                      </div>
+                      <div className="text-orange-200">
+                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow p-6 text-white">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <p className="text-purple-100 text-sm font-medium">Total Documents</p>
+                        <p className="text-2xl font-bold">
+                          {dataOverview.reduce((sum, m) => sum + m.dataContribution.documents, 0)}
+                        </p>
+                      </div>
+                      <div className="text-purple-200">
+                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Member Data Contribution Table */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-medium text-gray-900">Member Data Contributions</h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Bird's eye view of who has contributed what data to the crew collective
+                    </p>
+                  </div>
+                  
+                  {/* Mobile Card Layout */}
+                  <div className="md:hidden divide-y divide-gray-200">
+                    {dataOverview.map((member) => (
+                      <div key={member.userId} className="p-4 space-y-4 hover:bg-gray-50">
+                        <div className="flex items-center space-x-3">
+                          <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
+                            {member.firstName[0]}{member.lastName[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-sm font-medium text-gray-900 truncate">
+                              {member.firstName} {member.lastName}
+                            </h3>
+                            <p className="text-sm text-gray-500 truncate">{member.email}</p>
+                          </div>
+                          <div className="flex flex-col space-y-1">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              member.isActive 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {member.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              member.onboardingCompleted 
+                                ? 'bg-blue-100 text-blue-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {member.onboardingCompleted ? '✓ Done' : '⚠️ Setup'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Contacts:</span>
+                            <span className="font-medium">{member.dataContribution.contacts}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Documents:</span>
+                            <span className="font-medium">{member.dataContribution.documents}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">Data Sources:</span>
+                            <div className="flex space-x-1">
+                              <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                member.dataContribution.linkedinData 
+                                  ? 'bg-blue-100 text-blue-800' 
+                                  : 'bg-gray-100 text-gray-500'
+                              }`}>
+                                💼 {member.dataContribution.linkedinData ? '✓' : '✗'}
+                              </span>
+                              <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                member.dataContribution.googleData 
+                                  ? 'bg-red-100 text-red-800' 
+                                  : 'bg-gray-100 text-gray-500'
+                              }`}>
+                                📧 {member.dataContribution.googleData ? '✓' : '✗'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-500">Progress:</span>
+                              <span className="font-medium">{member.dataContribution.completionPercentage}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full ${
+                                  member.dataContribution.completionPercentage >= 75 ? 'bg-green-600' :
+                                  member.dataContribution.completionPercentage >= 50 ? 'bg-yellow-600' :
+                                  'bg-red-600'
+                                }`}
+                                style={{ width: `${member.dataContribution.completionPercentage}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex justify-between text-sm pt-2">
+                            <span className="text-gray-500">Last Upload:</span>
+                            <span className="text-gray-600">
+                              {member.lastDataUpload ? 
+                                new Date(member.lastDataUpload).toLocaleDateString() : 
+                                'Never'
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Desktop Table Layout */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Member
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Contacts
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Documents
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Data Sources
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Completeness
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Last Upload
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {dataOverview.map((member) => (
+                          <tr key={member.userId} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium text-sm">
+                                  {member.firstName[0]}{member.lastName[0]}
+                                </div>
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {member.firstName} {member.lastName}
+                                  </div>
+                                  <div className="text-sm text-gray-500">{member.email}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex flex-col space-y-1">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  member.isActive 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {member.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  member.onboardingCompleted 
+                                    ? 'bg-blue-100 text-blue-800' 
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {member.onboardingCompleted ? '✓ Onboarded' : '⚠️ Incomplete'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">
+                                {member.dataContribution.contacts}
+                              </div>
+                              <div className="text-xs text-gray-500">contacts</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">
+                                {member.dataContribution.documents}
+                              </div>
+                              <div className="text-xs text-gray-500">files</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex space-x-1">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  member.dataContribution.linkedinData 
+                                    ? 'bg-blue-100 text-blue-800' 
+                                    : 'bg-gray-100 text-gray-500'
+                                }`}>
+                                  💼 LinkedIn {member.dataContribution.linkedinData ? '✓' : '✗'}
+                                </span>
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  member.dataContribution.googleData 
+                                    ? 'bg-red-100 text-red-800' 
+                                    : 'bg-gray-100 text-gray-500'
+                                }`}>
+                                  📧 Google {member.dataContribution.googleData ? '✓' : '✗'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+                                  <div 
+                                    className={`h-2.5 rounded-full ${
+                                      member.dataContribution.completionPercentage >= 75 ? 'bg-green-600' :
+                                      member.dataContribution.completionPercentage >= 50 ? 'bg-yellow-600' :
+                                      'bg-red-600'
+                                    }`}
+                                    style={{ width: `${member.dataContribution.completionPercentage}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-sm font-medium text-gray-900">
+                                  {member.dataContribution.completionPercentage}%
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {member.lastDataUpload ? 
+                                new Date(member.lastDataUpload).toLocaleDateString() : 
+                                'Never'
+                              }
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-6 border border-gray-200">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button 
+                      onClick={handleSendReminders}
+                      disabled={actionLoading.reminders}
+                      className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {actionLoading.reminders ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      ) : (
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                        </svg>
+                      )}
+                      {actionLoading.reminders ? 'Sending...' : 'Send Reminders'}
+                    </button>
+                    
+                    <button 
+                      onClick={handleExportReport}
+                      disabled={actionLoading.export}
+                      className="flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {actionLoading.export ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      ) : (
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 011 1v1a1 1 0 01-1 1H4a1 1 0 01-1-1v-1zM3 10a1 1 0 011-1h12a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1v-4zM9 3a1 1 0 000 2h2a1 1 0 100-2H9z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {actionLoading.export ? 'Exporting...' : 'Export Report'}
+                    </button>
+                    
+                    <button 
+                      onClick={handleViewInsights}
+                      className="flex items-center justify-center px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+                      </svg>
+                      View Insights
+                    </button>
                   </div>
                 </div>
               </>

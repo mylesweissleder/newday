@@ -985,4 +985,98 @@ router.post('/add-member', async (req: Request, res: Response) => {
   }
 });
 
+// Get crew member data overview
+router.get('/data-overview', async (req: Request, res: Response) => {
+  try {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user!.id }
+    });
+
+    if (!currentUser || !hasCrewPermissions(currentUser.role)) {
+      return res.status(403).json({ error: 'Crew leadership access required' });
+    }
+
+    const accountId = req.user!.accountId;
+
+    // Get all crew members with their data contributions
+    const crewMembers = await prisma.user.findMany({
+      where: { 
+        accountId,
+        isActive: true
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        isActive: true,
+        createdAt: true,
+        invitedAt: true,
+        acceptedAt: true,
+        lastLoginAt: true,
+        _count: {
+          select: {
+            contacts: {
+              where: { status: 'ACTIVE' }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Get document/upload counts per user (assuming you have an uploads table)
+    // This is a placeholder - adjust based on your actual schema
+    const memberDataOverview = await Promise.all(
+      crewMembers.map(async (member) => {
+        // Get contact count
+        const contactCount = member._count.contacts;
+
+        // Get document count - adjust this query based on your actual schema
+        const documentCount = await prisma.contact.count({
+          where: {
+            createdById: member.id,
+            accountId,
+            // Add any document-related filters here
+          }
+        });
+
+        // Calculate completion percentage based on available data
+        let completionScore = 0;
+        if (contactCount > 0) completionScore += 40;
+        if (documentCount > 0) completionScore += 20;
+        if (member.acceptedAt) completionScore += 25;
+        if (member.lastLoginAt) completionScore += 15;
+
+        // Determine data sources based on existing data
+        const hasLinkedinData = contactCount > 50; // Heuristic for LinkedIn import
+        const hasGoogleData = contactCount > 0 && contactCount < 100; // Heuristic for Google contacts
+
+        return {
+          userId: member.id,
+          firstName: member.firstName,
+          lastName: member.lastName,
+          email: member.email,
+          isActive: member.isActive,
+          dataContribution: {
+            contacts: contactCount,
+            documents: documentCount,
+            linkedinData: hasLinkedinData,
+            googleData: hasGoogleData,
+            completionPercentage: Math.min(completionScore, 100)
+          },
+          lastDataUpload: member.lastLoginAt?.toISOString(),
+          onboardingCompleted: !!member.acceptedAt && !!member.lastLoginAt,
+          joinedAt: member.createdAt.toISOString()
+        };
+      })
+    );
+
+    res.json(memberDataOverview);
+  } catch (error) {
+    console.error('Get crew data overview error:', error);
+    res.status(500).json({ error: 'Failed to get crew data overview' });
+  }
+});
+
 export default router;

@@ -141,6 +141,15 @@ app.use('/api/email', authenticateToken, emailRoutes);
 app.use('/api/crew-contacts', authenticateToken, crewContactsRoutes);
 app.use('/api/skills', authenticateToken, skillsRoutes);
 
+// 404 handler for API routes - return JSON instead of HTML
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ 
+    error: 'Endpoint not found',
+    path: req.originalUrl,
+    method: req.method
+  });
+});
+
 // Error handling
 app.use(errorHandler);
 

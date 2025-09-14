@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import ContactEditModal from '../components/ContactEditModal'
+import CreateContactModal from '../components/CreateContactModal'
 import ContactDetailView from '../components/ContactDetailView'
 import NetworkIntelligence from '../components/NetworkIntelligence'
 import BulkContactActions from '../components/BulkContactActions'
@@ -70,6 +71,8 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
   })
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isCreatingContact, setIsCreatingContact] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [viewingContact, setViewingContact] = useState<Contact | null>(null)
   const [isDetailViewOpen, setIsDetailViewOpen] = useState(false)
   const [isNetworkModalOpen, setIsNetworkModalOpen] = useState(false)
@@ -236,6 +239,45 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
       console.error('Error saving contact:', error)
       alert('Failed to save contact. Please try again.')
       throw error
+    }
+  }
+
+  const handleCreateContact = async (contactData: Partial<Contact>) => {
+    try {
+      setIsCreatingContact(true)
+      const response = await fetch(`${API_BASE_URL}/api/contacts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          firstName: contactData.firstName,
+          lastName: contactData.lastName,
+          email: contactData.email,
+          company: contactData.company || undefined,
+          position: contactData.position || undefined,
+          phone: contactData.phone || undefined,
+          tier: contactData.tier || 'TIER_3',
+          linkedinUrl: contactData.linkedinUrl || undefined,
+          relationshipNotes: contactData.relationshipNotes || undefined
+        })
+      })
+
+      if (response.ok) {
+        const newContact = await response.json()
+        setContacts(prev => [newContact, ...prev])
+        setIsCreateModalOpen(false)
+        fetchContacts() // Refresh the list to get updated counts
+      } else {
+        throw new Error('Failed to create contact')
+      }
+    } catch (error) {
+      console.error('Error creating contact:', error)
+      alert('Failed to create contact. Please try again.')
+      throw error
+    } finally {
+      setIsCreatingContact(false)
     }
   }
 
@@ -425,6 +467,16 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
         </div>
         <div className="flex flex-wrap items-center gap-2 md:gap-4">
           <span className="text-xs md:text-sm text-gray-500 px-2 py-1 bg-gray-100 rounded-full">{contacts.length} contacts</span>
+          
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center text-white hover:text-white text-xs md:text-sm font-medium bg-green-600 px-4 py-2 rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Contact
+          </button>
           
           <button
             onClick={() => setIsNetworkModalOpen(true)}
@@ -939,6 +991,14 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onBack }) => {
           setEditingContact(null)
         }}
         onSave={handleSaveContact}
+      />
+
+      {/* Create Contact Modal */}
+      <CreateContactModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSave={handleCreateContact}
+        isCreating={isCreatingContact}
       />
 
       {/* Contact Detail View */}
