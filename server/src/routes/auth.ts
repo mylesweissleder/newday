@@ -264,10 +264,19 @@ router.post('/invite', async (req: Request, res: Response) => {
   }
 });
 
-// Profile endpoint - validates JWT cookie
+// Profile endpoint - validates JWT cookie or Authorization header
 router.get('/profile', async (req: Request, res: Response) => {
   try {
-    const token = req.cookies['auth-token'];
+    // Try to get token from HTTP-only cookie first, then fallback to Authorization header
+    let token = req.cookies['auth-token'];
+    
+    // Fallback for Safari/mobile incognito mode: check Authorization header
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
 
     if (!token) {
       return res.status(401).json({ error: 'Authentication required' });
