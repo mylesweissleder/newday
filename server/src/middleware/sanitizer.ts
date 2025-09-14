@@ -106,6 +106,15 @@ export const sqlInjectionProtection = (req: Request, res: Response, next: NextFu
     console.log('Skipping SQL injection checks for legitimate contact endpoint:', req.url);
     return next();
   }
+  
+  // Debug logging for non-exempted endpoints to understand what's being flagged
+  if (req.method === 'POST' && req.url.includes('contacts')) {
+    console.log('POST request to contacts-related endpoint not exempted:', {
+      url: req.url,
+      method: req.method,
+      body: JSON.stringify(req.body).substring(0, 200)
+    });
+  }
 
   const checkForSQLInjection = (obj: any): boolean => {
     if (typeof obj === 'string') {
