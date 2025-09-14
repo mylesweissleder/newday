@@ -64,7 +64,6 @@ const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({ campaign: ini
       setLoading(true)
       const response = await fetch(`/api/campaigns/${campaign.id}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -86,7 +85,6 @@ const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({ campaign: ini
       setContactsLoading(true)
       const response = await fetch('/api/contacts', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -108,13 +106,12 @@ const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({ campaign: ini
 
   const addContactsToCampaign = async () => {
     try {
-      const response = await fetch(`/api/campaigns/${campaign.id}/contacts`, {
+      const response = await fetch(`https://network-crm-api.onrender.com/api/campaigns/${campaign.id}/contacts`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
-        credentials: 'include',
         body: JSON.stringify({ contactIds: selectedContacts })
       })
 
@@ -131,13 +128,12 @@ const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({ campaign: ini
 
   const updateContactStatus = async (contactId: string, status: string, personalizedNote?: string) => {
     try {
-      const response = await fetch(`/api/campaigns/${campaign.id}/contacts/${contactId}`, {
+      const response = await fetch(`https://network-crm-api.onrender.com/api/campaigns/${campaign.id}/contacts/${contactId}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
-        credentials: 'include',
         body: JSON.stringify({ status, personalizedNote })
       })
 
