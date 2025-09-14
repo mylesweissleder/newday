@@ -97,7 +97,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Security middleware
 app.use(xssProtection);
-app.use(sqlInjectionProtection);
+// TEMPORARY: Completely disable SQL injection protection while debugging
+// app.use(sqlInjectionProtection);
 
 // Site access control removed - using Site-Password headers for security instead
 
