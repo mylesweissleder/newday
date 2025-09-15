@@ -110,8 +110,8 @@ app.get('/health', (req, res) => {
 // Version check - to verify deployment
 app.get('/version', (req, res) => {
   res.json({ 
-    version: '2.0-optimized', 
-    features: ['bulk-import-optimized'],
+    version: '2.1-safari-auth-fix', 
+    features: ['bulk-import-optimized', 'safari-auth-fallback'],
     timestamp: new Date().toISOString() 
   });
 });
