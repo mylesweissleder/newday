@@ -83,8 +83,6 @@ export const useAuth = () => {
           loading: false,
           error: null
         })
-        // Force a page refresh to ensure the app shows the authenticated state
-        setTimeout(() => window.location.reload(), 500)
         return { success: true, user: data.user }
       } else {
         const errorMessage = data.error || data.message || 'Login failed'
@@ -136,8 +134,6 @@ export const useAuth = () => {
           loading: false,
           error: null
         })
-        // Force a page refresh to ensure the app shows the authenticated state
-        setTimeout(() => window.location.reload(), 500)
         return { success: true, user: data.user }
       } else {
         const errorMessage = data.error || data.message || 'Registration failed'
