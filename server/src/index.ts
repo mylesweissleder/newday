@@ -8,7 +8,8 @@ import prisma from './utils/prisma';
 import logger from './utils/logger';
 import { validateEnvironment, getConfig } from './utils/validateEnv';
 
-// Force deployment with Safari authentication fix - v2
+// CRITICAL FIX - Safari login broken - must deploy immediately
+// Force deployment with Safari authentication fix - v3
 
 // Route imports
 import authRoutes from './routes/auth';
